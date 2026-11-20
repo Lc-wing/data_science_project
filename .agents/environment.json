@@ -1,0 +1,3 @@
+{
+  "install": "set -euo pipefail; REPO_DIR=\"$(pwd)\"; uv sync --dev; \"$REPO_DIR/.venv/bin/python\" -m ipykernel install --user --name ds-ml --display-name \"Python 3.11 (DS/ML)\"; sed -i '/case \\$- in/,/esac/d' \"$HOME/.bashrc\" 2>/dev/null || true; grep -qxF \"export VIRTUAL_ENV=\\\"$REPO_DIR/.venv\\\"\" \"$HOME/.bashrc\" || echo \"export VIRTUAL_ENV=\\\"$REPO_DIR/.venv\\\"\" >> \"$HOME/.bashrc\"; grep -qxF \"export PATH=\\\"$REPO_DIR/.venv/bin:\\$PATH\\\"\" \"$HOME/.bashrc\" || echo \"export PATH=\\\"$REPO_DIR/.venv/bin:\\$PATH\\\"\" >> \"$HOME/.bashrc\"; grep -qxF 'export MPLBACKEND=\"Agg\"' \"$HOME/.bashrc\" || echo 'export MPLBACKEND=\"Agg\"' >> \"$HOME/.bashrc\""
+}

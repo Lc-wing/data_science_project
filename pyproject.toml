@@ -1,0 +1,43 @@
+[project]
+name = "data-science-project"
+version = "0.1.0"
+description = "Data science and machine learning experiment environment"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4>=4.12",
+    "imbalanced-learn>=0.12",
+    "ipykernel>=6.29",
+    "joblib>=1.4",
+    "jupyterlab>=4.2",
+    "lightgbm>=4.5",
+    "matplotlib>=3.9",
+    "nbconvert>=7.16",
+    "nbformat>=5.10",
+    "numpy>=2.0",
+    "openpyxl>=3.1",
+    "optuna>=4.0",
+    "pandas>=2.2",
+    "plotly>=5.24",
+    "pyarrow>=18.0",
+    "requests>=2.32",
+    "scikit-learn>=1.5",
+    "scipy>=1.14",
+    "seaborn>=0.13",
+    "shap>=0.46",
+    "statsmodels>=0.14",
+    "xgboost>=2.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.7",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
