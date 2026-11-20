@@ -1,0 +1,46 @@
+{
+  "n_obs": 23,
+  "seed": 42,
+  "n_boot": 2000,
+  "permutations": 999,
+  "inference": "Cross-sectional associations only. Coefficients describe conditional associations between zone accessibility and the two pre-specified covariates.",
+  "model_policy": "OLS_HC3, SEM_ML, and SLM_ML are pre-specified and reported side by side for every outcome. Diagnostic p-values do not select a model.",
+  "predictors": [
+    "elderly_share",
+    "log_pop_density"
+  ],
+  "outcomes": [
+    "acc10_park",
+    "acc10_health_centre",
+    "acc10_library",
+    "acc10_bus_stop",
+    "acc10_ev_charger",
+    "acc10_composite",
+    "acc15_park",
+    "acc15_health_centre",
+    "acc15_library",
+    "acc15_bus_stop",
+    "acc15_ev_charger",
+    "acc15_composite"
+  ],
+  "vif": {
+    "elderly_share": 1.1584826265057688,
+    "log_pop_density": 1.1584826265057684
+  },
+  "weights": {
+    "knn4": {
+      "definition": "row-standardized k=4 nearest neighbors",
+      "n_islands": 0,
+      "min_neighbors": 4,
+      "max_neighbors": 4,
+      "n_components": 1
+    },
+    "bridge_queen": {
+      "definition": "queen contiguity with centroid bridges between components",
+      "n_islands": 0,
+      "min_neighbors": 1,
+      "max_neighbors": 6,
+      "n_components": 1
+    }
+  }
+}
