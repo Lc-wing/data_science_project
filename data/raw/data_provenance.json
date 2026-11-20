@@ -1,0 +1,844 @@
+{
+  "schema_version": "1.0.0",
+  "project": "MacaoSpatialEquity — Plan 5 Phase A",
+  "generated_at_utc8": "2026-11-20T17:58:18+08:00",
+  "random_seed": 42,
+  "analysis_crs": "EPSG:32649",
+  "walking_speed_kmh": 4.5,
+  "official_registry_urls": {
+    "ssm_health_centres_zh": "https://www.gov.mo/zh-hant/services/ps-1547/ps-1547a/",
+    "ssm_health_centres_en": "https://www.gov.mo/en/services/ps-1547/ps-1547a/",
+    "ic_libraries_zh": "https://www.library.gov.mo/zh-hant/branch-libraries/public-library/macao",
+    "ic_libraries_en": "https://www.library.gov.mo/en/branch-libraries/public-library/macao",
+    "ic_notice_548_ilha_verde_relocation": "https://www.library.gov.mo/en/aboutus/notice/548",
+    "iam_parks_and_gardens": "https://www.iam.gov.mo/c/garden/itemList",
+    "mlm_lrt_routes": "https://www.mlm.com.mo/en/route.html",
+    "data_gov_mo_portal": "https://data.gov.mo",
+    "data_gov_mo_dsat_bus_probe": "https://api.data.gov.mo/datadir/downloadSingleFile?id=e7b2e84d-3333-42f0-b676-64ce95306f0d"
+  },
+  "data_gov_mo_access_gate": {
+    "portal_url": "https://data.gov.mo",
+    "attempted_dataset_ids": [
+      "e7b2e84d-3333-42f0-b676-64ce95306f0d",
+      "ea50a770-cc35-47cc-a3ba-7f60092d4bc4"
+    ],
+    "status": "blocked_by_macao_one_account_login_gate",
+    "http_status": null,
+    "observed_api_response": "{\"msg\":\"內部錯誤\",\"code\":1}",
+    "technical_evidence": "data.gov.mo gates api.data.gov.mo/datadir/downloadSingleFile behind Macao One Account localStorage token (account.gov.mo: 請先登入再登記使用數據集目錄).",
+    "mitigation": "Replaced with authoritative unauthenticated public APIs (DSEC CensusGIS REST, CEM EV JSON API, official gov.mo/library.gov.mo/iam.gov.mo/mlm.com.mo registries) + deterministic offline Geofabrik Macau OSM extracts."
+  },
+  "sources": [
+    {
+      "source_id": "dsec_zones_2021",
+      "dataset_name": "DSEC 2021 Population Census Statistical Zones (c2021_Zona)",
+      "authority": "DSEC (Direcção dos Serviços de Estatística e Censos)",
+      "dataset_id_or_layer": "Production2021/Census-QueryZonaBuilding-2021/MapServer/0",
+      "url": "https://www.dsec.gov.mo/CensusGIS/rest/services/Production2021/Census-QueryZonaBuilding-2021/MapServer/0/query",
+      "fetched_at_utc8": "2026-11-20T17:52:11+08:00",
+      "local_raw_path": "data/raw/dsec_zones_2021.json",
+      "sha256": "98aeb07ebc6e0c83c2f987711d604d6634a156cb68c2d9f83d706811d0db220e",
+      "byte_size": 976676,
+      "native_crs": "EPSG:8433 (ArcGIS legacy wkid:3064)",
+      "target_crs": "EPSG:32649",
+      "row_count_raw": 24,
+      "row_count_clean": 23,
+      "capacity_completeness_pct": null,
+      "fallback_used": false,
+      "fallback_reason": null,
+      "anomalies_handled": [
+        "Excluded Z26 maritime (水域); kept 23 terrestrial zones (Z01–Z23)",
+        "Local EPSG:8433 -> EPSG:32649 (always_xy=True); avoided broken server outSR=4326",
+        "Esri CW/CCW ring nesting (Z21 2 genuine airport lagoon holes), <1e-3 m² sliver drop (Z15, Z19), make_valid repair (Z01, Z15)",
+        "Z06 (筷子基區 / Fai Chi Kei) mapped to P01 (Nossa Senhora de Fátima / 花地瑪堂區), verified against DSCC official parish areas (P01=3.20 km² vs 3.2 km², P02=1.14 km² vs 1.1 km²) and OSM admin_level=6 rel/9506156 (95.8% geometric overlap)."
+      ]
+    },
+    {
+      "source_id": "dsec_buildings_2021",
+      "dataset_name": "DSEC 2021 Population Census Buildings (c2021_Building_P5)",
+      "authority": "DSEC (Direcção dos Serviços de Estatística e Censos)",
+      "dataset_id_or_layer": "Production2021/Census-QueryZonaBuilding-2021/MapServer/1",
+      "url": "https://www.dsec.gov.mo/CensusGIS/rest/services/Production2021/Census-QueryZonaBuilding-2021/MapServer/1/query",
+      "fetched_at_utc8": "2026-11-20T17:54:22+08:00",
+      "local_raw_path": "data/raw/dsec_buildings_2021.json",
+      "sha256": "e62bffb9b3477098433b4e14e911a0b1e3eb49b7263574b1400295457c0c6229",
+      "byte_size": 12641415,
+      "native_crs": "EPSG:8433 (ArcGIS legacy wkid:3064)",
+      "target_crs": "EPSG:32649",
+      "row_count_raw": 5682,
+      "row_count_clean": 3733,
+      "capacity_completeness_pct": 100.0,
+      "fallback_used": false,
+      "fallback_reason": null,
+      "anomalies_handled": [
+        "Excluded OBJECTID=1 maritime (水域: 777 total / 61 aged 65+) and 1948 zero-pop polygons; retained 3733 populated terrestrial polygons summing to exact 681293 total / 82751 aged 65+",
+        "Repaired 106 self-intersecting raw polygons via CW/CCW ring nesting + make_valid",
+        "Normalized per-building area-weighted overlay into zones_23 & H3 cells, preventing concave Z23 centroid drops (773 pop) and shoreline overhang loss (123.81 pop)"
+      ]
+    },
+    {
+      "source_id": "cem_ev_en",
+      "dataset_name": "CEM Public EV Charging Stations API (English/Portuguese)",
+      "authority": "CEM (Companhia de Electricidade de Macau)",
+      "dataset_id_or_layer": "Ajax/GetMapData?lang=en",
+      "url": "https://ev.cem-macau.com/Ajax/GetMapData?lang=en",
+      "fetched_at_utc8": "2026-11-20T17:54:31+08:00",
+      "local_raw_path": "data/raw/cem_ev_en.json",
+      "sha256": "5e4795980376fb4d37b17758c606e6be4a9693938f78c065128bdd1f43dbb91a",
+      "byte_size": 406778,
+      "native_crs": "EPSG:4326 (swapped stationlongitude=lat, stationlatitude=lon)",
+      "target_crs": "EPSG:32649",
+      "row_count_raw": 84,
+      "row_count_clean": 85,
+      "capacity_completeness_pct": 98.82,
+      "fallback_used": true,
+      "fallback_reason": "Station 9488798 has empty pilerecords; imputed capacity=12.0 from pilenum",
+      "anomalies_handled": [
+        "Swapped stationlongitude -> lat and stationlatitude -> lon on all 84/84 rows",
+        "Computed capacity=nunique(chargerid) & total_kw=sum(max(poweroutput) per chargerid)",
+        "Flagged exact 4 Zona A stations via stationdistrict=='Zona A' (plus 2 HZMB noted)",
+        "No within-CEM dedup (preserves 382819 & 387622 6.2 m apart); cross-source 25 m dedup vs OSM"
+      ]
+    },
+    {
+      "source_id": "cem_ev_tc",
+      "dataset_name": "CEM Public EV Charging Stations API (Traditional Chinese)",
+      "authority": "CEM (Companhia de Electricidade de Macau)",
+      "dataset_id_or_layer": "Ajax/GetMapData?lang=tc",
+      "url": "https://ev.cem-macau.com/Ajax/GetMapData?lang=tc",
+      "fetched_at_utc8": "2026-11-20T17:54:31+08:00",
+      "local_raw_path": "data/raw/cem_ev_tc.json",
+      "sha256": "e4c1810ae55f59eeca8fcd9b057074194ce597f64f19be1f5471f9518bdbdef9",
+      "byte_size": 406178,
+      "native_crs": "EPSG:4326 (swapped stationlongitude=lat, stationlatitude=lon)",
+      "target_crs": "EPSG:32649",
+      "row_count_raw": 84,
+      "row_count_clean": 84,
+      "capacity_completeness_pct": 98.82,
+      "fallback_used": false,
+      "fallback_reason": null,
+      "anomalies_handled": [
+        "Used lang=tc instead of lang=zh (lang=zh returns blank station names/addresses)"
+      ]
+    },
+    {
+      "source_id": "geofabrik_macau_pbf",
+      "dataset_name": "Geofabrik OpenStreetMap Macau Extract (.osm.pbf)",
+      "authority": "OpenStreetMap Contributors / Geofabrik GmbH",
+      "dataset_id_or_layer": "asia/china/macau-latest.osm.pbf",
+      "url": "https://download.geofabrik.de/asia/china/macau-latest.osm.pbf",
+      "fetched_at_utc8": "2026-11-20T17:58:04+08:00",
+      "osm_snapshot_timestamp_utc": "2026-11-19T21:22:20Z",
+      "local_raw_path": "data/raw/macau-latest.osm.pbf",
+      "sha256": "5f2f64f45bf2060a7dc7d20d725a69051a943d7d4921f20854258249b0256013",
+      "byte_size": 2963028,
+      "native_crs": "EPSG:4326",
+      "target_crs": "EPSG:32649",
+      "row_count_raw": null,
+      "row_count_clean": null,
+      "capacity_completeness_pct": null,
+      "fallback_used": false,
+      "fallback_reason": null,
+      "anomalies_handled": [
+        "Primary offline source for walk graph, rel/1867188 SAR boundary, leisure=garden, access/operator tags, amenity=charging_station, station=light_rail, and POIs (overpass-api.de and overpass.openstreetmap.fr return 502/403 on this host)."
+      ]
+    },
+    {
+      "source_id": "geofabrik_macau_gpkg_zip",
+      "dataset_name": "Geofabrik OpenStreetMap Macau Free GeoPackage (.gpkg.zip)",
+      "authority": "OpenStreetMap Contributors / Geofabrik GmbH",
+      "dataset_id_or_layer": "asia/china/macau-latest-free.gpkg.zip",
+      "url": "https://download.geofabrik.de/asia/china/macau-latest-free.gpkg.zip",
+      "fetched_at_utc8": "2026-11-20T17:58:04+08:00",
+      "osm_snapshot_timestamp_utc": "2026-11-19T21:22:20Z",
+      "local_raw_path": "data/raw/macau-latest-free.gpkg.zip",
+      "sha256": "00e1e6c9a81601cedd72929d3a685e452400776e58f8f01a96da0b437766ba38",
+      "byte_size": 3941399,
+      "native_crs": "EPSG:4326",
+      "target_crs": "EPSG:32649",
+      "row_count_raw": null,
+      "row_count_clean": null,
+      "capacity_completeness_pct": null,
+      "fallback_used": false,
+      "fallback_reason": null,
+      "anomalies_handled": [
+        "Did NOT use gis_osm_adminareas_a_free (omits Taipa); used rel/1867188 from PBF.",
+        "Deduplicated 62 dual-tagged bus_stop/bus_station rows by osm_id before cleaning."
+      ]
+    }
+  ],
+  "crs_landmark_verification": [
+    {
+      "landmark": "逸景樓",
+      "dsec_polygon_count": 1,
+      "reference_source": "OSM (22.2073517, 113.5456511)",
+      "centroid_error_m": 0.97,
+      "edge_distance_m": 0.0,
+      "threshold_m": 15.0,
+      "passed": true
+    },
+    {
+      "landmark": "快達樓",
+      "dsec_polygon_count": 2,
+      "reference_source": "CEM station 162 (Fai Tat)",
+      "centroid_error_m": 16.35,
+      "edge_distance_m": 2.13,
+      "threshold_m": 30.0,
+      "passed": true
+    },
+    {
+      "landmark": "湖畔大廈",
+      "dsec_polygon_count": 6,
+      "reference_source": "CEM station 186 (Edifício do Lago)",
+      "centroid_error_m": 22.73,
+      "edge_distance_m": 16.63,
+      "threshold_m": 50.0,
+      "passed": true
+    },
+    {
+      "landmark": "青洲坊大廈",
+      "dsec_polygon_count": 5,
+      "reference_source": "CEM station 254 (青洲坊大廈停車場)",
+      "centroid_error_m": 37.91,
+      "edge_distance_m": 0.0,
+      "threshold_m": 50.0,
+      "passed": true
+    }
+  ],
+  "facility_capacity_and_dedup_audit": {
+    "health_centre": {
+      "raw_clinic_rows": 22,
+      "final_count": 11,
+      "capacity_completeness_pct": 100.0,
+      "exclusions_documented": [
+        "Excluded 新城A區衛生站 (node/13304614301, fclass=doctors, 2021 census pop=0 in Zona A)",
+        "Excluded 橫琴澳門新街坊衛生站 (Mainland Hengqin, outside Macao SAR)",
+        "Excluded hospitals, specialized infectious-disease/TB centres, and private/union clinics"
+      ]
+    },
+    "library": {
+      "raw_library_rows": 20,
+      "final_count": 15,
+      "capacity_completeness_pct": 100.0,
+      "relocations_applied": [
+        {
+          "osm_id": "4074554769",
+          "new_building_osm_id": "668949326",
+          "name": "青洲坊圖書館 Bairro da Ilha Verde Library",
+          "shift_m": 184.68,
+          "basis": "IC Notice 548 (青洲坊圖書館 at 青洲坊大廈第二座)"
+        }
+      ],
+      "exclusions_documented": [
+        "Excluded 5 non-IC libraries: UM Wu Yee Sun (241702236), MUST (192096008), St. Paul's School Lau Yeung Siu Mui (788174713), MAM Art Museum (3210223507), Octagonal Pavilion Chamber of Commerce (405411408)",
+        "Excluded special rare-book reference library 議事亭藏書樓 (Senado Library) to keep strictly general neighbourhood lending branches (15 official IC branches)"
+      ]
+    },
+    "park": {
+      "raw_candidate_polygons": 269,
+      "dropped_restricted_access": 1,
+      "dropped_member_way_duplicates": 5,
+      "dropped_nested_child_polygons": 36,
+      "dropped_points_inside_polygons": 7,
+      "kept_polygon_parks": 227,
+      "kept_point_only_parks": 13,
+      "final_count": 240,
+      "median_polygon_area_m2_used_for_imputation": 1301.12,
+      "max_polygon_area_m2": 81718.39,
+      "reservoir_park_rel_10266786_area_m2": 41833.13,
+      "capacity_completeness_pct": 94.58
+    },
+    "bus_stop": {
+      "raw_transport_bus_rows": 668,
+      "exact_same_osm_id_dups_removed": 62,
+      "explicit_duplicate_nodes_removed": 1,
+      "private_casino_shuttle_stops_removed": 18,
+      "within_osm_spatial_merges": 0,
+      "final_count": 587,
+      "capacity_completeness_pct": 100.0
+    },
+    "ev_charger": {
+      "cem_raw": 84,
+      "cem_total_capacity": 1622.0,
+      "cem_total_pilenum": 2383.0,
+      "cem_total_kw_non_null": 21722.0,
+      "zona_a_station_ids": [
+        9480123,
+        9480425,
+        9480527,
+        9488798
+      ],
+      "hzmb_island_station_ids": [
+        234,
+        239
+      ],
+      "fallback_imputations": [
+        {
+          "facility_id": "cem_9488798",
+          "field": "capacity",
+          "value": 12.0,
+          "basis": "pilenum fallback (pilerecords empty)"
+        }
+      ],
+      "osm_raw": 15,
+      "osm_dropped_25m": 3,
+      "osm_dropped_cem_operator_dup": 1,
+      "osm_dropped_fleet_or_stub": 2,
+      "osm_dropped_proprietary_tesla": 8,
+      "osm_retained_public": 1,
+      "final_count": 85,
+      "final_total_capacity": 1629.0,
+      "capacity_completeness_pct": 98.82,
+      "osm_item_decisions": [
+        {
+          "osm_ref": "node/11081032780",
+          "name": "Tesla Destination Charger",
+          "operator": "",
+          "brand": "Tesla, Inc.",
+          "access": "yes",
+          "raw_capacity": null,
+          "nearest_cem_station_id": 172,
+          "nearest_cem_dist_m": 931.49,
+          "decision": "drop_proprietary_tesla",
+          "reason": "Proprietary single-brand Tesla Supercharger/Destination hotel/resort charger"
+        },
+        {
+          "osm_ref": "node/11081032781",
+          "name": "Tesla Destination Charger",
+          "operator": "",
+          "brand": "Tesla",
+          "access": "yes",
+          "raw_capacity": null,
+          "nearest_cem_station_id": 164,
+          "nearest_cem_dist_m": 834.54,
+          "decision": "drop_proprietary_tesla",
+          "reason": "Proprietary single-brand Tesla Supercharger/Destination hotel/resort charger"
+        },
+        {
+          "osm_ref": "node/11081032782",
+          "name": "Tesla Destination Charger",
+          "operator": "",
+          "brand": "Tesla, Inc.",
+          "access": "yes",
+          "raw_capacity": null,
+          "nearest_cem_station_id": 172,
+          "nearest_cem_dist_m": 574.21,
+          "decision": "drop_proprietary_tesla",
+          "reason": "Proprietary single-brand Tesla Supercharger/Destination hotel/resort charger"
+        },
+        {
+          "osm_ref": "node/11081032783",
+          "name": "Tesla Supercharger",
+          "operator": "Tesla, Inc.",
+          "brand": "Tesla Supercharger",
+          "access": "yes",
+          "raw_capacity": null,
+          "nearest_cem_station_id": 172,
+          "nearest_cem_dist_m": 402.99,
+          "decision": "drop_proprietary_tesla",
+          "reason": "Proprietary single-brand Tesla Supercharger/Destination hotel/resort charger"
+        },
+        {
+          "osm_ref": "node/11081032784",
+          "name": "Tesla Supercharger",
+          "operator": "Tesla, Inc.",
+          "brand": "Tesla Supercharger",
+          "access": "",
+          "raw_capacity": null,
+          "nearest_cem_station_id": 9509280,
+          "nearest_cem_dist_m": 908.55,
+          "decision": "drop_proprietary_tesla",
+          "reason": "Proprietary single-brand Tesla Supercharger/Destination hotel/resort charger"
+        },
+        {
+          "osm_ref": "node/11081032785",
+          "name": "Tesla Destination Charger",
+          "operator": "",
+          "brand": "Tesla, Inc.",
+          "access": "yes",
+          "raw_capacity": null,
+          "nearest_cem_station_id": 9509280,
+          "nearest_cem_dist_m": 948.98,
+          "decision": "drop_proprietary_tesla",
+          "reason": "Proprietary single-brand Tesla Supercharger/Destination hotel/resort charger"
+        },
+        {
+          "osm_ref": "node/11081032786",
+          "name": "Tesla Supercharger",
+          "operator": "Tesla, Inc.",
+          "brand": "Tesla Supercharger",
+          "access": "",
+          "raw_capacity": null,
+          "nearest_cem_station_id": 9526608,
+          "nearest_cem_dist_m": 435.32,
+          "decision": "drop_proprietary_tesla",
+          "reason": "Proprietary single-brand Tesla Supercharger/Destination hotel/resort charger"
+        },
+        {
+          "osm_ref": "node/11081032787",
+          "name": "Supercharger Santo António - Harbourview Hotel",
+          "operator": "Tesla",
+          "brand": "Tesla Supercharger",
+          "access": "",
+          "raw_capacity": "7",
+          "nearest_cem_station_id": 9490951,
+          "nearest_cem_dist_m": 260.42,
+          "decision": "drop_proprietary_tesla",
+          "reason": "Proprietary single-brand Tesla Supercharger/Destination hotel/resort charger"
+        },
+        {
+          "osm_ref": "node/2561573393",
+          "name": "比亞迪電動巴士充電站",
+          "operator": "",
+          "brand": "",
+          "access": "",
+          "raw_capacity": null,
+          "nearest_cem_station_id": 180,
+          "nearest_cem_dist_m": 94.82,
+          "decision": "drop_fleet_bus_depot",
+          "reason": "Electric bus fleet depot (non-public passenger EV charging)"
+        },
+        {
+          "osm_ref": "node/9744944889",
+          "name": "",
+          "operator": "澳電 CEM",
+          "brand": "",
+          "access": "yes",
+          "raw_capacity": "4",
+          "nearest_cem_station_id": 228,
+          "nearest_cem_dist_m": 54.28,
+          "decision": "drop_cem_operator_dup",
+          "reason": "CEM-operated station offset 54.3 m from CEM 228; CEM API is authoritative"
+        },
+        {
+          "osm_ref": "node/9744944890",
+          "name": "",
+          "operator": "澳電 CEM",
+          "brand": "",
+          "access": "yes",
+          "raw_capacity": "4",
+          "nearest_cem_station_id": 257,
+          "nearest_cem_dist_m": 13.78,
+          "decision": "drop_cross_source_25m",
+          "reason": "Within 25.0 m of CEM station 257 (13.8 m)"
+        },
+        {
+          "osm_ref": "node/9744955925",
+          "name": "",
+          "operator": "澳電 CEM",
+          "brand": "",
+          "access": "yes",
+          "raw_capacity": "4",
+          "nearest_cem_station_id": 226,
+          "nearest_cem_dist_m": 23.33,
+          "decision": "drop_cross_source_25m",
+          "reason": "Within 25.0 m of CEM station 226 (23.3 m)"
+        },
+        {
+          "osm_ref": "node/9744956141",
+          "name": "",
+          "operator": "",
+          "brand": "",
+          "access": "yes",
+          "raw_capacity": "4",
+          "nearest_cem_station_id": 166,
+          "nearest_cem_dist_m": 17.54,
+          "decision": "drop_cross_source_25m",
+          "reason": "Within 25.0 m of CEM station 166 (17.5 m)"
+        },
+        {
+          "osm_ref": "way/1315333311",
+          "name": "澳門超充站 Estação de Carregamento Ultra-Rápido de Macau",
+          "operator": "",
+          "brand": "",
+          "access": "",
+          "raw_capacity": "7",
+          "nearest_cem_station_id": 9509280,
+          "nearest_cem_dist_m": 1356.27,
+          "decision": "retain_public_non_cem",
+          "reason": "Verified public non-CEM charging station (1356.3 m from nearest CEM 9509280, capacity=7.0)"
+        },
+        {
+          "osm_ref": "way/1315845883",
+          "name": "",
+          "operator": "",
+          "brand": "",
+          "access": "",
+          "raw_capacity": null,
+          "nearest_cem_station_id": 9509280,
+          "nearest_cem_dist_m": 1131.98,
+          "decision": "drop_unnamed_stub",
+          "reason": "Unnamed unverified OSM charging_station stub without operator or capacity"
+        }
+      ]
+    },
+    "lrt_stations": {
+      "final_count": 14,
+      "dropped_lotus_duplicate_ids": [
+        "14330568544"
+      ],
+      "dropped_zhuhai_or_construction": 0,
+      "station_ids": [
+        "LRT01",
+        "LRT02",
+        "LRT03",
+        "LRT04",
+        "LRT05",
+        "LRT06",
+        "LRT07",
+        "LRT08",
+        "LRT09",
+        "LRT10",
+        "LRT11",
+        "LRT12",
+        "LRT13",
+        "LRT14"
+      ],
+      "osm_ids": [
+        "11401270262",
+        "7051569813",
+        "7051569804",
+        "7051569801",
+        "7051540683",
+        "7051569798",
+        "7051569795",
+        "10132281747",
+        "7051569792",
+        "7051569789",
+        "7051569786",
+        "7051569807",
+        "7051569810",
+        "12304462028"
+      ]
+    }
+  },
+  "h3_allocation_and_feature_audit": {
+    "coarse_geogrouping_refinement": {
+      "coarse_threshold_m2": 100000.0,
+      "total_populated_buildings": 3733,
+      "coarse_geogroupings_refined_count": 12,
+      "coarse_geogroupings_refined_oids": [
+        380,
+        382,
+        5322,
+        5328,
+        5571,
+        5613,
+        5614,
+        5616,
+        5618,
+        5622,
+        5623,
+        5636
+      ],
+      "coarse_geogroupings_fallback_oids": []
+    },
+    "h3_res9": {
+      "resolution": 9,
+      "candidate_cells_seeded": 444,
+      "populated_cells_retained": 287,
+      "min_building_coverage_ratio": 1.0,
+      "pop_total_sum": 681293.0,
+      "pop_65plus_sum": 82751.0,
+      "pop_total_rel_drift_pct": 0.0,
+      "pop_65plus_rel_drift_pct": 0.0
+    },
+    "h3_res8": {
+      "resolution": 8,
+      "candidate_cells_seeded": 114,
+      "populated_cells_retained": 63,
+      "min_building_coverage_ratio": 1.0,
+      "pop_total_sum": 681293.0,
+      "pop_65plus_sum": 82751.0,
+      "pop_total_rel_drift_pct": 0.0,
+      "pop_65plus_rel_drift_pct": 0.0
+    },
+    "r9_features_and_targets": {
+      "n_cells": 287,
+      "n_pos_ev_cells": 56,
+      "ev_cell_prevalence": 0.1951,
+      "total_ev_stations_in_populated_cells": 77,
+      "total_ev_capacity_in_populated_cells": 1375,
+      "osm_buildings_total": 12031,
+      "osm_buildings_effective_res": 8374.0,
+      "osm_buildings_effective_com": 761.0
+    }
+  },
+  "osmnx_network_metadata": {
+    "source": "Cached data/raw/osm_walk_graph.graphml (from Geofabrik macau-latest.osm.pbf)",
+    "graphml_path": "data/raw/osm_walk_graph.graphml",
+    "sha256": "139d98a5faf46ca342a14fe8f60e52a8238f7b8739a4a2a0bba29787ca3354cd",
+    "network_type": "walk",
+    "bidirectional": true,
+    "retain_all": true,
+    "min_component_nodes_kept": 10,
+    "pruned_nodes": 12098,
+    "pruned_edges": 33674,
+    "walk_speed_kmh": 4.5,
+    "landmark_sanity_check_min": {
+      "origin": "Ruins of St. Paul's (113.54083, 22.19762)",
+      "destination": "Senado Square (113.53969, 22.19357)",
+      "snap_origin_m": 4.02,
+      "snap_dest_m": 5.09,
+      "network_distance_m": 563.69,
+      "reverse_distance_m": 563.69,
+      "network_walk_time_min": 7.52,
+      "ruins_to_senado_min": 7.64,
+      "symmetric": true
+    },
+    "osm_snapshot_timestamp_utc": "2026-11-19T21:22:20Z"
+  },
+  "pedestrian_graph_10min_audit": {
+    "cutoff_min": 10.0,
+    "cutoff_m": 750.0,
+    "walk_speed_m_per_min": 75.0,
+    "snap_under_300m_pct": 96.52,
+    "snap_dist_median_m": 44.93,
+    "snap_dist_p95_m": 204.32,
+    "snap_dist_max_m": 1032.8,
+    "total_directed_edges": 988,
+    "total_undirected_pairs": 494,
+    "same_snap_node_pairs_guarded": 9,
+    "min_walk_time_min": 4.5304,
+    "max_walk_time_min": 9.9985,
+    "cross_block_edge_count": 92,
+    "cross_block_edge_share": 0.0931
+  },
+  "spatial_folds_summary": {
+    "method": "island_aware_kmeans",
+    "description": "Island-Aware Geographic KMeans on EPSG:32649 cell centroids (Macao Peninsula k=3, Taipa-Cotai-Coloane k=2), canonically ordered North->South (0..4)",
+    "seed": 42,
+    "n_init": 20,
+    "n_blocks": 5,
+    "peninsula_k": 3,
+    "islands_k": 2,
+    "n_cells_total": 287,
+    "n_pos_ev_total": 56,
+    "n_neg_ev_total": 231,
+    "prevalence_total": 0.1951,
+    "cross_block_edge_count": 92,
+    "cross_block_edge_share": 0.0931,
+    "total_directed_edges": 988,
+    "total_undirected_pairs": 494,
+    "blocks": [
+      {
+        "block_id": 0,
+        "landmass": "Macao Peninsula",
+        "parishes": [
+          "P01",
+          "P02"
+        ],
+        "n_cells": 29,
+        "n_pos_ev": 16,
+        "n_neg_ev": 13,
+        "prevalence": 0.5517,
+        "mean_centroid_x": 762196.18,
+        "mean_centroid_y": 2458239.26
+      },
+      {
+        "block_id": 1,
+        "landmass": "Macao Peninsula",
+        "parishes": [
+          "P01",
+          "P02",
+          "P03",
+          "P04"
+        ],
+        "n_cells": 29,
+        "n_pos_ev": 11,
+        "n_neg_ev": 18,
+        "prevalence": 0.3793,
+        "mean_centroid_x": 763326.05,
+        "mean_centroid_y": 2457262.06
+      },
+      {
+        "block_id": 2,
+        "landmass": "Macao Peninsula",
+        "parishes": [
+          "P02",
+          "P04",
+          "P05"
+        ],
+        "n_cells": 32,
+        "n_pos_ev": 14,
+        "n_neg_ev": 18,
+        "prevalence": 0.4375,
+        "mean_centroid_x": 761924.36,
+        "mean_centroid_y": 2456081.28
+      },
+      {
+        "block_id": 3,
+        "landmass": "Taipa-Cotai-Coloane",
+        "parishes": [
+          "P06",
+          "P07"
+        ],
+        "n_cells": 99,
+        "n_pos_ev": 9,
+        "n_neg_ev": 90,
+        "prevalence": 0.0909,
+        "mean_centroid_x": 764241.67,
+        "mean_centroid_y": 2452262.66
+      },
+      {
+        "block_id": 4,
+        "landmass": "Taipa-Cotai-Coloane",
+        "parishes": [
+          "P06",
+          "P07"
+        ],
+        "n_cells": 98,
+        "n_pos_ev": 6,
+        "n_neg_ev": 92,
+        "prevalence": 0.0612,
+        "mean_centroid_x": 764820.08,
+        "mean_centroid_y": 2449223.4
+      }
+    ]
+  },
+  "poi_ev_anti_leakage_audit": {
+    "total_cells": 287,
+    "cells_with_pois": 250,
+    "poi_count_raw_total": 4459,
+    "poi_count_filtered_total": 4443,
+    "ev_pois_stripped_total": 16,
+    "regex_spec_matches_remaining": 0,
+    "regex_ext_matches_remaining": 0,
+    "stripped_ev_pois": [
+      {
+        "cell_id": "8941036420bffff",
+        "osm_ref": "node/11081032782",
+        "cat_val": "charging_station",
+        "name": "Tesla Destination Charger",
+        "brand": "Tesla, Inc.",
+        "operator": ""
+      },
+      {
+        "cell_id": "8941036420bffff",
+        "osm_ref": "node/11081032783",
+        "cat_val": "charging_station",
+        "name": "Tesla Supercharger",
+        "brand": "Tesla Supercharger",
+        "operator": "Tesla, Inc."
+      },
+      {
+        "cell_id": "89410364247ffff",
+        "osm_ref": "node/11081032780",
+        "cat_val": "charging_station",
+        "name": "Tesla Destination Charger",
+        "brand": "Tesla, Inc.",
+        "operator": ""
+      },
+      {
+        "cell_id": "8941036427bffff",
+        "osm_ref": "node/11081032781",
+        "cat_val": "charging_station",
+        "name": "Tesla Destination Charger",
+        "brand": "Tesla",
+        "operator": ""
+      },
+      {
+        "cell_id": "894103642dbffff",
+        "osm_ref": "node/11081032784",
+        "cat_val": "charging_station",
+        "name": "Tesla Supercharger",
+        "brand": "Tesla Supercharger",
+        "operator": "Tesla, Inc."
+      },
+      {
+        "cell_id": "894103642dbffff",
+        "osm_ref": "node/11081032785",
+        "cat_val": "charging_station",
+        "name": "Tesla Destination Charger",
+        "brand": "Tesla, Inc.",
+        "operator": ""
+      },
+      {
+        "cell_id": "894103642dbffff",
+        "osm_ref": "node/9817756147",
+        "cat_val": "car",
+        "name": "特斯拉",
+        "brand": "特斯拉",
+        "operator": ""
+      },
+      {
+        "cell_id": "894103642dbffff",
+        "osm_ref": "node/9976143981",
+        "cat_val": "car",
+        "name": "蔚來空間 Nio Space",
+        "brand": "蔚來空間 Nio Space",
+        "operator": ""
+      },
+      {
+        "cell_id": "8941036552fffff",
+        "osm_ref": "way/1315333311",
+        "cat_val": "charging_station",
+        "name": "澳門超充站 Estação de Carregamento Ultra-Rápido de Macau",
+        "brand": "",
+        "operator": ""
+      },
+      {
+        "cell_id": "89410365537ffff",
+        "osm_ref": "way/1315845883",
+        "cat_val": "charging_station",
+        "name": "",
+        "brand": "",
+        "operator": ""
+      },
+      {
+        "cell_id": "89410365aabffff",
+        "osm_ref": "node/2561573393",
+        "cat_val": "charging_station",
+        "name": "比亞迪電動巴士充電站",
+        "brand": "",
+        "operator": ""
+      },
+      {
+        "cell_id": "89410365c77ffff",
+        "osm_ref": "node/9744956141",
+        "cat_val": "charging_station",
+        "name": "",
+        "brand": "",
+        "operator": ""
+      },
+      {
+        "cell_id": "8941036e993ffff",
+        "osm_ref": "node/9744955925",
+        "cat_val": "charging_station",
+        "name": "",
+        "brand": "",
+        "operator": "澳電 CEM"
+      },
+      {
+        "cell_id": "8941036eda3ffff",
+        "osm_ref": "node/11081032787",
+        "cat_val": "charging_station",
+        "name": "Supercharger Santo António - Harbourview Hotel",
+        "brand": "Tesla Supercharger",
+        "operator": "Tesla"
+      },
+      {
+        "cell_id": "8941036eda7ffff",
+        "osm_ref": "node/9744944889",
+        "cat_val": "charging_station",
+        "name": "",
+        "brand": "",
+        "operator": "澳電 CEM"
+      },
+      {
+        "cell_id": "8941036edb7ffff",
+        "osm_ref": "node/9744944890",
+        "cat_val": "charging_station",
+        "name": "",
+        "brand": "",
+        "operator": "澳電 CEM"
+      }
+    ]
+  },
+  "spatial_coverage_and_temporal_notes": {
+    "census_vs_facilities_mismatch": "DSEC population census is August 2021; CEM EV and Geofabrik OSM are November 2026.",
+    "um_hengqin_campus": "0 buildings in DSEC c2021_Building_P5 intersect Z99 (UM Hengqin Campus, 1.04 km²); per DSEC official footnote, UM student/resident population is statistically consolidated in Z20 (大學及北安灣區).",
+    "zona_a_and_hzmb": "4 CEM EV stations in Zona A (stationdistrict=='Zona A': 9480123, 9480425, 9480527, 9488798) + 2 on HZMB Artificial Island (234, 239) lie 350–1,294 m east of 2021 terrestrial zones Z01–Z23 (where 2021 residential census population was 0).",
+    "geogrouping_caveat": "DSEC bundles multi-building blocks (e.g., OID 5322 Airport/Pac On/MUST, pop=4,212) into single geogrouping polygons; hybrid >100,000 m² OSM building-footprint refinement + per-building normalized areal weighting conserves exact 681,293 / 82,751 terrestrial totals while achieving 96.5% walk-graph snap < 300 m."
+  }
+}

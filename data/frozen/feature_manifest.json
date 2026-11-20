@@ -1,0 +1,26 @@
+{
+  "ml_features": [
+    "pop_total",
+    "pop_65plus",
+    "pop_density",
+    "elderly_share",
+    "intersection_density",
+    "road_density_km_per_km2",
+    "res_bldg_share",
+    "com_bldg_share",
+    "bldg_coverage_ratio",
+    "dist_nearest_lrt_m",
+    "dist_nearest_bus_m"
+  ],
+  "excluded_target_and_audit": [
+    "has_ev_charger",
+    "ev_station_count",
+    "ev_charger_capacity"
+  ],
+  "analysis_prefix_excluded": [
+    "acc10_",
+    "acc15_",
+    "lisa_"
+  ],
+  "random_seed": 42
+}
