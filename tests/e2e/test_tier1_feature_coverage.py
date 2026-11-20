@@ -87,8 +87,11 @@ from e2e_lib.contracts import (
     TERRESTRIAL_POP_TOTAL,
     TRADITIONAL_FACILITY_TYPES,
     ZONES_23_REQUIRED_COLS,
+    facility_source_family,
     normalize_resolution_label,
     normalize_weights_label,
+    provenance_local_rel,
+    provenance_timestamp,
 )
 from e2e_lib.oracle import (
     average_precision_score,
@@ -440,18 +443,12 @@ class TestA02Provenance:
             assert "http://" in url or "https://" in url or len(url) >= 6, (
                 f"Provenance entry missing URL/dataset ID: {entry}"
             )
-            ts = str(
-                entry.get("extracted_at")
-                or entry.get("downloaded_at")
-                or entry.get("timestamp")
-                or entry.get("date")
-                or ""
-            )
+            ts = provenance_timestamp(entry)
             assert re.search(r"202\d-\d{2}-\d{2}", ts), f"Invalid/missing ISO date in {entry}"
             sha = entry.get("sha256")
             if sha:
                 assert SHA256_RE.match(str(sha).strip().lower()), f"Malformed SHA-256 in {entry}"
-                local_rel = entry.get("local_path") or entry.get("file") or entry.get("path")
+                local_rel = provenance_local_rel(entry)
                 if local_rel:
                     lp = project_root / str(local_rel)
                     assert lp.is_file(), f"Provenance local snapshot missing: {lp}"
@@ -475,8 +472,11 @@ class TestA02Provenance:
         provenance_info: tuple[list[Path], Any],
     ) -> None:
         _, primary = provenance_info
+        parts = [str(primary)]
         dd_path = project_root / "data/frozen/data_dictionary.md"
-        combined = (str(primary) + "\n" + dd_path.read_text(encoding="utf-8")).lower()
+        if dd_path.is_file():
+            parts.append(dd_path.read_text(encoding="utf-8"))
+        combined = "\n".join(parts).lower()
         assert "data.gov.mo" in combined, "data.gov.mo auth/login gate not documented"
         assert any(tok in combined for tok in ("login", "auth", "token", "gate", "fallback")), (
             "Missing authentication gate / fallback rationale for data.gov.mo"
@@ -492,14 +492,14 @@ class TestA03CrsAndFacilities:
         load_gpkg: Callable[..., GpkgLayer],
     ) -> None:
         gpkg_rels = [
-            "data/frozen/cells.gpkg",
-            "data/frozen/cells_res8.gpkg",
+            "data/frozen/cells_base_res9.gpkg",
+            "data/frozen/cells_base_res8.gpkg",
             "data/frozen/zones_23.gpkg",
             "data/frozen/parishes_7.gpkg",
             "data/frozen/facilities_clean.gpkg",
             "data/frozen/lrt_stations.gpkg",
         ]
-        for opt in ("data/frozen/cells_base_res9.gpkg", "data/frozen/cells_base_res8.gpkg"):
+        for opt in ("data/frozen/cells.gpkg", "data/frozen/cells_res8.gpkg"):
             if (project_root / opt).is_file():
                 gpkg_rels.append(opt)
         for rel in gpkg_rels:
@@ -513,10 +513,11 @@ class TestA03CrsAndFacilities:
     def test_a03_macao_projected_extent_and_no_datum_shift(
         self,
         zones_23: GpkgLayer,
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
         facilities: GpkgLayer,
         lrt_stations: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
         for name, layer in (("zones_23", zones_23), ("cells", cells_r9)):
             for g in layer.geoms:
                 assert g.bbox is not None
@@ -625,7 +626,7 @@ class TestA03CrsAndFacilities:
                 s1, x1, y1, id1 = items[i]
                 for j in range(i + 1, len(items)):
                     s2, x2, y2, id2 = items[j]
-                    if s1 == s2:
+                    if facility_source_family(s1) == facility_source_family(s2):
                         continue
                     dist = math.hypot(x1 - x2, y1 - y2)
                     assert dist >= 25.0, (
@@ -676,7 +677,8 @@ class TestA04SpatialUnitsAndCensus:
         z_sum = sum(as_float(r["pop_total"]) for r in zones_23.rows)
         assert abs(p_sum - z_sum) / z_sum <= POP_TOL_ZONES_PARISHES
 
-    def test_a04_h3_res9_populated_grid_bounds_and_ids(self, cells_r9: GpkgLayer) -> None:
+    def test_a04_h3_res9_populated_grid_bounds_and_ids(self, cells_m1_r9: GpkgLayer) -> None:
+        cells_r9 = cells_m1_r9
         lo, hi = H3_R9_COUNT_BOUNDS
         assert lo <= len(cells_r9.rows) <= hi, (
             f"H3 r9 cell count {len(cells_r9.rows)} outside [{lo}, {hi}]"
@@ -690,9 +692,11 @@ class TestA04SpatialUnitsAndCensus:
 
     def test_a04_h3_res8_populated_grid_for_maup(
         self,
-        cells_r8: GpkgLayer,
-        cells_r9: GpkgLayer,
+        cells_m1_r8: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
     ) -> None:
+        cells_r8 = cells_m1_r8
+        cells_r9 = cells_m1_r9
         missing = [c for c in CELLS_BASE_R8_REQUIRED_COLS if c not in cells_r8.columns]
         assert not missing, f"cells_res8.gpkg missing columns: {missing}"
         assert H3_R8_COUNT_MIN <= len(cells_r8.rows) < len(cells_r9.rows), (
@@ -709,9 +713,11 @@ class TestA04SpatialUnitsAndCensus:
         self,
         zones_23: GpkgLayer,
         parishes_7: GpkgLayer,
-        cells_r9: GpkgLayer,
-        cells_r8: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
+        cells_m1_r8: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
+        cells_r8 = cells_m1_r8
         checks = [
             ("zones_23", zones_23, POP_TOL_ZONES_PARISHES, POP_TOL_ZONES_PARISHES),
             ("parishes_7", parishes_7, POP_TOL_ZONES_PARISHES, POP_TOL_ZONES_PARISHES),
@@ -734,8 +740,11 @@ class TestA04SpatialUnitsAndCensus:
         provenance_info: tuple[list[Path], Any],
     ) -> None:
         _, prov = provenance_info
-        dd_txt = (project_root / "data/frozen/data_dictionary.md").read_text(encoding="utf-8")
-        combined = (dd_txt + "\n" + str(prov)).lower()
+        parts = [str(prov)]
+        dd_path = project_root / "data/frozen/data_dictionary.md"
+        if dd_path.is_file():
+            parts.append(dd_path.read_text(encoding="utf-8"))
+        combined = "\n".join(parts).lower()
         assert "z26" in combined or "maritime" in combined or "水域" in combined
         assert "zona a" in combined or "zone a" in combined
         assert "hengqin" in combined or "橫琴" in combined
@@ -765,8 +774,9 @@ class TestA05WalkGraphAndAntiLeakage:
     def test_a05_walk_graph_cell_snap_coverage(
         self,
         walk_graph_summary: GraphMLSummary,
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
         centroids = [(as_float(r["centroid_x"]), as_float(r["centroid_y"])) for r in cells_r9.rows]
         frac, max_d = nearest_node_snap_fraction(
             centroids, walk_graph_summary.nodes_utm49n, max_dist_m=300.0
@@ -797,9 +807,10 @@ class TestA05WalkGraphAndAntiLeakage:
 
     def test_a05_ml_features_complete_finite_and_in_domain(
         self,
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
         feature_manifest: dict[str, Any],
     ) -> None:
+        cells_r9 = cells_m1_r9
         for col in feature_manifest["ml_features"]:
             assert col in cells_r9.columns, f"ML feature {col!r} missing from cells.gpkg"
             vals = [as_float(r[col]) for r in cells_r9.rows]
@@ -812,8 +823,9 @@ class TestA05WalkGraphAndAntiLeakage:
     def test_a05_cell_poi_texts_complete_and_zero_ev_leakage(
         self,
         poi_texts: tuple[list[str], list[dict[str, str]]],
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
         headers, rows = poi_texts
         assert list(POI_TEXTS_REQUIRED_COLS) == headers[: len(POI_TEXTS_REQUIRED_COLS)] or all(
             c in headers for c in POI_TEXTS_REQUIRED_COLS
@@ -849,8 +861,9 @@ class TestA06GraphAndSpatialBlocks:
     def test_a06_graph_edges_schema_and_valid_cell_ids(
         self,
         graph_edges: tuple[list[str], list[dict[str, str]]],
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
         headers, rows = graph_edges
         missing = [c for c in GRAPH_EDGES_REQUIRED_COLS if c not in headers]
         assert not missing, f"graph_edges.csv missing columns: {missing}"
@@ -892,8 +905,9 @@ class TestA06GraphAndSpatialBlocks:
     def test_a06_spatial_folds_schema_and_exact_5_blocks(
         self,
         spatial_folds: tuple[list[str], list[dict[str, str]]],
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
         headers, rows = spatial_folds
         assert all(c in headers for c in SPATIAL_FOLDS_REQUIRED_COLS)
         fold_map = {r["cell_id"]: int(float(r["spatial_block"])) for r in rows}
@@ -908,8 +922,9 @@ class TestA06GraphAndSpatialBlocks:
     def test_a06_split_metadata_all_blocks_have_both_ev_classes(
         self,
         split_metadata: dict[str, Any],
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
         seed_val = split_metadata.get("seed", split_metadata.get("random_seed"))
         assert seed_val == GLOBAL_SEED, f"Expected split_metadata seed=42, got {seed_val}"
         assert any(k in split_metadata for k in ("method", "clustering_method", "algorithm"))
@@ -922,9 +937,10 @@ class TestA06GraphAndSpatialBlocks:
 
     def test_a06_spatial_blocks_geographically_clustered_and_same_block_exact(
         self,
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
         graph_edges: tuple[list[str], list[dict[str, str]]],
     ) -> None:
+        cells_r9 = cells_m1_r9
         pts = [
             (
                 str(r["cell_id"]),

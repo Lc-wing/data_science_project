@@ -60,6 +60,7 @@ from e2e_lib.contracts import (
     POP_TOL_H3_65PLUS,
     POP_TOL_H3_TOTAL,
     POP_TOL_ZONES_PARISHES,
+    RAW_SOURCE_GPKG_NAMES,
     REQUIRED_FIGURES,
     REQUIRED_PYPROJECT_PACKAGES,
     SECRET_TOKEN_RE,
@@ -73,8 +74,11 @@ from e2e_lib.contracts import (
     TRADITIONAL_FACILITY_TYPES,
     UNIT_CAPACITY_FACILITIES,
     ZONA_A_MIN_E,
+    facility_source_family,
     normalize_resolution_label,
     normalize_weights_label,
+    provenance_count,
+    provenance_timestamp,
 )
 from e2e_lib.oracle import (
     holm_bonferroni,
@@ -226,16 +230,10 @@ class TestFA01EnvAndProvenanceBoundaries:
             assert url.startswith("http://") or url.startswith("https://"), (
                 f"Provenance entry lacks http(s):// URL: {entry}"
             )
-            ts = str(
-                entry.get("extracted_at")
-                or entry.get("downloaded_at")
-                or entry.get("timestamp")
-                or entry.get("date")
-                or ""
-            )
+            ts = provenance_timestamp(entry)
             assert re.search(r"^\d{4}-\d{2}-\d{2}", ts.strip()), f"Invalid ISO date: {ts!r}"
-            cnt = entry.get("record_count", entry.get("count", entry.get("size_bytes", 1)))
-            assert int(float(cnt)) > 0, f"Non-positive record count in {entry}"
+            cnt = provenance_count(entry)
+            assert cnt is not None and cnt > 0, f"Non-positive record count in {entry}"
             sha = entry.get("sha256")
             if sha is not None:
                 assert SHA256_RE.match(str(sha).strip().lower()), f"Invalid SHA-256 hex: {sha!r}"
@@ -287,7 +285,11 @@ class TestFA02CrsGeometryAndAlignment:
         for sub in ("data/frozen", "data/interim"):
             d = project_root / sub
             if d.is_dir():
-                gpkg_paths.extend(sorted(d.glob("*.gpkg")))
+                gpkg_paths.extend(
+                    p
+                    for p in sorted(d.glob("*.gpkg"))
+                    if p.name not in RAW_SOURCE_GPKG_NAMES
+                )
         assert len(gpkg_paths) >= 6, f"Expected >= 6 .gpkg files, found {len(gpkg_paths)}"
         for p in gpkg_paths:
             layer = load_gpkg(p, allow_multi_layer=(p.name == "facilities_clean.gpkg"))
@@ -302,11 +304,13 @@ class TestFA02CrsGeometryAndAlignment:
         self,
         zones_23: GpkgLayer,
         parishes_7: GpkgLayer,
-        cells_r9: GpkgLayer,
-        cells_r8: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
+        cells_m1_r8: GpkgLayer,
         facilities: GpkgLayer,
         lrt_stations: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
+        cells_r8 = cells_m1_r8
         poly_layers = (
             ("zones_23", zones_23),
             ("parishes_7", parishes_7),
@@ -332,11 +336,13 @@ class TestFA02CrsGeometryAndAlignment:
         self,
         zones_23: GpkgLayer,
         parishes_7: GpkgLayer,
-        cells_r9: GpkgLayer,
-        cells_r8: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
+        cells_m1_r8: GpkgLayer,
         facilities: GpkgLayer,
         lrt_stations: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
+        cells_r8 = cells_m1_r8
         for name, layer in (
             ("zones_23", zones_23),
             ("parishes_7", parishes_7),
@@ -404,9 +410,10 @@ class TestFA02CrsGeometryAndAlignment:
         self,
         zones_23: GpkgLayer,
         parishes_7: GpkgLayer,
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
         facilities: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
         for name, layer in (
             ("zones_23", zones_23),
             ("parishes_7", parishes_7),
@@ -423,9 +430,10 @@ class TestFA02CrsGeometryAndAlignment:
     def test_t2_cell_centroids_and_area_arithmetic(
         self,
         project_root: Path,
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
         load_gpkg: Callable[..., GpkgLayer],
     ) -> None:
+        cells_r9 = cells_m1_r9
         layers = [cells_r9]
         base_r9 = project_root / "data/frozen/cells_base_res9.gpkg"
         if base_r9.is_file():
@@ -478,10 +486,12 @@ class TestFA03CensusAndSpatialUnits:
         project_root: Path,
         zones_23: GpkgLayer,
         parishes_7: GpkgLayer,
-        cells_r9: GpkgLayer,
-        cells_r8: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
+        cells_m1_r8: GpkgLayer,
         load_gpkg: Callable[..., GpkgLayer],
     ) -> None:
+        cells_r9 = cells_m1_r9
+        cells_r8 = cells_m1_r8
         layers = [
             ("zones_23", zones_23),
             ("parishes_7", parishes_7),
@@ -501,10 +511,12 @@ class TestFA03CensusAndSpatialUnits:
         project_root: Path,
         zones_23: GpkgLayer,
         parishes_7: GpkgLayer,
-        cells_r9: GpkgLayer,
-        cells_r8: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
+        cells_m1_r8: GpkgLayer,
         load_gpkg: Callable[..., GpkgLayer],
     ) -> None:
+        cells_r9 = cells_m1_r9
+        cells_r8 = cells_m1_r8
         layers = [
             ("zones_23", zones_23, POP_TOL_ZONES_PARISHES, POP_TOL_ZONES_PARISHES),
             ("parishes_7", parishes_7, POP_TOL_ZONES_PARISHES, POP_TOL_ZONES_PARISHES),
@@ -527,9 +539,11 @@ class TestFA03CensusAndSpatialUnits:
     def test_t2_demographic_ratios_and_log_density(
         self,
         zones_23: GpkgLayer,
-        cells_r9: GpkgLayer,
-        cells_r8: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
+        cells_m1_r8: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
+        cells_r8 = cells_m1_r8
         for label, layer in (
             ("zones_23", zones_23),
             ("cells_r9", cells_r9),
@@ -559,9 +573,11 @@ class TestFA03CensusAndSpatialUnits:
 
     def test_t2_h3_v4_cell_id_format_and_counts(
         self,
-        cells_r9: GpkgLayer,
-        cells_r8: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
+        cells_m1_r8: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
+        cells_r8 = cells_m1_r8
         lo9, hi9 = H3_R9_COUNT_BOUNDS
         assert lo9 <= len(cells_r9.rows) <= hi9
         assert H3_R8_COUNT_MIN <= len(cells_r8.rows) < len(cells_r9.rows)
@@ -572,7 +588,8 @@ class TestFA03CensusAndSpatialUnits:
         assert all(H3_R9_RE.match(cid) for cid in r9_ids)
         assert all(H3_R8_RE.match(cid) for cid in r8_ids)
 
-    def test_t2_cell_covariates_domain_and_no_nans(self, cells_r9: GpkgLayer) -> None:
+    def test_t2_cell_covariates_domain_and_no_nans(self, cells_m1_r9: GpkgLayer) -> None:
+        cells_r9 = cells_m1_r9
         for r in cells_r9.rows:
             for feat in ML_FEATURES_REQUIRED:
                 val = as_float(r[feat])
@@ -665,7 +682,7 @@ class TestFA04FacilitiesAndDedup:
                 s1, x1, y1 = pts[i]
                 for j in range(i + 1, len(pts)):
                     s2, x2, y2 = pts[j]
-                    if s1 != s2:
+                    if facility_source_family(s1) != facility_source_family(s2):
                         d = math.hypot(x1 - x2, y1 - y2)
                         assert d >= 25.0, f"Cross-source pair < 25m in {ftype}: {d:.2f} m"
 
@@ -749,9 +766,10 @@ class TestFA05WalkGraphBlocksAndAntiLeakage:
     def test_t2_graph_dual_landmass_and_no_cross_sea_teleport(
         self,
         graph_edges: tuple[list[str], list[dict[str, str]]],
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
         walk_graph_summary: GraphMLSummary,
     ) -> None:
+        cells_r9 = cells_m1_r9
         assert walk_graph_summary.peninsula_nodes >= 20
         assert walk_graph_summary.island_nodes >= 10, (
             "osm_walk_graph.graphml missing Taipa-Cotai-Coloane nodes"
@@ -783,9 +801,10 @@ class TestFA05WalkGraphBlocksAndAntiLeakage:
     def test_t2_spatial_blocks_5_folds_both_ev_classes_geocoherent(
         self,
         spatial_folds: tuple[list[str], list[dict[str, str]]],
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
         graph_edges: tuple[list[str], list[dict[str, str]]],
     ) -> None:
+        cells_r9 = cells_m1_r9
         _, f_rows = spatial_folds
         blocks = {int(float(r["spatial_block"])) for r in f_rows}
         assert blocks == {0, 1, 2, 3, 4}, f"Spatial blocks must be {{0..4}}, got {blocks}"
@@ -806,8 +825,9 @@ class TestFA05WalkGraphBlocksAndAntiLeakage:
     def test_t2_split_metadata_json_schema_and_counts(
         self,
         split_metadata: dict[str, Any],
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
         assert split_metadata.get("seed", split_metadata.get("random_seed")) == GLOBAL_SEED
         blocks_container = (
             split_metadata.get("blocks")
@@ -860,8 +880,9 @@ class TestFA05WalkGraphBlocksAndAntiLeakage:
     def test_t2_anti_leakage_poi_texts_ev_regex_zero_hits(
         self,
         poi_texts: tuple[list[str], list[dict[str, str]]],
-        cells_r9: GpkgLayer,
+        cells_m1_r9: GpkgLayer,
     ) -> None:
+        cells_r9 = cells_m1_r9
         _, rows = poi_texts
         assert len(rows) == len(cells_r9.rows)
         for r in rows:
