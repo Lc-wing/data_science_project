@@ -5,7 +5,12 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-DEFAULT_REPO_ROOT = Path("/home/antigravity/Lc-wing/data_science_project")
+# tests/e2e/e2e_lib/contracts.py -> repository root
+DEFAULT_REPO_ROOT = Path(__file__).resolve().parents[3]
+
+# Geofabrik extract cached by M1 at data/interim/macau.gpkg. It stays CRS84
+# (gpkg srs_id 100000), not an EPSG:32649 analysis product.
+RAW_SOURCE_GPKG_NAMES: frozenset[str] = frozenset({"macau.gpkg"})
 
 # Core geospatial & reproducibility constants
 TARGET_EPSG = 32649
@@ -54,6 +59,18 @@ TRADITIONAL_FACILITY_TYPES: tuple[str, ...] = (
     "bus_stop",
 )
 UNIT_CAPACITY_FACILITIES: frozenset[str] = frozenset({"health_centre", "library", "bus_stop"})
+
+
+def facility_source_family(source: str) -> str:
+    """Provider family used by the cross-source 25 m dedup contract.
+
+    M1 writes OSM layer names (`osm_geofabrik_landuse`, `osm_pbf_garden`) into
+    `source`. Those are one OSM extract, not independent registries. Cross-source
+    dedup compares families (`cem` vs `osm`), and does not collapse nearby
+    features that share a family (opposite bus poles, adjacent OSM parks).
+    """
+    token = source.strip().lower().split("+", 1)[0].split("_", 1)[0]
+    return token or source.strip().lower()
 LISA_CLUSTERS: frozenset[str] = frozenset({"HH", "LL", "LH", "HL", "NS"})
 H3_MODEL_TYPES: frozenset[str] = frozenset({"OLS_HC3", "SEM_ML", "SLM_ML"})
 ML_MODEL_NAMES: tuple[str, ...] = ("naive_prior", "logistic_regression", "random_forest")
@@ -332,6 +349,74 @@ SECRET_TOKEN_RE = re.compile(
     r"authorization\s*:\s*bearer\s+[A-Za-z0-9._-]{15,}|"
     r"api[_-]?key[\"']?\s*[:=]\s*[\"'][A-Za-z0-9._-]{16,}[\"'])"
 )
+
+
+PROVENANCE_TIMESTAMP_KEYS: tuple[str, ...] = (
+    "fetched_at_utc8",
+    "extracted_at",
+    "downloaded_at",
+    "timestamp",
+    "date",
+)
+PROVENANCE_LOCAL_PATH_KEYS: tuple[str, ...] = (
+    "local_raw_path",
+    "local_path",
+    "file",
+    "path",
+)
+PROVENANCE_COUNT_KEYS: tuple[str, ...] = (
+    "record_count",
+    "row_count_raw",
+    "row_count_clean",
+    "count",
+    "byte_size",
+    "size_bytes",
+)
+
+
+def _first_present(entry: dict[object, object], keys: tuple[str, ...]) -> object | None:
+    for key in keys:
+        val = entry.get(key)
+        if val is None or val == "":
+            continue
+        return val
+    return None
+
+
+def provenance_timestamp(entry: dict[object, object]) -> str:
+    """ISO timestamp from an M1 (`fetched_at_utc8`) or synthetic (`extracted_at`) entry."""
+    val = _first_present(entry, PROVENANCE_TIMESTAMP_KEYS)
+    return "" if val is None else str(val)
+
+
+def provenance_local_rel(entry: dict[object, object]) -> str:
+    """Relative snapshot path. M1 records `local_raw_path`."""
+    val = _first_present(entry, PROVENANCE_LOCAL_PATH_KEYS)
+    return "" if val is None else str(val)
+
+
+def provenance_count(entry: dict[object, object]) -> float | None:
+    """Positive size/count. Skips JSON nulls such as Geofabrik `row_count_raw`."""
+    val = _first_present(entry, PROVENANCE_COUNT_KEYS)
+    if val is None:
+        return None
+    return float(val)
+
+
+def resolve_m1_cells_r9_path(project_root: Path) -> Path:
+    """H3 r9 analysis cells: M4 `cells.gpkg` when present, else M1 `cells_base_res9.gpkg`."""
+    canonical = project_root / "data/frozen/cells.gpkg"
+    if canonical.is_file():
+        return canonical
+    return project_root / "data/frozen/cells_base_res9.gpkg"
+
+
+def resolve_m1_cells_r8_path(project_root: Path) -> Path:
+    """H3 r8 analysis cells: M4 `cells_res8.gpkg` when present, else M1 `cells_base_res8.gpkg`."""
+    canonical = project_root / "data/frozen/cells_res8.gpkg"
+    if canonical.is_file():
+        return canonical
+    return project_root / "data/frozen/cells_base_res8.gpkg"
 
 
 def resolve_provenance_paths(project_root: Path) -> list[Path]:

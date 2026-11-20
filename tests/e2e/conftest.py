@@ -20,6 +20,8 @@ from e2e_lib.contracts import (  # noqa: E402
     REPORT_BIB_REL,
     REPORT_PDF_REL,
     REPORT_TEX_REL,
+    resolve_m1_cells_r8_path,
+    resolve_m1_cells_r9_path,
     resolve_provenance_paths,
     resolve_zones_with_2sfca_path,
 )
@@ -49,7 +51,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 @pytest.fixture(scope="session")
 def project_root(request: pytest.FixtureRequest) -> Path:
-    """Resolve target root: --project-root > MACAO_EQUITY_ROOT > canonical repo path."""
+    """Resolve target root: --project-root > MACAO_EQUITY_ROOT > this repository."""
     cli_val = request.config.getoption("--project-root")
     env_val = os.environ.get("MACAO_EQUITY_ROOT")
     raw = cli_val or (env_val if env_val and env_val.strip() else None)
@@ -134,12 +136,32 @@ def load_png(project_root: Path) -> Callable[[str | Path], PngInfo]:
 
 @pytest.fixture(scope="session")
 def cells_r9(load_gpkg: Callable[..., GpkgLayer]) -> GpkgLayer:
+    """M4 canonical H3 r9 bundle (`data/frozen/cells.gpkg`). Absent until M4."""
     return load_gpkg("data/frozen/cells.gpkg")
 
 
 @pytest.fixture(scope="session")
 def cells_r8(load_gpkg: Callable[..., GpkgLayer]) -> GpkgLayer:
+    """M4 canonical H3 r8 bundle (`data/frozen/cells_res8.gpkg`). Absent until M4."""
     return load_gpkg("data/frozen/cells_res8.gpkg")
+
+
+@pytest.fixture(scope="session")
+def cells_m1_r9(
+    project_root: Path,
+    load_gpkg: Callable[..., GpkgLayer],
+) -> GpkgLayer:
+    """M1 H3 r9 grid, or the M4 canonical file once `cells.gpkg` exists."""
+    return load_gpkg(resolve_m1_cells_r9_path(project_root))
+
+
+@pytest.fixture(scope="session")
+def cells_m1_r8(
+    project_root: Path,
+    load_gpkg: Callable[..., GpkgLayer],
+) -> GpkgLayer:
+    """M1 H3 r8 grid, or the M4 canonical file once `cells_res8.gpkg` exists."""
+    return load_gpkg(resolve_m1_cells_r8_path(project_root))
 
 
 @pytest.fixture(scope="session")

@@ -68,7 +68,8 @@ tests/e2e/
 - `conftest.py` registers `--project-root <path>` with precedence:
   1. `--project-root` CLI flag
   2. `MACAO_EQUITY_ROOT` environment variable
-  3. Default: `/home/antigravity/Lc-wing/data_science_project`
+  3. Default: the repository root that contains `tests/e2e/` (resolved from `tests/e2e/e2e_lib/contracts.py`, not a machine-specific checkout path)
+- Run the suite from that root with `uv run pytest tests/e2e --project-root .` (or omit `--project-root` to use the default above). M2–M4 artifact tests stay in the suite and fail until those milestones exist.
 - Read-only SQLite URI (`file:<path>?mode=ro`) guarantees reading frozen `.gpkg` artifacts NEVER writes `-wal`/`-shm` sidecars or alters mtimes/SHA-256 checksums.
 - Dual-path handling for `data_provenance.json` (`outputs/metrics/data_provenance.json` preferred, fallback `data/raw/data_provenance.json`; if both exist, Tier 3 asserts agreement).
 - Single-layer and multi-layer `.gpkg` support via `gpkg_contents WHERE data_type = 'features'`.

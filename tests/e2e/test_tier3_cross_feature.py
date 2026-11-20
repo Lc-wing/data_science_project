@@ -195,9 +195,11 @@ def test_t3_01_frozen_cells_preserve_m1_base_verbatim(
 def test_t3_02_spatial_hierarchy_pop_and_parish_rollup(
     zones_23: GpkgLayer,
     parishes_7: GpkgLayer,
-    cells_r9: GpkgLayer,
-    cells_r8: GpkgLayer,
+    cells_m1_r9: GpkgLayer,
+    cells_m1_r8: GpkgLayer,
 ) -> None:
+    cells_r9 = cells_m1_r9
+    cells_r8 = cells_m1_r8
     """zones_23.gpkg <-> parishes_7.gpkg <-> cells.gpkg <-> cells_res8.gpkg pop rollup."""
     zone_to_parish = {str(r["zone_id"]): str(r["parish_id"]) for r in zones_23.rows}
     parish_ids = {str(r["parish_id"]) for r in parishes_7.rows}
@@ -246,8 +248,9 @@ def test_t3_02_spatial_hierarchy_pop_and_parish_rollup(
 def test_t3_03_facilities_to_cells_ev_counts_and_distances(
     facilities: GpkgLayer,
     lrt_stations: GpkgLayer,
-    cells_r9: GpkgLayer,
+    cells_m1_r9: GpkgLayer,
 ) -> None:
+    cells_r9 = cells_m1_r9
     """facilities_clean.gpkg + lrt_stations.gpkg <-> cells.gpkg EV counts/capacity & distances."""
     ev_pts: list[tuple[float, float, int]] = []
     bus_pts: list[tuple[float, float]] = []
