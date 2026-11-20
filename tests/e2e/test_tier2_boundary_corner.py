@@ -725,12 +725,14 @@ class TestFA05WalkGraphBlocksAndAntiLeakage:
     ) -> None:
         _, rows = graph_edges
         assert len(rows) > 0, "graph_edges.csv is empty"
+        problems: list[str] = []
         for idx, r in enumerate(rows):
             t = as_float(r["walk_time_min"])
-            assert t > 0.0, f"Zero/negative walk_time_min (snap singularity) at row {idx}: {t}"
-            assert t <= MAX_GRAPH_WALK_MIN + 1e-9, (
-                f"walk_time_min exceeds 10.0 min cutoff at row {idx}: {t}"
-            )
+            if not t > 0.0:
+                problems.append(f"Zero/negative walk_time_min (snap singularity) at row {idx}: {t}")
+            elif t > MAX_GRAPH_WALK_MIN + 1e-9:
+                problems.append(f"walk_time_min exceeds 10.0 min cutoff at row {idx}: {t}")
+        assert not problems, "; ".join(problems)
 
     def test_t2_graph_edges_no_self_loops_reciprocal_weight(
         self, graph_edges: tuple[list[str], list[dict[str, str]]]
@@ -740,6 +742,9 @@ class TestFA05WalkGraphBlocksAndAntiLeakage:
             assert r["src_cell_id"] != r["dst_cell_id"], f"Self-loop on {r['src_cell_id']}"
             t = as_float(r["walk_time_min"])
             w = as_float(r["weight"])
+            assert t > 0.0, (
+                f"Zero/negative walk_time_min (snap singularity) before weight check: {t}"
+            )
             assert w > 0.0
             assert abs(w - 1.0 / t) <= max(1e-6, 1e-5 * (1.0 / t)), (
                 f"weight={w} != 1/walk_time_min ({1.0 / t})"
@@ -761,7 +766,9 @@ class TestFA05WalkGraphBlocksAndAntiLeakage:
         for (u, v), (t1, w1, sb1) in seen.items():
             assert (v, u) in seen, f"Missing symmetric reverse edge ({v}, {u})"
             t2, w2, sb2 = seen[(v, u)]
-            assert abs(t1 - t2) < 1e-6 and abs(w1 - w2) < 1e-5 and sb1 == sb2
+            assert abs(t1 - t2) < 1e-6 and abs(w1 - w2) < 1e-5 and sb1 == sb2, (
+                f"Asymmetric walk_time_min on ({u}, {v}): {t1} vs {t2}"
+            )
 
     def test_t2_graph_dual_landmass_and_no_cross_sea_teleport(
         self,
@@ -1409,12 +1416,15 @@ class TestFA10FrozenBundleVisualsAndReport:
             assert "gini" in low and "ols" in low and "roc" in low
 
     def test_t2_pdf_a4_dimensions_every_page(self, report_pdf_info: PdfInfo) -> None:
-        assert report_pdf_info.total_pages >= 4
-        assert len(report_pdf_info.page_sizes_pt) == report_pdf_info.total_pages
+        problems: list[str] = []
+        if report_pdf_info.total_pages < 4:
+            problems.append(f"PDF has {report_pdf_info.total_pages} pages; expected at least 4")
+        if len(report_pdf_info.page_sizes_pt) != report_pdf_info.total_pages:
+            problems.append("page size list does not match page count")
         for idx, (w, h) in enumerate(report_pdf_info.page_sizes_pt, start=1):
-            assert abs(w - A4_WIDTH_PT) <= A4_TOL_PT and abs(h - A4_HEIGHT_PT) <= A4_TOL_PT, (
-                f"Page {idx} is not A4 (got {w}x{h} pt; US Letter 612x792 trap?)"
-            )
+            if abs(w - A4_WIDTH_PT) > A4_TOL_PT or abs(h - A4_HEIGHT_PT) > A4_TOL_PT:
+                problems.append(f"Page {idx} is not A4 (got {w}x{h} pt; US Letter 612x792 trap?)")
+        assert not problems, "; ".join(problems)
 
     def test_t2_pdf_main_text_page_budget_3_0_to_3_8(self, report_pdf_info: PdfInfo) -> None:
         mp = report_pdf_info.main_fractional_pages

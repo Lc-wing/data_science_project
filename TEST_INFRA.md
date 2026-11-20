@@ -108,3 +108,19 @@ tests/e2e/
    - **Valid synthetic Macao project**: 100% PASS across all Tier 1–4 tests (`returncode == 0`, `0 failed`, `0 errors`, `0 skipped`).
    - **15 single-fault mutations** (wrong CRS `EPSG:4326`, 315 m `EPSG:8433` datum shift, swapped CEM lat/lon, maritime `Z26` included, zero-pop cell + 2% pop drift, 3× EV capacity double-count, EV ML feature leak, POI text EV leak, graph edge `t=0` / `>10` / asymmetric, dropped Taipa–Coloane edges, spatial fold empty positive class, Theil additivity broken, H2 diff/Holm broken, H3 pretest switching missing `SEM_ML`, tampered `FREEZE_MANIFEST.json` SHA-256, Table 1 numeric drift, and PDF out-of-budget / US Letter / 150-DPI figure): **15/15 MUST fail with `returncode == 1`** and targeted diagnostic output.
 5. **E2E Track Strict AND Gate**: Requires independent PASS + `APPROVE` from 2 Reviewers, `APPROVE` from 2 empirical adversarial Challengers, and `CLEAN` from 1 non-skippable Intermediate Track Forensic Auditor before publishing `TEST_READY.md`.
+
+---
+
+## 6. Tier 5 White-Box Single-Fault Hardening
+
+`test_e2e_self_validation.py` keeps the 15 guarded checks (1 valid all-tier pass + 15 mutation checks). Two of those checks inject **bundled** mutators (`graph_edge_and_island_drop`, `table1_and_pdf_report_violations`). Section 5 names the underlying faults separately. Tier 5 (`tests/e2e/test_tier5_adversarial.py`) adds the five single-fault cases that the bundle checks do not run alone:
+
+| Fault id | Named in §5 | Required diagnostic |
+|---|---|---|
+| `graph_edge_zero_or_gt10` | graph edge `t=0` / `>10` / asymmetric | `snap singularity`, `exceeds 10.0`, and `Asymmetric walk_time_min` (both Tier 2 tests fail; `errors == 0`) |
+| `graph_dropped_islands` | dropped Taipa–Coloane edges | `Taipa-Cotai-Coloane pedestrian edges missing` |
+| `table1_numeric_drift` | Table 1 numeric drift | `missing from Table 1` |
+| `pdf_out_of_budget_and_us_letter` | PDF out-of-budget / US Letter | `is not A4` and `outside Phase A budget` |
+| `figure_low_dpi_150` | 150-DPI figure | `DPI below 300` |
+
+Each case uses the existing mutator in `e2e_lib/synthetic.py`, clones one valid synthetic root, and requires child `pytest` `returncode == 1`. A case that only trips one clause of a multi-clause fault is not accepted. The walk-time Tier 2 check reports every violating edge in one assertion so `t=0` cannot hide a `t>10` edge.
