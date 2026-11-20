@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at_utc8": "2026-11-20T23:27:06+08:00",
+  "seed": 42,
+  "crs": "EPSG:32649",
+  "phase": "A_to_B",
+  "note": "SHA-256 of every file in data/frozen except FREEZE_MANIFEST.json. cells.gpkg and cells_res8.gpkg keep M1 columns and append M2 access and LISA columns.",
+  "files": {
+    "data/frozen/cell_poi_texts.csv": "8ae5105cd6c939e4a3f97c1f74a1eb37444ccb67a30923b2c58aaf32395931e5",
+    "data/frozen/cells.gpkg": "8996bbde802e8319110870881a2d46a7826401f52dcf86de409da0b34118eee0",
+    "data/frozen/cells_base_res8.gpkg": "c728cee5110afc44a418d0ac390958592d8b2c3a530a47f3df8175a3590b95f1",
+    "data/frozen/cells_base_res9.gpkg": "9702d5881ccb7db107d6c5e525045c62f742df8298a7bad625f89d537ac5de57",
+    "data/frozen/cells_res8.gpkg": "777bcbc3ee4a87316306bfa40d5b55a553bda21f7e2f21e6bf8184ea233a906f",
+    "data/frozen/data_dictionary.md": "6ccc1791f484e412987389e3453d603eca22168adcb922c07923f356d05fd141",
+    "data/frozen/facilities_clean.gpkg": "fd070c593c933a99d54c7b2d30c461c425f605346ff5430538d46ef3a8aed6e5",
+    "data/frozen/feature_manifest.json": "df854c260a3e62192978583a9b37e8403e67d8c35cd54568471f1739d24e33c8",
+    "data/frozen/graph_edges.csv": "bafcf69019a711f3cac3a431b0a5a0238751ead3a7832414c7efd6a2cdfb9d24",
+    "data/frozen/lrt_stations.gpkg": "da327f7fd2f45fc4e0f7642c11b05499ebf725c27993811b66bf850ee5954b10",
+    "data/frozen/parishes_7.gpkg": "7804c68d68a6b2546425a37ff3d468d6ffc9c7d2f6cf576ea9455c27bb358754",
+    "data/frozen/spatial_folds.csv": "3f88812f3fc9c738930753bdd0c2e9e7a9d1c88c88176a5c4ff85807c4880b53",
+    "data/frozen/split_metadata.json": "51c2e073b68e7eac144e625bd0204f25d2f69f3a0b8284f82ca80c8a2de58fde",
+    "data/frozen/zones_23.gpkg": "f0f2901cb40340f132ebc9d7a702a820e2249741956d180bd87a063a7aa5e3d8"
+  }
+}

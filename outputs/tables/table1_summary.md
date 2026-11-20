@@ -1,0 +1,36 @@
+# Table 1. Phase A summary
+
+Copied from `h1_inequality_lisa.csv`, `h3_spatial_regression.csv`, and `phase_a_ml_baselines.json`. H3 reports OLS_HC3, SEM_ML, and SLM_ML side by side for the same 15-minute outcomes on the k=4 nearest-neighbour weights. No model is selected from a diagnostic p-value.
+
+| Panel | Item | Metric | Estimate | CI low | CI high | Aux metric | Aux value |
+| --- | --- | --- | ---: | ---: | ---: | --- | ---: |
+| H1_Gini_Theil_15min_res9 | park | gini | 0.6115 | 0.5288 | 0.6771 | theil_total | 1.2912 |
+| H1_Gini_Theil_15min_res9 | park | theil_total | 1.2912 | 0.9090 | 1.6655 | gini | 0.6115 |
+| H1_Gini_Theil_15min_res9 | health_centre | gini | 0.4923 | 0.4124 | 0.5655 | theil_total | 0.5383 |
+| H1_Gini_Theil_15min_res9 | health_centre | theil_total | 0.5383 | 0.3384 | 0.7629 | gini | 0.4923 |
+| H1_Gini_Theil_15min_res9 | library | gini | 0.3249 | 0.2624 | 0.3920 | theil_total | 0.2766 |
+| H1_Gini_Theil_15min_res9 | library | theil_total | 0.2766 | 0.1486 | 0.4396 | gini | 0.3249 |
+| H1_Gini_Theil_15min_res9 | bus_stop | gini | 0.3876 | 0.3326 | 0.4411 | theil_total | 0.5972 |
+| H1_Gini_Theil_15min_res9 | bus_stop | theil_total | 0.5972 | 0.4553 | 0.7677 | gini | 0.3876 |
+| H1_Gini_Theil_15min_res9 | ev_charger | gini | 0.4984 | 0.4315 | 0.5566 | theil_total | 0.6706 |
+| H1_Gini_Theil_15min_res9 | ev_charger | theil_total | 0.6706 | 0.4408 | 0.9414 | gini | 0.4984 |
+| H1_Gini_Theil_15min_res9 | composite | gini | 0.3203 | 0.2484 | 0.3937 | theil_total | 0.2883 |
+| H1_Gini_Theil_15min_res9 | composite | theil_total | 0.2883 | 0.1293 | 0.4828 | gini | 0.3203 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|OLS_HC3|elderly_share | coef | 3.0492 | -22.2117 | 28.3102 | p_value | 0.8130 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|OLS_HC3|log_pop_density | coef | -0.4191 | -1.1053 | 0.2670 | p_value | 0.2312 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|SEM_ML|elderly_share | coef | 5.7831 | -10.6765 | 22.2427 | p_value | 0.4910 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|SEM_ML|log_pop_density | coef | -0.4911 | -0.9136 | -0.0686 | p_value | 0.0227 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|SLM_ML|elderly_share | coef | 1.9436 | -15.3779 | 19.2652 | p_value | 0.8259 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|SLM_ML|log_pop_density | coef | -0.5196 | -0.9965 | -0.0427 | p_value | 0.0327 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|OLS_HC3|elderly_share | coef | -0.2375 | -2.2232 | 1.7482 | p_value | 0.8146 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|OLS_HC3|log_pop_density | coef | -0.0140 | -0.0746 | 0.0466 | p_value | 0.6508 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|SEM_ML|elderly_share | coef | -0.1463 | -1.6411 | 1.3485 | p_value | 0.8478 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|SEM_ML|log_pop_density | coef | -0.0198 | -0.0580 | 0.0183 | p_value | 0.3085 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|SLM_ML|elderly_share | coef | -0.3498 | -1.9324 | 1.2329 | p_value | 0.6649 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|SLM_ML|log_pop_density | coef | -0.0210 | -0.0645 | 0.0225 | p_value | 0.3443 |
+| ML_SpatialBlock_CV | naive_prior | oof_roc_auc | 0.2171 |  |  | oof_pr_auc | 0.1359 |
+| ML_SpatialBlock_CV | naive_prior | oof_brier | 0.1756 |  |  | oof_top20_hit_rate | 0.1071 |
+| ML_SpatialBlock_CV | logistic_regression | oof_roc_auc | 0.8527 |  |  | oof_pr_auc | 0.5320 |
+| ML_SpatialBlock_CV | logistic_regression | oof_brier | 0.1160 |  |  | oof_top20_hit_rate | 0.5714 |
+| ML_SpatialBlock_CV | random_forest | oof_roc_auc | 0.8581 |  |  | oof_pr_auc | 0.5780 |
+| ML_SpatialBlock_CV | random_forest | oof_brier | 0.1132 |  |  | oof_top20_hit_rate | 0.5536 |

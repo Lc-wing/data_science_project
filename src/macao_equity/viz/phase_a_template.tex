@@ -1,0 +1,88 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,margin=2.35cm]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[numbers]{natbib}
+\onehalfspacing
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{1.15em}
+\newcommand{\mfourfigfrac}{__FIG_FRAC__}
+\newcommand{\mfourpad}{__PAD_PT__pt}
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{24mm}
+{\Large Spatial Equity of Walking Access to Public Facilities and Public EV Chargers in Macao SAR\par}
+\vspace{1em}
+{\large Phase A draft\par}
+\vspace{1em}
+CS482 Data Science\par
+Group X\par
+Student ID: Group X\par
+\vspace{1em}
+20 November 2026\par
+\vspace{2em}
+\begin{minipage}{\textwidth}
+\raggedright
+Cross-sectional draft for the 12/03 checkpoint. The cover, references, contribution statement, and AI declaration are outside the main-text page count. Every estimate in the main text is copied from the committed Phase A tables.
+\end{minipage}
+\end{titlepage}
+
+\section{Introduction}
+Residents of Macao do not have the same walking access to parks, public health centres, public libraries, bus stops, and public EV chargers. The research question is descriptive. How unequal is 10-minute and 15-minute pedestrian accessibility across populated H3 cells, and how is zone-level accessibility associated with the share of residents aged 65 or older after accounting for population density?
+
+Three hypotheses were fixed before the estimates were read. H1 says population-weighted accessibility is unequal and spatially clustered. H2 compares the EV Gini with the Gini of parks, health centres, libraries, and bus stops on the same resampled cells. H3 says that, at the scale of the 23 terrestrial census zones, a higher elderly share is associated with lower accessibility once log population density is included. The people who can use the description are planners at DSSCU and DSAT, and residents who want a map of where walking access is thin. The results are correlational and cross-sectional. They do not estimate a causal siting effect, and they are not a build list.
+
+\section{Data Collection and Preparation}
+The population layer is the DSEC 2021 census. Building polygons and statistical zones were read in native EPSG:8433 and transformed to EPSG:32649. The terrestrial control totals are __POP_TOTAL__ residents and __POP_65__ residents aged 65 or older, after the maritime zone is set aside. Those counts are allocated to H3 cells by area-weighted intersection with the building polygons. The analysis grid has __N_CELLS__ populated resolution-9 cells and __N_RES8__ populated resolution-8 cells, nested in __N_ZONES__ zones and __N_PARISHES__ official parishes, including Taipa.
+
+Public EV chargers come from the CEM map API. Latitude and longitude are swapped to fall inside Macao, and capacity is the number of distinct charger identifiers. Station 9488798 has empty connector records, so its capacity metadata are incomplete and the capacity value __IMPUTED_CAP__ is imputed from the published pile count. Parks, health centres, libraries, and bus stops are whitelist-filtered against the official SSM, library, and IAM sources and then matched to OpenStreetMap. Deduplication is cross-source only, at 25 m, so opposite bus poles on the same street are kept. The cleaned layer has __N_PARK__ parks, __N_HEALTH__ health centres, __N_LIBRARY__ libraries, __N_BUS__ bus stops, and __N_EV__ EV charger points.
+
+The walk network is the Geofabrik Macau OpenStreetMap extract. Walking speed is __WALK_KMH__ km/h. Edges longer than 10 minutes are dropped from the cell graph used later. The network has no slope impedance. Footbridges and overpasses are only those present in OSM, and there is no walkable cross-harbour link, so the Peninsula and the islands stay separate components. Five geographic blocks (seed __SEED__) are frozen for validation. They contain __N_POS__ cells with at least one charger. Prevalence is __PREV__. Features for the classifiers are the non-EV whitelist. Columns that start with acc10, acc15, or lisa are excluded, as are the charger target and the charger counts.
+
+\section{Methods}
+Accessibility is a Gaussian two-step floating catchment area (2SFCA) score at 10 and 15 minutes \citep{luo2003}. Parks, health centres, libraries, and bus stops also form a composite index. Inequality is the population-weighted Gini and Theil T, with the convention that zero times the log of zero is zero, plus a within-parish and between-parish split. Uncertainty is a __N_BOOT__-draw bootstrap, seed __SEED__. Spatial structure uses a global Moran statistic and local indicators of spatial association (LISA) with __N_PERM__ permutations and Benjamini--Hochberg FDR \citep{anselin1995}.
+
+H2 is a paired bootstrap of Gini differences on identical resampled cells, with Holm adjustment across the four traditional facility types. H3 is estimated on the __N_ZONES__ zones, not on the H3 cells, so that building-level allocation is not treated as independent replicates. The pre-specified models are ordinary least squares with HC3 standard errors (OLS), a spatial error model (SEM), and a spatial lag model (SLM). Primary weights are row-standardized $k=4$ nearest neighbours. A bridge-augmented queen matrix is reported beside them. Variance-inflation factors for the two covariates are __VIF_ELD__ and __VIF_DENS__. A diagnostic p-value is not used to drop or prefer a model. The same Gini, Theil, and Moran summaries are repeated on resolution 8 and resolution 9 as a MAUP check.
+
+The classifier asks only whether a resolution-9 cell currently has a public charger. A constant prior, an L2 logistic regression, and a random forest are scored by spatial-block cross-validation. Imputation and scaling are fit on the training blocks. The reported scores are ROC-AUC, PR-AUC, the Brier score, and the share of positive cells captured in the top fifth of predicted probabilities.
+
+\section{Results}
+Figure 1 maps the 15-minute composite surface and the FDR LISA clusters on the __N_CELLS__ cells. Table 1 copies the Gini and Theil intervals, the H3 coefficients, and the out-of-fold scores from the committed outputs.
+
+On resolution-9 cells, the 15-minute EV Gini is __EV_GINI_15__ (bootstrap interval __EV_GINI_15_LO__ to __EV_GINI_15_HI__; Theil T __EV_THEIL_15__). The park Gini is __PARK_GINI_15__, the health-centre Gini is __HEALTH_GINI_15__, the library Gini is __LIBRARY_GINI_15__, the bus-stop Gini is __BUS_GINI_15__, and the composite Gini is __COMP_GINI_15__ (Theil T __COMP_THEIL_15__, of which __COMP_WITHIN_15__ is within parishes and __COMP_BETWEEN_15__ is between parishes). At 10 minutes the EV Gini is __EV_GINI_10__ and the park Gini is __PARK_GINI_10__. About __EV_ZERO_15__ percent of populated cells have zero 15-minute EV access. The composite Moran statistic is __COMP_MORAN_15__ (permutation p __COMP_MORAN_P_15__), with __COMP_N_LL__ low-low and __COMP_N_HH__ high-high cells after FDR. The EV surface is also globally clustered (Moran __EV_MORAN_15__), but the FDR screen marks no low-low or high-high EV cells. H1 is therefore supported for the composite map, and only partly supported for chargers: the Gini is clearly above zero, while the local FDR clusters are not.
+
+The 15-minute paired difference of EV Gini minus park Gini is __H2_PARK_DIFF__ (interval __H2_PARK_LO__ to __H2_PARK_HI__; Holm p __H2_PARK_HOLM__). EV minus library is __H2_LIB_DIFF__ (Holm p __H2_LIB_HOLM__) and EV minus bus is __H2_BUS_DIFF__ (Holm p __H2_BUS_HOLM__). EV minus health centre is __H2_HEALTH_DIFF__ (interval __H2_HEALTH_LO__ to __H2_HEALTH_HI__; Holm p __H2_HEALTH_HOLM__). Chargers are not uniformly more unequal than every traditional facility. They are more unequal than libraries and bus stops on this grid, and less unequal than parks, with the park contrast sitting next to the Holm threshold. That is an association among historical facility patterns, not a finding that one system was planned more fairly.
+
+For the 15-minute composite on $N=__N_ZONES__$ zones, the elderly-share coefficient is __H3_COMP_OLS__ under OLS-HC3 (p __H3_COMP_OLS_P__), __H3_COMP_SEM__ under SEM, and __H3_COMP_SLM__ under SLM. The OLS log-density coefficient is __H3_COMP_LOGPOP__. The first OLS-HC3 elderly-share row in the committed file, which is the park outcome, is __H3_PARK_OLS__ (p __H3_PARK_OLS_P__). Table 1 places OLS, SEM, and SLM side by side for the park outcome and the composite outcome, and for both covariates. Intervals are wide and cover zero. H3, as stated, is not supported. The bridge-queen fit is stored in the same regression file and is not used to pick a winner.
+
+The MAUP contrast for the 15-minute composite Gini is __MAUP_R8__ at resolution 8 and __MAUP_R9__ at resolution 9 (difference __MAUP_DELTA__). The sign and the rough magnitude agree across the two grids. Local Moran values move more than the Gini does, which is the expected scale sensitivity of a cluster statistic.
+
+Out-of-fold ROC-AUC is __NAIVE_AUC__ for the constant prior, __LR_AUC__ for logistic regression (PR-AUC __LR_PR__, Brier __LR_BRIER__, mean fold ROC-AUC __LR_MEAN__), and __RF_AUC__ for the random forest (PR-AUC __RF_PR__, Brier __RF_BRIER__, top-fifth hit rate __RF_TOP__, mean fold ROC-AUC __RF_MEAN__ with SD __RF_STD__). The forest and the logistic model are close to each other. Both sit above the constant prior. The gap between the mean fold score and the pooled out-of-fold score is part of the result: the five blocks do not have the same prevalence, so a single pooled ranking is not the same object as the average of within-block rankings.
+
+\begin{center}
+\includegraphics[width=\textwidth,height=\mfourfigfrac\textheight,keepaspectratio]{../outputs/figures/fig1_accessibility_lisa.png}\\[6pt]
+{\small Figure 1. Dual panel of 15-minute composite accessibility and FDR LISA clusters. Low-low and high-high colours are the FDR screen, not a siting recommendation.}
+\end{center}
+
+__COMPACT_TABLE__
+
+\section{Discussion}
+Table 1 answers H1--H3 without a placement rule. Composite access is unequal and clustered. Charger access is unequal, but its FDR clusters are empty. Elderly share is not associated with lower zone accessibility in the three pre-specified models. Cells that combine low composite access, no charger, and a high classifier score are candidates for field verification. They record the historical allocation of chargers. They are not sites this study has shown should receive a charger.
+
+Four limitations bound that reading. First, a uniform building-height assumption is not credible in Macao high-rise districts. Building-group counts still leave a dasymetric, building-height error inside one polygon. Second, facility capacity metadata are incomplete: several facilities use unit weights, some park areas are imputed, and station 9488798 uses an imputed capacity of __IMPUTED_CAP__. Third, walk times ignore slope and topography, miss some footbridges and overpasses, and have no cross-harbour link. Fourth, the ecological fallacy applies: a zone-level association is not an individual association. The reported patterns stay cross-sectional.
+
+\vspace*{\mfourpad}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\section*{Contribution Statement}
+This Phase A draft is a group product. The geographic-data role covers census geometries, the CEM feed, the OpenStreetMap walk network, and the H3 grids. The spatial-statistics role covers 2SFCA, Gini, Theil, LISA, and the zone regression. The machine-learning role covers the spatial-block baselines. The remaining role covers the MAUP check, the figures, and the assembly of this draft. Personal names and student numbers are left as Group X until the course roster is attached. No member is credited with a causal siting result.
+
+\section*{AI Usage Declaration}
+A coding assistant in Cursor was used for planning, coding, and writing of the Phase A pipeline and of this draft. K-Dense scientific-agent guidance is cited as Kassis and coauthors, arXiv:2609.00065 \citep{kassis2026}. The assistant drafted functions, tests, figure code, and prose. It was not allowed to invent a Gini, a Theil index, a regression coefficient, or an AUC. Verification was a numeric audit that copies each reported figure from the committed CSV or JSON cell, plus unit tests, a frozen-file checksum, and a check that the compiled PDF still contains those same figures. Disagreements were resolved by editing the prose back to the source cell, not by recomputing a new estimate for the sentence.
+
+\end{document}
