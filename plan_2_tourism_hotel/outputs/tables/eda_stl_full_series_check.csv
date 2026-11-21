@@ -1,0 +1,5 @@
+tier,max_abs_seasonal_pre_pandemic_pp,max_abs_seasonal_post_pandemic_pp,month_of_post_pandemic_max,occupancy_pct_that_month,seasonal_that_month_pp,remainder_that_month_pp
+5star,6.56525,34.809406,2023-08,90.6,-34.809406,50.50356
+4star,9.675507,9.4389,2023-03,74.1,-9.4389,10.360401
+3star,8.082139,13.716179,2023-09,73.6,-13.716179,10.022545
+2star,9.427344,10.966238,2023-09,76.2,-10.966238,1.896326

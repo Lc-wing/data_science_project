@@ -1,0 +1,4 @@
+period_label,months,mean_same_day_share_pct,mean_international_share_pct,mean_package_tour_share_pct,mean_visitors_total,mean_visitors_overnight
+pre_pandemic,120,51.345784,9.817236,28.047985,2594881.25,1263786.216667
+pandemic,35,53.995177,0.498166,0.472165,470076.142857,219520.914286
+post_pandemic,45,55.344464,6.264664,5.358912,3008717.444444,1315840.666667
