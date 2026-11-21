@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0.0",
+  "horizon_months": 1,
+  "tiers": [
+    "5star",
+    "4star",
+    "3star",
+    "2star"
+  ],
+  "definition": "An origin is the last month whose data may be used. The target is the next month. A model for an origin is fit on target months up to and including the origin, so no value from the target month or later enters the fit.",
+  "blocks": {
+    "validation_1": {
+      "first_origin": "2017-12",
+      "last_origin": "2019-11",
+      "first_target": "2018-01",
+      "last_target": "2019-12",
+      "origins": 24
+    },
+    "validation_2": {
+      "first_origin": "2023-06",
+      "last_origin": "2024-05",
+      "first_target": "2023-07",
+      "last_target": "2024-06",
+      "origins": 12
+    },
+    "test": {
+      "first_origin": "2024-07",
+      "last_origin": "2026-08",
+      "first_target": "2024-08",
+      "last_target": "2026-09",
+      "origins": 26
+    }
+  },
+  "test_origins": 26,
+  "test_forecasts": 104,
+  "validation_origins": 36,
+  "validation_forecasts": 144,
+  "first_trainable_target": "2011-01",
+  "training_rule_main": "target months in the pre-pandemic and post-pandemic periods, from the first trainable target up to the origin",
+  "training_rule_sensitivity": "the same, with pandemic-period target months kept",
+  "use_of_validation": "SARIMAX orders and LightGBM hyperparameters are chosen on the validation origins only and are then fixed for every test origin",
+  "use_of_test": "each test origin is forecast once, after the choices above are fixed"
+}

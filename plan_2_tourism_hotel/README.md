@@ -9,7 +9,7 @@ Everything for Plan 2 lives in this folder: code, data, outputs, tests, and (lat
 | Step | Content | Status |
 | --- | --- | --- |
 | 1 | Data download and Day-1 audit | done |
-| 2 | Panel build and freeze (splits, manifest, pre-registered analysis spec) | not started |
+| 2 | Panel build and freeze (splits, manifest, pre-registered analysis spec) | done |
 | 3 | EDA (STL, change points, scatter by period) | not started |
 | 4 | H1/H2 panel fixed-effects regression with Driscoll–Kraay standard errors | not started |
 | 5 | H3 rolling-origin backtest (seasonal naive, SARIMAX, LightGBM) | not started |
@@ -70,15 +70,52 @@ DICJ gaming revenue is optional in the plan and is not used.
 | `data/interim/smg_signal_events.csv`, `smg_signal_days.csv`, `smg_signal_days_monthly.csv` | Signal records, days with a signal, and typhoon days per month |
 | `outputs/tables/day1_*.csv` | Coverage, release cross-check, star-class continuity, SMG cross-checks |
 
+## Step 2: panel build and freeze
+
+```bash
+uv run python scripts/02_build_panel_and_freeze.py             # build; keeps an identical freeze
+uv run python scripts/02_build_panel_and_freeze.py --check     # verify hashes and a rebuild, write nothing
+uv run python scripts/02_build_panel_and_freeze.py --refreeze  # replace a freeze that changed
+```
+
+The script builds the analysis panel from `data/raw` and `data/interim`, writes it to `data/frozen/`, and records the SHA-256 of every frozen file in `data/frozen/FREEZE_MANIFEST.json`. Steps 3 to 6, and Phase B, read these files and nothing else. If a rebuild differs from the existing freeze the script stops and writes nothing unless `--refreeze` is given.
+
+| File | Content |
+| --- | --- |
+| `data/frozen/panel_tier_month.csv` | 804 rows: 4 star classes × 201 months (2010-01 to 2026-09), 29 columns, no missing value |
+| `data/frozen/months.csv` | The 201 months with the visitor, calendar, and typhoon variables |
+| `data/frozen/holiday_periods.csv` | The 115 holiday periods with the day each schedule was published, and the 2 schedules a later notice replaced |
+| `data/frozen/rolling_origins.csv` | 36 validation origins and 26 test origins, one month ahead |
+| `data/frozen/split_metadata.json` | The split rules |
+| `data/frozen/analysis_spec.json` | The analysis specification for steps 3 to 5 |
+| `data/frozen/data_dictionary.md` | Every column with its unit and definition |
+
+`outputs/tables/panel_variable_summary.csv` gives the range of every variable over the whole window. It is not split by period or star class: no comparison between periods or classes was looked at before the specification was fixed.
+
+### Splits
+
+- **Test:** origins 2024-07 to 2026-08, targets 2024-08 to 2026-09: 26 origins × 4 classes = 104 forecasts. Evaluated once, in step 5.
+- **Validation:** targets 2018-01 to 2019-12 (24) and 2023-07 to 2024-06 (12). All lie before the first test origin. Orders and hyperparameters are chosen here.
+- **Training rows:** target months up to the origin, from 2011-01 (twelve lags are needed), in the pre-pandemic and post-pandemic periods. A sensitivity run keeps the pandemic months.
+
+### Analysis specification
+
+[`data/frozen/analysis_spec.json`](data/frozen/analysis_spec.json) fixes, before any model is fitted: the regression equation, the standard errors, the H1 and H2 null hypotheses, the Holm families, the SARIMAX and LightGBM candidate grids, the selection rule, the metrics, the Diebold–Mariano comparisons, the H3 decision rule, and the sensitivity runs. Diagnostics are reported and change nothing. A departure from the file is listed with its reason where it happens; the file is not edited after results are seen.
+
+### Holiday days known ahead
+
+The panel carries the holiday counts twice. `cn_holiday_days` follows the final schedule and enters the ex-post regression. `cn_holiday_days_at_origin` follows the notices published by the end of the month before, and is the calendar feature of the forecasts. The two differ in four months: 2016-12, 2018-12, and 2022-12 (the notice for the next year, which sets the New Year period, came out in December) and 2020-01 (the Spring Festival period was extended on 27 January 2020).
+
 ## Layout
 
 ```text
 plan_2_tourism_hotel/
 ├── pyproject.toml, uv.lock
-├── src/macao_tourism/      # config, ingest (dsec, holidays, smg), audit
+├── src/macao_tourism/      # config, ingest (dsec, holidays, smg), audit, panel, splits, spec, freeze
 ├── scripts/                # one script per Phase A step
 ├── tests/
 ├── data/raw/               # official snapshots + data_provenance.json
 ├── data/interim/           # parsed tables
+├── data/frozen/            # analysis panel, splits, spec, FREEZE_MANIFEST.json
 └── outputs/                # tables, metrics
 ```

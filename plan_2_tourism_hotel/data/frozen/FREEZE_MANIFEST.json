@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "frozen_at_utc8": "2026-11-21T12:45:00+08:00",
+  "seed": 42,
+  "phase": "A_to_B",
+  "note": "SHA-256 of every file in data/frozen except this manifest. Phase B reads the same panel and the same rolling origins. The files are rebuilt from data/raw by scripts/02_build_panel_and_freeze.py; --check verifies them.",
+  "inputs": {
+    "data/raw/data_provenance.json": "3873f4c677906394d75fff89cdab5ead28ce9aa28f29895b14d01ace169a4290",
+    "raw_files": 176,
+    "downloaded_between_utc8": [
+      "2026-11-21T12:25:51+08:00",
+      "2026-11-21T12:30:01+08:00"
+    ]
+  },
+  "counts": {
+    "panel_rows": 804,
+    "panel_columns": 29,
+    "months": 201,
+    "tiers": 4,
+    "months_by_period": {
+      "pre_pandemic": 120,
+      "transition_2020_01": 1,
+      "pandemic": 35,
+      "post_pandemic": 45
+    },
+    "main_sample_months": 165,
+    "main_sample_rows": 660,
+    "post_pandemic_rows": 180,
+    "missing_values": 0,
+    "holiday_periods": 115,
+    "superseded_holiday_schedules": 2,
+    "months_where_schedule_at_origin_differs_from_final": {
+      "2016-12": "training target",
+      "2018-12": "validation target",
+      "2020-01": "not in the main sample",
+      "2022-12": "not in the main sample"
+    },
+    "validation_origins": 36,
+    "test_origins": 26,
+    "test_forecasts": 104
+  },
+  "files": {
+    "data/frozen/panel_tier_month.csv": "9c9547d653c52a168f5b7d8b632458b7d62eece2c0e66c46fcbd8934de479729",
+    "data/frozen/months.csv": "7a482dc290b9eb714fd149e9803105630810e771a53c869e2759424e4ad6dd76",
+    "data/frozen/holiday_periods.csv": "daad2c380801b9b6636c836dda80fcb40efb0a1f4c19b4433de0f1b5edbd266e",
+    "data/frozen/rolling_origins.csv": "430d501edd4c63186a804f52ad0e870975fad074ffbc3518033a6b80b9a40f75",
+    "data/frozen/split_metadata.json": "192137995301d5d712edc14ebd67d581417047d65216883d72ecdb5df6f721ea",
+    "data/frozen/analysis_spec.json": "347c14d671f53f9ba3fc472cb1eba972b4519c146a920144d9c356a71ca1a4d5",
+    "data/frozen/data_dictionary.md": "7039f90141ee6224aaa88ba5f0f89b0b4a5725e35e262a62061568143dddd902"
+  }
+}
