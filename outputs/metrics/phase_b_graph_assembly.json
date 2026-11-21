@@ -1,0 +1,145 @@
+{
+  "n_cells": 287,
+  "n_pos": 56,
+  "n_edges": 988,
+  "n_features": 11,
+  "feature_names": [
+    "pop_total",
+    "pop_65plus",
+    "pop_density",
+    "elderly_share",
+    "intersection_density",
+    "road_density_km_per_km2",
+    "res_bldg_share",
+    "com_bldg_share",
+    "bldg_coverage_ratio",
+    "dist_nearest_lrt_m",
+    "dist_nearest_bus_m"
+  ],
+  "crs_epsg": 32649,
+  "blocks": [
+    {
+      "block": 0,
+      "n_cells": 29,
+      "n_pos": 16,
+      "n_neg": 13
+    },
+    {
+      "block": 1,
+      "n_cells": 29,
+      "n_pos": 11,
+      "n_neg": 18
+    },
+    {
+      "block": 2,
+      "n_cells": 32,
+      "n_pos": 14,
+      "n_neg": 18
+    },
+    {
+      "block": 3,
+      "n_cells": 99,
+      "n_pos": 9,
+      "n_neg": 90
+    },
+    {
+      "block": 4,
+      "n_cells": 98,
+      "n_pos": 6,
+      "n_neg": 92
+    }
+  ],
+  "poi_text_nonempty": 287,
+  "fold_edges": [
+    {
+      "fold": 0,
+      "protocol": "inductive",
+      "n_train_edges": 818,
+      "n_eval_edges": 840,
+      "n_loss": 160,
+      "n_test": 29,
+      "train_edges_touch_test": false
+    },
+    {
+      "fold": 0,
+      "protocol": "transductive",
+      "n_train_edges": 988,
+      "n_eval_edges": 988,
+      "n_loss": 160,
+      "n_test": 29,
+      "train_edges_touch_test": true
+    },
+    {
+      "fold": 1,
+      "protocol": "inductive",
+      "n_train_edges": 828,
+      "n_eval_edges": 857,
+      "n_loss": 160,
+      "n_test": 29,
+      "train_edges_touch_test": false
+    },
+    {
+      "fold": 1,
+      "protocol": "transductive",
+      "n_train_edges": 988,
+      "n_eval_edges": 988,
+      "n_loss": 160,
+      "n_test": 29,
+      "train_edges_touch_test": true
+    },
+    {
+      "fold": 2,
+      "protocol": "inductive",
+      "n_train_edges": 812,
+      "n_eval_edges": 829,
+      "n_loss": 157,
+      "n_test": 32,
+      "train_edges_touch_test": false
+    },
+    {
+      "fold": 2,
+      "protocol": "transductive",
+      "n_train_edges": 988,
+      "n_eval_edges": 988,
+      "n_loss": 157,
+      "n_test": 32,
+      "train_edges_touch_test": true
+    },
+    {
+      "fold": 3,
+      "protocol": "inductive",
+      "n_train_edges": 652,
+      "n_eval_edges": 664,
+      "n_loss": 90,
+      "n_test": 99,
+      "train_edges_touch_test": false
+    },
+    {
+      "fold": 3,
+      "protocol": "transductive",
+      "n_train_edges": 988,
+      "n_eval_edges": 988,
+      "n_loss": 90,
+      "n_test": 99,
+      "train_edges_touch_test": true
+    },
+    {
+      "fold": 4,
+      "protocol": "inductive",
+      "n_train_edges": 750,
+      "n_eval_edges": 762,
+      "n_loss": 90,
+      "n_test": 98,
+      "train_edges_touch_test": false
+    },
+    {
+      "fold": 4,
+      "protocol": "transductive",
+      "n_train_edges": 988,
+      "n_eval_edges": 988,
+      "n_loss": 90,
+      "n_test": 98,
+      "train_edges_touch_test": true
+    }
+  ]
+}

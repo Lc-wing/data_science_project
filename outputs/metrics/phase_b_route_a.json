@@ -1,0 +1,137 @@
+{
+  "task": "has_ev_charger node classification",
+  "feature_columns": [
+    "pop_total",
+    "pop_65plus",
+    "pop_density",
+    "elderly_share",
+    "intersection_density",
+    "road_density_km_per_km2",
+    "res_bldg_share",
+    "com_bldg_share",
+    "bldg_coverage_ratio",
+    "dist_nearest_lrt_m",
+    "dist_nearest_bus_m"
+  ],
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51
+  ],
+  "protocols": [
+    "inductive",
+    "transductive"
+  ],
+  "models": [
+    "gatv2",
+    "graph_transformer",
+    "graphsage_5k"
+  ],
+  "parameter_counts": {
+    "gatv2": 1062401,
+    "graph_transformer": 431745,
+    "graphsage_5k": 5149
+  },
+  "epoch_budget": {
+    "max_epochs": 60,
+    "min_epochs": 15,
+    "patience": 10
+  },
+  "aggregation": "For each seed, average the five fold scores with ddof=0. Across seeds, report the mean and the ddof=1 standard deviation. The test block is not used to choose the architecture or the epoch.",
+  "language": "correlational",
+  "summary_rows": [
+    {
+      "model": "gatv2",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_cpu",
+      "std_definition": "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds",
+      "note": "From-scratch Route A. Inductive training drops test nodes and cross edges. Transductive training keeps those edges and still masks test labels.",
+      "roc_auc_mean": 0.71182255,
+      "roc_auc_std": 0.01596922,
+      "pr_auc_mean": 0.53175973,
+      "pr_auc_std": 0.01923366,
+      "top20_hit_rate_mean": 0.36694084,
+      "top20_hit_rate_std": 0.03442097
+    },
+    {
+      "model": "gatv2",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_cpu",
+      "std_definition": "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds",
+      "note": "From-scratch Route A. Inductive training drops test nodes and cross edges. Transductive training keeps those edges and still masks test labels.",
+      "roc_auc_mean": 0.65568179,
+      "roc_auc_std": 0.02376134,
+      "pr_auc_mean": 0.45994428,
+      "pr_auc_std": 0.02945982,
+      "top20_hit_rate_mean": 0.32452922,
+      "top20_hit_rate_std": 0.03293321
+    },
+    {
+      "model": "graph_transformer",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_cpu",
+      "std_definition": "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds",
+      "note": "From-scratch Route A. Inductive training drops test nodes and cross edges. Transductive training keeps those edges and still masks test labels.",
+      "roc_auc_mean": 0.73961868,
+      "roc_auc_std": 0.02643321,
+      "pr_auc_mean": 0.58155072,
+      "pr_auc_std": 0.03415127,
+      "top20_hit_rate_mean": 0.42531205,
+      "top20_hit_rate_std": 0.0462578
+    },
+    {
+      "model": "graph_transformer",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_cpu",
+      "std_definition": "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds",
+      "note": "From-scratch Route A. Inductive training drops test nodes and cross edges. Transductive training keeps those edges and still masks test labels.",
+      "roc_auc_mean": 0.72927716,
+      "roc_auc_std": 0.01321059,
+      "pr_auc_mean": 0.53972592,
+      "pr_auc_std": 0.03434518,
+      "top20_hit_rate_mean": 0.41203824,
+      "top20_hit_rate_std": 0.03774485
+    },
+    {
+      "model": "graphsage_5k",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_cpu",
+      "std_definition": "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds",
+      "note": "From-scratch Route A. Inductive training drops test nodes and cross edges. Transductive training keeps those edges and still masks test labels.",
+      "roc_auc_mean": 0.66373664,
+      "roc_auc_std": 0.04304312,
+      "pr_auc_mean": 0.4658027,
+      "pr_auc_std": 0.04975161,
+      "top20_hit_rate_mean": 0.33318542,
+      "top20_hit_rate_std": 0.06642387
+    },
+    {
+      "model": "graphsage_5k",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_cpu",
+      "std_definition": "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds",
+      "note": "From-scratch Route A. Inductive training drops test nodes and cross edges. Transductive training keeps those edges and still masks test labels.",
+      "roc_auc_mean": 0.66274812,
+      "roc_auc_std": 0.02424437,
+      "pr_auc_mean": 0.46557354,
+      "pr_auc_std": 0.05385249,
+      "top20_hit_rate_mean": 0.33361472,
+      "top20_hit_rate_std": 0.03961981
+    }
+  ],
+  "n_cells": 287,
+  "n_pos": 56
+}

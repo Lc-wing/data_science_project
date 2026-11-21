@@ -14,3 +14,15 @@ uv run python scripts/run_phase_a.py --skip-download
 `--skip-download` replays from the files already in `data/frozen/` and `data/interim/`. It does not download DSEC, CEM, or OpenStreetMap, and it does not rewrite the M1 text contracts (`graph_edges.csv`, `spatial_folds.csv`, `feature_manifest.json`). The M4 step rebuilds `data/frozen/cells.gpkg`, `data/frozen/cells_res8.gpkg`, `data/frozen/FREEZE_MANIFEST.json`, the figures in `outputs/figures/`, Table 1, and `report/CS482_GroupX_MacaoSpatialEquity_PhaseA_Draft.pdf`.
 
 Quoted Gini, Theil, regression, and cross-validation numbers are copied from `outputs/tables/` and `outputs/metrics/phase_a_ml_baselines.json`. `report/go_nogo_audit.md` checks each reported figure against that source cell.
+
+## Phase B
+
+Route A (from-scratch GATv2, TransformerConv, and the ~5k GraphSAGE ablation, 10 seeds, inductive and transductive) runs on CPU:
+
+```bash
+export MPLBACKEND=Agg
+uv run python scripts/run_phase_b_route_a.py
+uv run pytest tests/test_phase_b.py
+```
+
+Route B (`BAAI/bge-m3` and `Qwen/Qwen3-Embedding-4B` QLoRA `r=8`) is the Colab L4/A100 path in `notebooks/phase_b_colab.ipynb`. The CPU entry refuses to download those weights. See `PHASE_B.md`.
