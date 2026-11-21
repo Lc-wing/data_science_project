@@ -254,11 +254,17 @@ def _apply_2020_extension(text: str, periods: list[HolidayPeriod]) -> None:
     raise ValueError("2020 Spring Festival period to extend not found")
 
 
-def load_holiday_periods(raw_dir: Path = RAW_CN_HOLIDAY_DIR) -> list[HolidayPeriod]:
+def _annual_periods(raw_dir: Path) -> list[HolidayPeriod]:
+    """Periods as first scheduled by the annual notices, before any later notice."""
     periods: list[HolidayPeriod] = []
     for year, url in CN_HOLIDAY_NOTICES.items():
         text = html_to_text(notice_path(year, raw_dir).read_bytes())
         periods.extend(_periods_of(parse_notice_items(text, year), year, url))
+    return periods
+
+
+def load_holiday_periods(raw_dir: Path = RAW_CN_HOLIDAY_DIR) -> list[HolidayPeriod]:
+    periods = _annual_periods(raw_dir)
     appliers = {
         "2015_victory_day": _apply_2015_victory_day,
         "2019_labour_day": _apply_2019_labour_day,
@@ -271,6 +277,125 @@ def load_holiday_periods(raw_dir: Path = RAW_CN_HOLIDAY_DIR) -> list[HolidayPeri
         if later.start <= earlier.end:
             raise ValueError(f"Holiday periods overlap: {earlier} and {later}")
     return periods
+
+
+_PUBLISHED_RE = re.compile(r"发布日期：(\d{4})年(\d{1,2})月(\d{1,2})日")
+_URL_DATE_RE = re.compile(r"/(\d{4})-(\d{2})/(\d{2})/")
+
+
+def publication_date(raw: bytes, url: str) -> date:
+    """Day gov.cn published a notice: the page's 发布日期, else the date in its URL."""
+    match = _PUBLISHED_RE.search(html_to_text(raw)) or _URL_DATE_RE.search(url)
+    if not match:
+        raise ValueError(f"No publication date found for {url}")
+    return date(*(int(group) for group in match.groups()))
+
+
+def _annual_publication_dates(raw_dir: Path) -> dict[int, date]:
+    return {
+        year: publication_date(notice_path(year, raw_dir).read_bytes(), url)
+        for year, url in CN_HOLIDAY_NOTICES.items()
+    }
+
+
+@dataclass(frozen=True)
+class ScheduleVersion:
+    """One published schedule of a holiday period."""
+
+    period: HolidayPeriod
+    published: date
+    superseded: bool
+
+    @property
+    def key(self) -> tuple[int, tuple[str, ...]]:
+        return (self.period.notice_year, self.period.holidays)
+
+
+def load_schedule_versions(raw_dir: Path = RAW_CN_HOLIDAY_DIR) -> list[ScheduleVersion]:
+    """Every final period with its publication day, plus the schedules later notices replaced.
+
+    A period changed by a later notice has two versions: the one in the annual notice
+    and the final one, dated by the later notice.
+    """
+    annual = _annual_publication_dates(raw_dir)
+    amended = {
+        name: publication_date(amendment_path(name, raw_dir).read_bytes(), url)
+        for name, url in CN_HOLIDAY_AMENDMENTS.items()
+    }
+    final = load_holiday_periods(raw_dir)
+    versions = [
+        ScheduleVersion(
+            period,
+            amended[period.amended_by] if period.amended_by else annual[period.notice_year],
+            superseded=False,
+        )
+        for period in final
+    ]
+    changed = {version.key for version in versions if version.period.amended_by}
+    versions += [
+        ScheduleVersion(period, annual[period.notice_year], superseded=True)
+        for period in _annual_periods(raw_dir)
+        if (period.notice_year, period.holidays) in changed
+    ]
+    return sorted(versions, key=lambda version: (version.period.start, version.published))
+
+
+def monthly_holiday_days_at_origin(
+    versions: list[ScheduleVersion], start: str, end: str
+) -> pd.DataFrame:
+    """Holiday days of each month as scheduled at the end of the month before it.
+
+    This is what a forecaster standing at the origin knows about the target month. A
+    schedule published later counts for nothing; a schedule replaced later still counts
+    in its earlier form.
+    """
+    rows = []
+    for month in pd.period_range(start, end, freq="M"):
+        cutoff = date(month.year, month.month, 1) - timedelta(days=1)
+        latest: dict[tuple[int, tuple[str, ...]], ScheduleVersion] = {}
+        for version in versions:
+            if version.published > cutoff:
+                continue
+            known = latest.get(version.key)
+            if known is None or version.published > known.published:
+                latest[version.key] = version
+        total = golden = 0
+        for version in latest.values():
+            inside = sum(
+                1
+                for day in version.period.days()
+                if (day.year, day.month) == (month.year, month.month)
+            )
+            total += inside
+            golden += inside * int(version.period.golden_week)
+        rows.append(
+            {
+                "period": str(month),
+                "cn_holiday_days_at_origin": total,
+                "cn_golden_week_days_at_origin": golden,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def versions_frame(versions: list[ScheduleVersion]) -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "notice_year": v.period.notice_year,
+                "holiday": "+".join(v.period.holidays),
+                "start": v.period.start.isoformat(),
+                "end": v.period.end.isoformat(),
+                "n_days": v.period.n_days,
+                "golden_week": v.period.golden_week,
+                "published": v.published.isoformat(),
+                "superseded": v.superseded,
+                "amended_by": v.period.amended_by,
+                "source_url": v.period.source,
+            }
+            for v in versions
+        ]
+    )
 
 
 def periods_frame(periods: list[HolidayPeriod]) -> pd.DataFrame:

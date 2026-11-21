@@ -26,6 +26,7 @@ RAW_SMG_DIR = DATA_RAW_DIR / "smg_tropical_cyclone"
 # the repository keeps their URL, size, SHA-256, and the extracted signal-table text.
 SMG_PDF_CACHE_DIR = PROJECT_ROOT / ".cache" / "smg_tc_pdf"
 PROVENANCE_PATH = DATA_RAW_DIR / "data_provenance.json"
+FREEZE_MANIFEST_PATH = DATA_FROZEN_DIR / "FREEZE_MANIFEST.json"
 
 RANDOM_SEED = 42
 USER_AGENT = "Mozilla/5.0 (CS482 coursework; Plan 2 data download)"
@@ -40,6 +41,36 @@ DOWNLOAD_FROM_YEAR = 2008
 DOWNLOAD_TO_YEAR = 2026
 
 TIERS: tuple[str, ...] = ("5star", "4star", "3star", "2star")
+
+# Period flags (plan section 2.2). January 2020 is a transition month: it belongs to
+# neither the pre-pandemic nor the pandemic period and is left out of the main analysis.
+PERIODS: dict[str, tuple[str, str]] = {
+    "pre_pandemic": ("2010-01", "2019-12"),
+    "transition_2020_01": ("2020-01", "2020-01"),
+    "pandemic": ("2020-02", "2022-12"),
+    "post_pandemic": ("2023-01", PANEL_END),
+}
+MAIN_SAMPLE_PERIODS: tuple[str, ...] = ("pre_pandemic", "post_pandemic")
+
+# Rolling-origin backtest (plan section 2.3). An origin is the last observed month;
+# the target is the month after it.
+TEST_ORIGIN_FIRST = "2024-07"
+TEST_ORIGIN_LAST = "2026-08"
+# Orders and hyperparameters are chosen on these targets only, all before the first
+# test origin.
+VALIDATION_TARGET_WINDOWS: tuple[tuple[str, str], ...] = (
+    ("2018-01", "2019-12"),
+    ("2023-07", "2024-06"),
+)
+FORECAST_LAGS: tuple[int, ...] = (1, 2, 3, 12)
+
+
+def period_label(month: str) -> str:
+    for label, (start, end) in PERIODS.items():
+        if start <= month <= end:
+            return label
+    raise ValueError(f"{month} is outside the panel window")
+
 
 # ---------------------------------------------------------------------------
 # DSEC (Statistics and Census Service) endpoints

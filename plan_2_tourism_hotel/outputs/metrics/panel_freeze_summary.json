@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0.0",
+  "step": "Phase A step 2: panel build and freeze",
+  "frozen_at_utc8": "2026-11-21T12:45:00+08:00",
+  "counts": {
+    "panel_rows": 804,
+    "panel_columns": 29,
+    "months": 201,
+    "tiers": 4,
+    "months_by_period": {
+      "pre_pandemic": 120,
+      "transition_2020_01": 1,
+      "pandemic": 35,
+      "post_pandemic": 45
+    },
+    "main_sample_months": 165,
+    "main_sample_rows": 660,
+    "post_pandemic_rows": 180,
+    "missing_values": 0,
+    "holiday_periods": 115,
+    "superseded_holiday_schedules": 2,
+    "months_where_schedule_at_origin_differs_from_final": {
+      "2016-12": "training target",
+      "2018-12": "validation target",
+      "2020-01": "not in the main sample",
+      "2022-12": "not in the main sample"
+    },
+    "validation_origins": 36,
+    "test_origins": 26,
+    "test_forecasts": 104
+  },
+  "analysis_spec_sha256": "347c14d671f53f9ba3fc472cb1eba972b4519c146a920144d9c356a71ca1a4d5",
+  "panel_sha256": "9c9547d653c52a168f5b7d8b632458b7d62eece2c0e66c46fcbd8934de479729",
+  "rolling_origins_sha256": "430d501edd4c63186a804f52ad0e870975fad074ffbc3518033a6b80b9a40f75",
+  "manifest_sha256": "e49ced559618e4f39f6972630e1f41b2b0b04994448ae79b037a22dbea388cc5",
+  "blocks": [
+    {
+      "block": "validation_1",
+      "split": "validation",
+      "origins": 24,
+      "first_origin": "2017-12",
+      "last_origin": "2019-11",
+      "first_target": "2018-01",
+      "last_target": "2019-12",
+      "min_train_months_main": 84,
+      "max_train_months_main": 107
+    },
+    {
+      "block": "validation_2",
+      "split": "validation",
+      "origins": 12,
+      "first_origin": "2023-06",
+      "last_origin": "2024-05",
+      "first_target": "2023-07",
+      "last_target": "2024-06",
+      "min_train_months_main": 114,
+      "max_train_months_main": 125
+    },
+    {
+      "block": "test",
+      "split": "test",
+      "origins": 26,
+      "first_origin": "2024-07",
+      "last_origin": "2026-08",
+      "first_target": "2024-08",
+      "last_target": "2026-09",
+      "min_train_months_main": 127,
+      "max_train_months_main": 152
+    }
+  ]
+}

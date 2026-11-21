@@ -6,14 +6,17 @@ from typing import Any
 
 import pandas as pd
 
-from macao_tourism.config import INDICATORS, PANEL_END, PANEL_START, TIERS
+from macao_tourism.config import (
+    INDICATORS,
+    PANEL_END,
+    PANEL_START,
+    PERIODS,
+    TIERS,
+    period_label,
+)
 
-PERIODS: dict[str, tuple[str, str]] = {
-    "pre_pandemic": ("2010-01", "2019-12"),
-    "transition_2020_01": ("2020-01", "2020-01"),
-    "pandemic": ("2020-02", "2022-12"),
-    "post_pandemic": ("2023-01", PANEL_END),
-}
+__all__ = ["PERIODS", "period_label"]
+
 TIER_MEASURES: tuple[str, ...] = ("occupancy", "rooms", "establishments", "guests")
 
 
@@ -181,13 +184,6 @@ def supply_jumps(long: pd.DataFrame, threshold_pct: float = 10.0) -> pd.DataFram
                 }
             )
     return pd.DataFrame(rows)
-
-
-def period_label(month: str) -> str:
-    for label, (start, end) in PERIODS.items():
-        if start <= month <= end:
-            return label
-    raise ValueError(f"{month} is outside the panel window")
 
 
 def offsetting_reclassifications(changes: pd.DataFrame) -> pd.DataFrame:
