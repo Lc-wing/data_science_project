@@ -196,3 +196,56 @@ def figure_scatter(panel: pd.DataFrame) -> Figure:
     fig.legend(handles, labels, ncols=2, loc="lower center", bbox_to_anchor=(0.5, -0.2), fontsize=7)
     fig.subplots_adjust(wspace=0.08)
     return fig
+
+
+QUANTITY_STYLES = {
+    "pre_pandemic": ("#5d6d7e", "o", -0.12),
+    "post_pandemic": ("#1e8449", "s", 0.12),
+}
+
+
+def figure_slopes(slopes: pd.DataFrame, focal: str, share: str) -> Figure:
+    """Regression slopes before and after the pandemic with 95% confidence intervals."""
+    fig, (by_class, common) = plt.subplots(
+        1, 2, figsize=(7.2, 2.9), gridspec_kw={"width_ratios": [4, 1.3], "wspace": 0.35}
+    )
+    for quantity, (color, marker, offset) in QUANTITY_STYLES.items():
+        rows = slopes[(slopes["regressor"] == focal) & (slopes["quantity"] == quantity)]
+        rows = rows.set_index("tier").loc[list(TIERS)]
+        positions = [index + offset for index in range(len(TIERS))]
+        by_class.errorbar(
+            positions,
+            rows["estimate"],
+            yerr=[rows["estimate"] - rows["ci_low"], rows["ci_high"] - rows["estimate"]],
+            fmt=marker,
+            color=color,
+            markersize=4,
+            capsize=2,
+            linewidth=1,
+            label=PERIOD_NAMES[quantity],
+        )
+        row = slopes[(slopes["regressor"] == share) & (slopes["quantity"] == quantity)].iloc[0]
+        common.errorbar(
+            [offset],
+            [row["estimate"]],
+            yerr=[[row["estimate"] - row["ci_low"]], [row["ci_high"] - row["estimate"]]],
+            fmt=marker,
+            color=color,
+            markersize=4,
+            capsize=2,
+            linewidth=1,
+        )
+    for ax in (by_class, common):
+        ax.axhline(0, color="#7f8c8d", linewidth=0.6)
+        ax.grid(axis="x", visible=False)
+    by_class.set_xticks(range(len(TIERS)))
+    by_class.set_xticklabels([TIER_LABELS[tier] for tier in TIERS])
+    by_class.set_ylabel("Occupancy (pp) per unit of\nlog overnight visitors")
+    by_class.set_title("Log overnight visitors, by star class", loc="left", fontsize=8, pad=3)
+    by_class.legend(fontsize=7, loc="best")
+    common.set_xticks([0])
+    common.set_xticklabels(["All classes"])
+    common.set_xlim(-0.5, 0.5)
+    common.set_ylabel("Occupancy (pp) per pp of\nsame-day share")
+    common.set_title("Same-day share", loc="left", fontsize=8, pad=3)
+    return fig

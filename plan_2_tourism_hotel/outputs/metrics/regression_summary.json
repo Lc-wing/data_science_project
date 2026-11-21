@@ -1,0 +1,635 @@
+{
+  "schema_version": "1.0.0",
+  "step": "Phase A step 4: panel regression for H1 and H2",
+  "role": "ex-post description of the same-month association; not a forecast",
+  "frozen_at_utc8": "2026-11-21T12:45:00+08:00",
+  "panel_sha256": "9c9547d653c52a168f5b7d8b632458b7d62eece2c0e66c46fcbd8934de479729",
+  "analysis_spec_sha256": "347c14d671f53f9ba3fc472cb1eba972b4519c146a920144d9c356a71ca1a4d5",
+  "spec_version": "1.0.0",
+  "specification": {
+    "role": "ex-post description of the same-month association; not a forecast",
+    "sample": "main sample: pre-pandemic and post-pandemic months, all four classes",
+    "model": "occupancy_pct[i,t] = a[i] + a_post[i]·post[t] + month-of-year[t] + (b[i] + b_post[i]·post[t])·log_visitors_overnight[t] + (c + c_post·post[t])·same_day_share_pct[t] + controls + e[i,t]",
+    "terms": {
+      "a[i], a_post[i]": "star-class intercepts and their post-pandemic shifts",
+      "month-of-year": "eleven calendar-month indicators, common to all classes",
+      "b[i], b_post[i]": "class-specific slopes on log overnight visitors",
+      "c, c_post": "common slope on the same-day share",
+      "controls": [
+        "international_share_pct",
+        "package_tour_share_pct",
+        "log_rooms",
+        "cn_holiday_days",
+        "typhoon_days"
+      ]
+    },
+    "controls_note": "controls have one coefficient each, common to classes and periods",
+    "estimator": "least squares with indicator variables",
+    "standard_errors": {
+      "type": "Driscoll–Kraay",
+      "kernel": "Bartlett",
+      "bandwidth_rule": "floor(4 × (T / 100)^(2/9)), T = months in the sample",
+      "lag_counting": "in calendar months, so no autocovariance is taken across the gap between December 2019 and January 2023"
+    },
+    "inference": "two-sided, alpha 0.05, normal reference; 95% CI for every coefficient",
+    "confirmatory_tests": {
+      "H1": {
+        "statement": "after the pandemic, the association between log overnight visitors and occupancy differs between 5-star and 3-star hotels",
+        "null": "(b[5star] + b_post[5star]) − (b[3star] + b_post[3star]) = 0"
+      },
+      "H2": {
+        "statement": "the association between the same-day share and occupancy differs between the post-pandemic and the pre-pandemic period",
+        "null": "c_post = 0"
+      },
+      "multiplicity": "Holm over the two tests above"
+    },
+    "secondary_tests": [
+      "equality of the four post-pandemic slopes b[i] + b_post[i] (3 df)",
+      "Chow-type test: the five post interactions on the two focal regressors are jointly zero (5 df)"
+    ],
+    "sensitivity_analyses": {
+      "S1_pandemic_included": "add 2020-01 to 2022-12 with their own period indicator, interacted like post",
+      "S2_logit_outcome": "outcome logit(occupancy_pct / 100); signs and tests are compared, AIC/BIC are not compared across the two scales",
+      "S3_bandwidth": "Driscoll–Kraay bandwidth 2 and 8",
+      "S4_trends": "class-specific linear time trends added",
+      "S5_fully_interacted": "controls and month indicators also interacted with post"
+    },
+    "diagnostics": {
+      "reported": [
+        "Ljung–Box on residuals per star class, lags 12 and 24",
+        "Breusch–Pagan test for heteroskedasticity"
+      ],
+      "rule": "reported only; the model, the standard errors, and the tests are not changed on the basis of a diagnostic p-value"
+    }
+  },
+  "deviations_from_spec": [],
+  "left_open_by_the_specification": [
+    "Bandwidth is the highest lag with a non-zero Bartlett weight; lag j has weight 1 − j / (bandwidth + 1).",
+    "The covariance is scaled by n / (n − k).",
+    "Joint tests are Wald tests with a chi-square reference.",
+    "S1 uses the bandwidth rule with its own number of months.",
+    "S4 trends are linear in calendar time, one per star class.",
+    "Ljung–Box is computed per star class and per contiguous block (pre-pandemic, post-pandemic), because the residual series has a 36-month gap.",
+    "Breusch–Pagan is the studentised (Koenker) LM test on the regressors of the model."
+  ],
+  "main_model": {
+    "n": 660,
+    "months": 165,
+    "parameters": 34,
+    "bandwidth": 4,
+    "r_squared": 0.7552754445
+  },
+  "confirmatory_tests": [
+    {
+      "hypothesis": "H1",
+      "estimate": 18.3336780578,
+      "se": 6.9395257901,
+      "z": 2.6419208765,
+      "p_value": 0.0082437312,
+      "ci_low": 4.7324574394,
+      "ci_high": 31.9348986762,
+      "p_holm": 0.0164874624,
+      "reject_at_0.05": true
+    },
+    {
+      "hypothesis": "H2",
+      "estimate": 0.0377029235,
+      "se": 0.1521365246,
+      "z": 0.2478229575,
+      "p_value": 0.8042713914,
+      "ci_low": -0.2604791854,
+      "ci_high": 0.3358850324,
+      "p_holm": 0.8042713914,
+      "reject_at_0.05": false
+    }
+  ],
+  "robustness": {
+    "H1": {
+      "rejected": [
+        "main",
+        "S1_pandemic_included",
+        "S2_logit_outcome",
+        "S3_bandwidth_2",
+        "S3_bandwidth_8",
+        "S4_trends"
+      ],
+      "not_rejected": [
+        "S5_fully_interacted"
+      ]
+    },
+    "H2": {
+      "rejected": [
+        "S4_trends"
+      ],
+      "not_rejected": [
+        "main",
+        "S1_pandemic_included",
+        "S2_logit_outcome",
+        "S3_bandwidth_2",
+        "S3_bandwidth_8",
+        "S5_fully_interacted"
+      ]
+    }
+  },
+  "secondary_tests": [
+    {
+      "test": "equal_post_pandemic_slopes",
+      "chi2": 15.3413521678,
+      "df": 3,
+      "p_value": 0.0015469992
+    },
+    {
+      "test": "chow_post_interactions_on_focal_regressors",
+      "chi2": 36.41515459,
+      "df": 5,
+      "p_value": 7.844e-07
+    }
+  ],
+  "slopes": [
+    {
+      "regressor": "log_visitors_overnight",
+      "tier": "5star",
+      "quantity": "pre_pandemic",
+      "estimate": 36.1246449549,
+      "se": 2.9353845995,
+      "z": 12.3066139138,
+      "p_value": 0.0,
+      "ci_low": 30.3713968591,
+      "ci_high": 41.8778930507
+    },
+    {
+      "regressor": "log_visitors_overnight",
+      "tier": "5star",
+      "quantity": "post_pandemic",
+      "estimate": 21.2284271668,
+      "se": 3.5429016012,
+      "z": 5.9918195751,
+      "p_value": 2.1e-09,
+      "ci_low": 14.2844676276,
+      "ci_high": 28.172386706
+    },
+    {
+      "regressor": "log_visitors_overnight",
+      "tier": "5star",
+      "quantity": "change",
+      "estimate": -14.8962177881,
+      "se": 4.811826789,
+      "z": -3.0957510404,
+      "p_value": 0.0019631511,
+      "ci_low": -24.3272249944,
+      "ci_high": -5.4652105819
+    },
+    {
+      "regressor": "log_visitors_overnight",
+      "tier": "4star",
+      "quantity": "pre_pandemic",
+      "estimate": 27.3107173695,
+      "se": 3.9793886451,
+      "z": 6.8630434987,
+      "p_value": 0.0,
+      "ci_low": 19.5112589446,
+      "ci_high": 35.1101757945
+    },
+    {
+      "regressor": "log_visitors_overnight",
+      "tier": "4star",
+      "quantity": "post_pandemic",
+      "estimate": 15.023511776,
+      "se": 4.054561144,
+      "z": 3.7053360999,
+      "p_value": 0.0002111106,
+      "ci_low": 7.0767179606,
+      "ci_high": 22.9703055913
+    },
+    {
+      "regressor": "log_visitors_overnight",
+      "tier": "4star",
+      "quantity": "change",
+      "estimate": -12.2872055936,
+      "se": 5.490637444,
+      "z": -2.237846829,
+      "p_value": 0.0252310454,
+      "ci_low": -23.048657236,
+      "ci_high": -1.5257539511
+    },
+    {
+      "regressor": "log_visitors_overnight",
+      "tier": "3star",
+      "quantity": "pre_pandemic",
+      "estimate": 30.6849899112,
+      "se": 4.5218978012,
+      "z": 6.7858654176,
+      "p_value": 0.0,
+      "ci_low": 21.8222330791,
+      "ci_high": 39.5477467433
+    },
+    {
+      "regressor": "log_visitors_overnight",
+      "tier": "3star",
+      "quantity": "post_pandemic",
+      "estimate": 2.8947491089,
+      "se": 5.9842899539,
+      "z": 0.4837247412,
+      "p_value": 0.6285812321,
+      "ci_low": -8.8342436737,
+      "ci_high": 14.6237418916
+    },
+    {
+      "regressor": "log_visitors_overnight",
+      "tier": "3star",
+      "quantity": "change",
+      "estimate": -27.7902408023,
+      "se": 7.0649937645,
+      "z": -3.9335124317,
+      "p_value": 8.37135e-05,
+      "ci_low": -41.6373741316,
+      "ci_high": -13.9431074729
+    },
+    {
+      "regressor": "log_visitors_overnight",
+      "tier": "2star",
+      "quantity": "pre_pandemic",
+      "estimate": 11.1206956621,
+      "se": 4.4209338166,
+      "z": 2.51546305,
+      "p_value": 0.0118876137,
+      "ci_low": 2.4558246034,
+      "ci_high": 19.7855667207
+    },
+    {
+      "regressor": "log_visitors_overnight",
+      "tier": "2star",
+      "quantity": "post_pandemic",
+      "estimate": 6.0472072931,
+      "se": 5.0966309905,
+      "z": 1.1865107174,
+      "p_value": 0.2354206716,
+      "ci_low": -3.9420058908,
+      "ci_high": 16.0364204771
+    },
+    {
+      "regressor": "log_visitors_overnight",
+      "tier": "2star",
+      "quantity": "change",
+      "estimate": -5.0734883689,
+      "se": 6.796718832,
+      "z": -0.7464614168,
+      "p_value": 0.4553887306,
+      "ci_low": -18.3948124928,
+      "ci_high": 8.247835755
+    },
+    {
+      "regressor": "same_day_share_pct",
+      "tier": "all",
+      "quantity": "pre_pandemic",
+      "estimate": 0.2607115158,
+      "se": 0.1101612677,
+      "z": 2.3666350356,
+      "p_value": 0.0179506245,
+      "ci_low": 0.0447993985,
+      "ci_high": 0.4766236331
+    },
+    {
+      "regressor": "same_day_share_pct",
+      "tier": "all",
+      "quantity": "post_pandemic",
+      "estimate": 0.2984144393,
+      "se": 0.0912971284,
+      "z": 3.2686070681,
+      "p_value": 0.0010807828,
+      "ci_low": 0.1194753557,
+      "ci_high": 0.4773535229
+    },
+    {
+      "regressor": "same_day_share_pct",
+      "tier": "all",
+      "quantity": "change",
+      "estimate": 0.0377029235,
+      "se": 0.1521365246,
+      "z": 0.2478229575,
+      "p_value": 0.8042713914,
+      "ci_low": -0.2604791854,
+      "ci_high": 0.3358850324
+    }
+  ],
+  "sensitivity": [
+    {
+      "run": "main",
+      "description": "the specified model",
+      "outcome": "occupancy_pct",
+      "n": 660,
+      "months": 165,
+      "parameters": 34,
+      "bandwidth": 4,
+      "r_squared": 0.7552754445,
+      "H1_estimate": 18.3336780578,
+      "H1_se": 6.9395257901,
+      "H1_ci_low": 4.7324574394,
+      "H1_ci_high": 31.9348986762,
+      "H1_p_value": 0.0082437312,
+      "H1_p_holm": 0.0164874624,
+      "H2_estimate": 0.0377029235,
+      "H2_se": 0.1521365246,
+      "H2_ci_low": -0.2604791854,
+      "H2_ci_high": 0.3358850324,
+      "H2_p_value": 0.8042713914,
+      "H2_p_holm": 0.8042713914
+    },
+    {
+      "run": "S1_pandemic_included",
+      "description": "2020-01 to 2022-12 added with their own indicator",
+      "outcome": "occupancy_pct",
+      "n": 804,
+      "months": 201,
+      "parameters": 43,
+      "bandwidth": 4,
+      "r_squared": 0.8809133554,
+      "H1_estimate": 18.4166815426,
+      "H1_se": 6.9329271207,
+      "H1_ci_low": 4.8283940786,
+      "H1_ci_high": 32.0049690066,
+      "H1_p_value": 0.0078978049,
+      "H1_p_holm": 0.0157956098,
+      "H2_estimate": 0.2935096325,
+      "H2_se": 0.1954854721,
+      "H2_ci_low": -0.0896348523,
+      "H2_ci_high": 0.6766541172,
+      "H2_p_value": 0.1332418933,
+      "H2_p_holm": 0.1332418933
+    },
+    {
+      "run": "S2_logit_outcome",
+      "description": "outcome logit(occupancy / 100)",
+      "outcome": "logit_occupancy",
+      "n": 660,
+      "months": 165,
+      "parameters": 34,
+      "bandwidth": 4,
+      "r_squared": 0.7688759685,
+      "H1_estimate": 1.8715003995,
+      "H1_se": 0.3842392656,
+      "H1_ci_low": 1.1184052774,
+      "H1_ci_high": 2.6245955215,
+      "H1_p_value": 1.1122e-06,
+      "H1_p_holm": 2.2245e-06,
+      "H2_estimate": 0.0081679123,
+      "H2_se": 0.013139928,
+      "H2_ci_low": -0.0175858734,
+      "H2_ci_high": 0.0339216979,
+      "H2_p_value": 0.5341982629,
+      "H2_p_holm": 0.5341982629
+    },
+    {
+      "run": "S3_bandwidth_2",
+      "description": "Driscoll–Kraay bandwidth 2",
+      "outcome": "occupancy_pct",
+      "n": 660,
+      "months": 165,
+      "parameters": 34,
+      "bandwidth": 2,
+      "r_squared": 0.7552754445,
+      "H1_estimate": 18.3336780578,
+      "H1_se": 6.130183979,
+      "H1_ci_low": 6.3187382403,
+      "H1_ci_high": 30.3486178753,
+      "H1_p_value": 0.0027831845,
+      "H1_p_holm": 0.005566369,
+      "H2_estimate": 0.0377029235,
+      "H2_se": 0.1525127788,
+      "H2_ci_low": -0.2612166302,
+      "H2_ci_high": 0.3366224771,
+      "H2_p_value": 0.8047444917,
+      "H2_p_holm": 0.8047444917
+    },
+    {
+      "run": "S3_bandwidth_8",
+      "description": "Driscoll–Kraay bandwidth 8",
+      "outcome": "occupancy_pct",
+      "n": 660,
+      "months": 165,
+      "parameters": 34,
+      "bandwidth": 8,
+      "r_squared": 0.7552754445,
+      "H1_estimate": 18.3336780578,
+      "H1_se": 7.5543531029,
+      "H1_ci_low": 3.5274180497,
+      "H1_ci_high": 33.139938066,
+      "H1_p_value": 0.0152283499,
+      "H1_p_holm": 0.0304566997,
+      "H2_estimate": 0.0377029235,
+      "H2_se": 0.1547146341,
+      "H2_ci_low": -0.2655321873,
+      "H2_ci_high": 0.3409380342,
+      "H2_p_value": 0.8074683442,
+      "H2_p_holm": 0.8074683442
+    },
+    {
+      "run": "S4_trends",
+      "description": "class-specific linear time trends added",
+      "outcome": "occupancy_pct",
+      "n": 660,
+      "months": 165,
+      "parameters": 38,
+      "bandwidth": 4,
+      "r_squared": 0.8178234766,
+      "H1_estimate": 15.1308874108,
+      "H1_se": 6.6777705569,
+      "H1_ci_low": 2.0426976223,
+      "H1_ci_high": 28.2190771993,
+      "H1_p_value": 0.0234600094,
+      "H1_p_holm": 0.0234600094,
+      "H2_estimate": 0.3897941065,
+      "H2_se": 0.1515735416,
+      "H2_ci_low": 0.0927154239,
+      "H2_ci_high": 0.6868727891,
+      "H2_p_value": 0.0101215143,
+      "H2_p_holm": 0.0202430286
+    },
+    {
+      "run": "S5_fully_interacted",
+      "description": "controls and month indicators also interacted with post",
+      "outcome": "occupancy_pct",
+      "n": 660,
+      "months": 165,
+      "parameters": 50,
+      "bandwidth": 4,
+      "r_squared": 0.7807416364,
+      "H1_estimate": 16.8606552419,
+      "H1_se": 7.7730573725,
+      "H1_ci_low": 1.625742742,
+      "H1_ci_high": 32.0955677418,
+      "H1_p_value": 0.0300739552,
+      "H1_p_holm": 0.0601479103,
+      "H2_estimate": -0.2102496836,
+      "H2_se": 0.1651962474,
+      "H2_ci_low": -0.5340283788,
+      "H2_ci_high": 0.1135290117,
+      "H2_p_value": 0.2031150208,
+      "H2_p_holm": 0.2031150208
+    }
+  ],
+  "diagnostics": [
+    {
+      "test": "ljung_box",
+      "tier": "5star",
+      "block": "pre_pandemic",
+      "lag": 12,
+      "n": 120,
+      "statistic": 96.7803755492,
+      "p_value": 0.0
+    },
+    {
+      "test": "ljung_box",
+      "tier": "5star",
+      "block": "pre_pandemic",
+      "lag": 24,
+      "n": 120,
+      "statistic": 158.9560357534,
+      "p_value": 0.0
+    },
+    {
+      "test": "ljung_box",
+      "tier": "5star",
+      "block": "post_pandemic",
+      "lag": 12,
+      "n": 45,
+      "statistic": 33.1401958886,
+      "p_value": 0.0009204281
+    },
+    {
+      "test": "ljung_box",
+      "tier": "5star",
+      "block": "post_pandemic",
+      "lag": 24,
+      "n": 45,
+      "statistic": 50.597029945,
+      "p_value": 0.0011879988
+    },
+    {
+      "test": "ljung_box",
+      "tier": "4star",
+      "block": "pre_pandemic",
+      "lag": 12,
+      "n": 120,
+      "statistic": 110.4586991377,
+      "p_value": 0.0
+    },
+    {
+      "test": "ljung_box",
+      "tier": "4star",
+      "block": "pre_pandemic",
+      "lag": 24,
+      "n": 120,
+      "statistic": 134.9077775343,
+      "p_value": 0.0
+    },
+    {
+      "test": "ljung_box",
+      "tier": "4star",
+      "block": "post_pandemic",
+      "lag": 12,
+      "n": 45,
+      "statistic": 30.1491303167,
+      "p_value": 0.0026516188
+    },
+    {
+      "test": "ljung_box",
+      "tier": "4star",
+      "block": "post_pandemic",
+      "lag": 24,
+      "n": 45,
+      "statistic": 41.5307231829,
+      "p_value": 0.0145561852
+    },
+    {
+      "test": "ljung_box",
+      "tier": "3star",
+      "block": "pre_pandemic",
+      "lag": 12,
+      "n": 120,
+      "statistic": 322.0001842899,
+      "p_value": 0.0
+    },
+    {
+      "test": "ljung_box",
+      "tier": "3star",
+      "block": "pre_pandemic",
+      "lag": 24,
+      "n": 120,
+      "statistic": 358.6072756363,
+      "p_value": 0.0
+    },
+    {
+      "test": "ljung_box",
+      "tier": "3star",
+      "block": "post_pandemic",
+      "lag": 12,
+      "n": 45,
+      "statistic": 22.6130318867,
+      "p_value": 0.0311966991
+    },
+    {
+      "test": "ljung_box",
+      "tier": "3star",
+      "block": "post_pandemic",
+      "lag": 24,
+      "n": 45,
+      "statistic": 39.679713793,
+      "p_value": 0.0231426546
+    },
+    {
+      "test": "ljung_box",
+      "tier": "2star",
+      "block": "pre_pandemic",
+      "lag": 12,
+      "n": 120,
+      "statistic": 126.6434287843,
+      "p_value": 0.0
+    },
+    {
+      "test": "ljung_box",
+      "tier": "2star",
+      "block": "pre_pandemic",
+      "lag": 24,
+      "n": 120,
+      "statistic": 133.2357650981,
+      "p_value": 0.0
+    },
+    {
+      "test": "ljung_box",
+      "tier": "2star",
+      "block": "post_pandemic",
+      "lag": 12,
+      "n": 45,
+      "statistic": 15.7688177024,
+      "p_value": 0.2020555597
+    },
+    {
+      "test": "ljung_box",
+      "tier": "2star",
+      "block": "post_pandemic",
+      "lag": 24,
+      "n": 45,
+      "statistic": 25.4857785468,
+      "p_value": 0.3797607402
+    },
+    {
+      "test": "breusch_pagan",
+      "tier": "all",
+      "block": "main_sample",
+      "lag": 0,
+      "n": 660,
+      "statistic": 125.0035485606,
+      "p_value": 0.0
+    }
+  ],
+  "diagnostics_count": {
+    "ljung_box_cells": 16,
+    "ljung_box_below_0.05": 14,
+    "breusch_pagan_p": 0.0
+  },
+  "figures": [
+    "outputs/figures/fig_regression_slopes_by_class.png",
+    "outputs/figures/fig_regression_slopes_by_class.pdf"
+  ]
+}
