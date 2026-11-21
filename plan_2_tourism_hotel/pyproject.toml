@@ -15,6 +15,9 @@ dependencies = [
     "openpyxl>=3.1",
     "pypdf>=5.0",
     "fonttools>=4.68.0",
+    "statsmodels>=0.15.0",
+    "ruptures>=1.1.10",
+    "matplotlib>=3.11.2",
 ]
 
 [dependency-groups]

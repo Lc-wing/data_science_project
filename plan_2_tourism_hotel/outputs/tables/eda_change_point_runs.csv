@@ -1,0 +1,16 @@
+input,main,series,penalty_multiplier,noise_sd_pp,penalty,n_change_points,change_points
+seasonally_adjusted,False,same_day_share_pct,0.5,3.546151,66.690051,6,2016-06;2018-11;2021-08;2022-08;2023-08;2024-12
+seasonally_adjusted,True,same_day_share_pct,1.0,3.546151,133.380102,6,2016-06;2018-11;2021-08;2022-08;2023-08;2024-12
+seasonally_adjusted,False,same_day_share_pct,2.0,3.546151,266.760204,4,2016-03;2021-08;2022-08;2024-07
+seasonally_adjusted,False,same_day_share_pct,4.0,3.546151,533.520408,3,2021-08;2022-08;2024-07
+unadjusted,False,same_day_share_pct,1.0,3.62661,139.501317,6,2016-06;2018-10;2021-08;2022-08;2023-08;2025-01
+seasonally_adjusted,False,international_share_pct,0.5,0.800879,3.401574,9,2011-03;2012-09;2014-03;2015-12;2018-02;2019-02;2020-03;2023-02;2024-02
+seasonally_adjusted,True,international_share_pct,1.0,0.800879,6.803149,6,2011-03;2013-05;2018-07;2020-03;2023-02;2024-02
+seasonally_adjusted,False,international_share_pct,2.0,0.800879,13.606298,5,2012-09;2018-07;2020-03;2023-02;2024-02
+seasonally_adjusted,False,international_share_pct,4.0,0.800879,27.212596,4,2012-09;2018-07;2020-03;2023-04
+unadjusted,False,international_share_pct,1.0,0.859616,7.83765,6,2011-01;2013-02;2018-07;2020-03;2023-03;2024-03
+seasonally_adjusted,False,package_tour_share_pct,0.5,3.02063,48.388458,7,2011-07;2012-07;2014-06;2015-08;2019-01;2020-01;2023-03
+seasonally_adjusted,True,package_tour_share_pct,1.0,3.02063,96.776917,6,2011-07;2012-07;2015-08;2019-01;2020-01;2023-03
+seasonally_adjusted,False,package_tour_share_pct,2.0,3.02063,193.553833,4,2011-09;2015-11;2020-01;2023-03
+seasonally_adjusted,False,package_tour_share_pct,4.0,3.02063,387.107666,4,2011-09;2015-11;2020-01;2023-03
+unadjusted,False,package_tour_share_pct,1.0,3.123265,103.465184,6,2011-06;2012-07;2015-12;2019-01;2020-01;2023-03

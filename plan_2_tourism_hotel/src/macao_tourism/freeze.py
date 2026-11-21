@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -262,3 +263,36 @@ def differences_from_rebuild(rebuilt_dir: Path, frozen_dir: Path = DATA_FROZEN_D
     recorded = load_manifest(frozen_dir)["files"]
     rebuilt = file_hashes(rebuilt_dir)
     return [name for name in FROZEN_FILES if recorded.get(f"data/frozen/{name}") != rebuilt[name]]
+
+
+@dataclass(frozen=True)
+class Frozen:
+    """The frozen tables, read after their hashes were checked against the manifest."""
+
+    months: pd.DataFrame
+    panel: pd.DataFrame
+    origins: pd.DataFrame
+    spec: dict[str, Any]
+    manifest: dict[str, Any]
+
+    @property
+    def spec_sha256(self) -> str:
+        return self.manifest["files"]["data/frozen/analysis_spec.json"]
+
+    @property
+    def panel_sha256(self) -> str:
+        return self.manifest["files"]["data/frozen/panel_tier_month.csv"]
+
+
+def load_frozen(frozen_dir: Path = DATA_FROZEN_DIR) -> Frozen:
+    """Read the frozen inputs of steps 3 to 6; refuse if any file differs from the manifest."""
+    problems = verify_freeze(frozen_dir)
+    if problems:
+        raise RuntimeError("The freeze does not match its manifest: " + "; ".join(problems))
+    return Frozen(
+        months=pd.read_csv(frozen_dir / "months.csv"),
+        panel=pd.read_csv(frozen_dir / "panel_tier_month.csv"),
+        origins=pd.read_csv(frozen_dir / "rolling_origins.csv"),
+        spec=json.loads((frozen_dir / "analysis_spec.json").read_text(encoding="utf-8")),
+        manifest=load_manifest(frozen_dir),
+    )

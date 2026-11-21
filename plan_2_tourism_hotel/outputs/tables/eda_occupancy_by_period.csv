@@ -1,0 +1,13 @@
+tier,period_label,months,occupancy_mean,occupancy_sd,occupancy_min,occupancy_max,pearson_r_log_overnight
+5star,pre_pandemic,120,85.646667,5.300593,75.3,96.2,0.842457
+5star,pandemic,35,33.942857,16.494995,5.0,63.6,0.788282
+5star,post_pandemic,45,88.984444,6.033918,70.5,96.5,0.834587
+4star,pre_pandemic,120,86.9175,5.091279,73.2,94.6,0.60641
+4star,pandemic,35,42.828571,15.04033,16.8,67.5,0.517552
+4star,post_pandemic,45,83.0,5.09679,70.0,94.4,0.814575
+3star,pre_pandemic,120,85.580833,5.122521,72.8,97.2,0.656414
+3star,pandemic,35,45.868571,16.033472,18.4,81.3,0.405579
+3star,post_pandemic,45,83.564444,3.964224,73.6,91.1,0.596094
+2star,pre_pandemic,120,73.690833,6.392235,55.8,85.0,0.14383
+2star,pandemic,35,40.371429,15.406217,11.7,86.3,-0.135366
+2star,post_pandemic,45,87.973333,4.179136,76.2,93.6,0.663248

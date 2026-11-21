@@ -10,7 +10,7 @@ Everything for Plan 2 lives in this folder: code, data, outputs, tests, and (lat
 | --- | --- | --- |
 | 1 | Data download and Day-1 audit | done |
 | 2 | Panel build and freeze (splits, manifest, pre-registered analysis spec) | done |
-| 3 | EDA (STL, change points, scatter by period) | not started |
+| 3 | EDA (STL, change points, scatter by period) | done |
 | 4 | H1/H2 panel fixed-effects regression with Driscoll–Kraay standard errors | not started |
 | 5 | H3 rolling-origin backtest (seasonal naive, SARIMAX, LightGBM) | not started |
 | 6 | Figures, tables, Phase A report draft, one-command replay | not started |
@@ -106,16 +106,42 @@ The script builds the analysis panel from `data/raw` and `data/interim`, writes 
 
 The panel carries the holiday counts twice. `cn_holiday_days` follows the final schedule and enters the ex-post regression. `cn_holiday_days_at_origin` follows the notices published by the end of the month before, and is the calendar feature of the forecasts. The two differ in four months: 2016-12, 2018-12, and 2022-12 (the notice for the next year, which sets the New Year period, came out in December) and 2020-01 (the Spring Festival period was extended on 27 January 2020).
 
+## Step 3: exploratory data analysis
+
+```bash
+uv run python scripts/03_eda.py
+```
+
+The script reads `data/frozen/` only, and stops if any frozen file differs from the manifest. Everything it writes is exploratory description. Nothing it writes is an input to steps 4 and 5, and the period boundaries stay those of the plan.
+
+| File | Content |
+| --- | --- |
+| [`outputs/tables/eda_summary.md`](outputs/tables/eda_summary.md) | All tables of the step, with the settings |
+| `outputs/figures/fig1_visitor_mix_and_occupancy.{png,pdf}` | Figure 1: the three visitor-mix shares with their change points, and occupancy by star class |
+| `outputs/figures/eda_stl_occupancy.{png,pdf}` | Occupancy with its trend, the seasonal profile, and the remainder, by star class |
+| `outputs/figures/eda_scatter_occupancy_overnight.{png,pdf}` | Occupancy against log overnight visitors, by star class, coloured by period |
+| `outputs/tables/eda_stl_*.csv` | STL components, strength of trend and seasonality, seasonal profiles |
+| `outputs/tables/eda_change_point_*.csv` | Change points at each penalty, and the segments of the main run |
+| `outputs/tables/eda_visitor_mix_by_period.csv`, `eda_occupancy_by_period.csv` | Means by period |
+| `outputs/metrics/eda_summary.json` | The same numbers, with the SHA-256 of the panel and of the specification |
+
+### Settings
+
+- **STL on occupancy:** period 12, robust, as the specification says. One fit per star class and per block (pre-pandemic, post-pandemic), with a seasonal pattern that is constant inside a block. Pandemic months are not decomposed.
+- **PELT on the three shares:** each share minus its STL seasonal component; piecewise-constant mean; segments of at least 12 months; penalty 2 × noise_sd² × ln(n), where noise_sd comes from the 12-month differences. The change points are also reported at half, twice, and four times that penalty, and without the seasonal adjustment.
+
+One setting was changed after the first run. STL was first fitted once per star class over all 201 months. That fit put the pandemic collapse into the seasonal component of the months after it: for 5-star hotels in 2023-08 (occupancy 90.6%) it gave a seasonal component of −34.8 points. `outputs/tables/eda_stl_full_series_check.csv` keeps that result. The PELT settings were not changed.
+
 ## Layout
 
 ```text
 plan_2_tourism_hotel/
 ├── pyproject.toml, uv.lock
-├── src/macao_tourism/      # config, ingest (dsec, holidays, smg), audit, panel, splits, spec, freeze
+├── src/macao_tourism/      # config, ingest, audit, panel, splits, spec, freeze, eda, plots
 ├── scripts/                # one script per Phase A step
 ├── tests/
 ├── data/raw/               # official snapshots + data_provenance.json
 ├── data/interim/           # parsed tables
 ├── data/frozen/            # analysis panel, splits, spec, FREEZE_MANIFEST.json
-└── outputs/                # tables, metrics
+└── outputs/                # tables, metrics, figures
 ```
