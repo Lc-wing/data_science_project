@@ -1,5 +1,8 @@
-# data_science_project
-a repository for finsishing my data science project
+# Plan 5 — MacaoSpatialEquity
+
+Implementation of [`plans/plan_5_macao_facilities_ev_graph_dl.md`](../plans/plan_5_macao_facilities_ev_graph_dl.md): spatial equity of Macao public facilities and EV charging (Phase A), plus the Phase B graph module.
+
+This folder is a self-contained `uv` project. Run every command below from `plan_5_spatial_equity/`; every path in this folder's documents (`data/frozen/`, `outputs/`, `report/`, `scripts/`, `tests/`) is relative to it. The plans and the review report are shared and stay in `../plans/`.
 
 ## Phase A replay
 

@@ -1,0 +1,29 @@
+# Python / Virtualenv
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Environment / OS
+.env
+.env.*
+.DS_Store
+Thumbs.db
+
+# Multi-agent orchestration state
+.agents/
+
+# LaTeX build intermediates
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+*.toc

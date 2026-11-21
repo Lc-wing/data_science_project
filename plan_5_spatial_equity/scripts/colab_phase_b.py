@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Colab entry for Route B. Does not download weights unless CUDA is present.
 
-Typical Colab L4/A100 use, from the repository root:
+Typical Colab L4/A100 use, from the ``plan_5_spatial_equity`` folder:
 
     python scripts/colab_phase_b.py --allow-weight-download
 

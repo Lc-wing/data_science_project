@@ -1,5 +1,7 @@
 # Phase B — graph module (Colab path)
 
+Plan 5 lives in the `plan_5_spatial_equity/` folder of the repository. Run every command in this file from that folder; every path here is relative to it.
+
 Phase A is already frozen. This module only **reads** `data/frozen/`. It does not rewrite those files, and it does not refit the Phase A logistic or random-forest numbers.
 
 The task is node classification of `has_ev_charger` on the 287 populated H3 resolution-9 cells. Model inputs are exactly `feature_manifest.json` → `ml_features`. Excluded from the feature matrix: EV counts and capacity, `acc10_*`, `acc15_*`, `lisa_*`, POI text, and coordinates. CRS remains EPSG:32649. Scores are associations under the frozen spatial blocks. They are not a causal effect and they are not a recommendation to install a charger.
@@ -45,12 +47,16 @@ Outputs:
 
 This VM does not download `Qwen/Qwen3-Embedding-4B` or `BAAI/bge-m3`. `scripts/colab_phase_b.py` exits before any hub call unless it is started with `--allow-weight-download` **and** CUDA is available.
 
-If the repository is already cloned, `git pull` the branch `cursor/phase-b-graph-dl-a0b9` before running. Open `notebooks/phase_b_colab.ipynb` or run:
+Open `notebooks/phase_b_colab.ipynb` in Colab (GitHub path `plan_5_spatial_equity/notebooks/phase_b_colab.ipynb`). Its first cell clones `main`, or pulls `main` if the repository is already cloned, and changes into `plan_5_spatial_equity/`. The same steps by hand:
 
 ```bash
+git clone --branch main https://github.com/Lc-wing/data_science_project.git
+cd data_science_project/plan_5_spatial_equity
 pip install -q h3 torch-geometric transformers peft bitsandbytes accelerate
 python scripts/colab_phase_b.py --allow-weight-download
 ```
+
+`scripts/colab_phase_b.py` resolves `data/frozen/` and `outputs/` from its own location, so it reads and writes inside `plan_5_spatial_equity/` whatever the working directory is. The notebook's last cell reads `outputs/tables/phase_b_comparison_run2.md` by relative path, which is why the first cell changes directory.
 
 Do not rerun `scripts/run_phase_b_route_a.py`. Route A metrics are already in the repo. The command writes run 2 only:
 
