@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "macao-equity"
 version = "0.1.0"
-description = "MacaoSpatialEquity — Plan 5 Phase A: Spatial Equity of Public Facilities and EV Charging Infrastructure in Macao"
+description = "MacaoSpatialEquity — Plan 5: spatial equity of public facilities and EV charging, plus the Phase B graph module"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -31,7 +31,17 @@ dependencies = [
     "contextily>=1.6",
     "requests>=2.31",
     "pypdf>=5.0",
+    "torch>=2.5",
+    "torch-geometric>=2.6",
 ]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [dependency-groups]
 dev = [
