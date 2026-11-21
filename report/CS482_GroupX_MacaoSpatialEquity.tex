@@ -1,0 +1,139 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,margin=2.35cm]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[numbers]{natbib}
+\onehalfspacing
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{1.15em}
+\pagestyle{plain}
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{18mm}
+{\Large Spatial Equity of Walking Access to Public Facilities and Public EV Chargers in Macao SAR\par}
+\vspace{1.1em}
+{\large CS482 Data Science\par}
+\vspace{0.6em}
+Group X\par
+\vspace{1.5em}
+{\normalsize Group member names\par}
+\vspace{0.35em}
+\rule{0.72\textwidth}{0.4pt}\par
+\vspace{1.1em}
+{\normalsize Student IDs\par}
+\vspace{0.35em}
+\rule{0.72\textwidth}{0.4pt}\par
+\vspace{0.8em}
+{\small Write each member's name and student ID on the lines above.\par This file does not fill them in.\par}
+\vspace{1.3em}
+{\normalsize Submission deadline:\par 15 December 2026, 23:59 Macao time\par}
+\vspace{1.1em}
+\begin{minipage}{0.9\textwidth}
+\raggedright
+\small
+The cover, references, contribution statement, and AI declaration are outside the main-text page count. Estimates in the main text are copied from the committed Phase A and Phase B tables, except the corrected Colab scores, whose JSON is not yet in the repository.
+\end{minipage}
+\end{titlepage}
+
+\section{Introduction}
+Residents of Macao do not have the same walking access to parks, public health centres, public libraries, bus stops, and public EV chargers. The question is descriptive. How unequal is 10-minute and 15-minute pedestrian accessibility across populated H3 cells, and how is zone-level accessibility associated with the share of residents aged 65 or older after accounting for population density?
+
+Three hypotheses were fixed before the estimates were read. H1 says population-weighted accessibility is unequal and spatially clustered. H2 compares the EV Gini with the Gini of parks, health centres, libraries, and bus stops on the same resampled cells. H3 says that, on the 23 terrestrial census zones, a higher elderly share is associated with lower accessibility once log population density is included. Planners and residents can use the maps as a description of thin walking access. The results are correlational and cross-sectional. They do not estimate a causal siting effect, and they are not a build list.
+
+A second, pre-specified question asks whether a cell currently contains a public charger. That classifier describes the historical configuration. A high score in a cell that has no charger is a field-check candidate, not a recommendation to install one.
+
+\section{Data Collection and Preparation}
+The population layer is the DSEC 2021 census. Building polygons and statistical zones were read in native EPSG:8433 and transformed to EPSG:32649. The terrestrial control totals are 681,293 residents and 82,751 residents aged 65 or older. Those counts are allocated to H3 cells by area-weighted intersection with the building polygons. The analysis grid has 287 populated resolution-9 cells, nested in 23 zones and 7 official parishes, including Taipa.
+
+Public EV chargers come from the CEM map. Capacity is the number of distinct charger identifiers, with an imputed capacity of 12.0 where station 9488798 has empty connector records. Parks, health centres, libraries, and bus stops are matched to OpenStreetMap after a whitelist check. Deduplication is cross-source only, at 25 m. The cleaned layer has 240 parks, 11 health centres, 15 libraries, 587 bus stops, and 85 EV charger points. The walk network uses 4.5 km/h and has no slope impedance and no cross-harbour link.
+
+Five geographic blocks, seed 42, are frozen for every classifier below. They contain 56 cells with at least one charger (prevalence 0.1951). Model inputs are exactly the non-EV whitelist in \texttt{feature\_manifest.json}: population, elderly share, built form, and distances to rail and bus. Charger counts, coordinates, POI text as a numeric column, and every column that starts with \texttt{acc10\_}, \texttt{acc15\_}, or \texttt{lisa\_} are excluded. POI text used by the text models was stripped of EV and charging tokens before the model sees it.
+
+\section{Methods}
+Accessibility is a Gaussian two-step floating catchment area score at 10 and 15 minutes \citep{luo2003}. Inequality is the population-weighted Gini and Theil T, with a 2000-draw bootstrap, seed 42. Spatial structure uses a global Moran statistic and local indicators with 999 permutations and Benjamini--Hochberg FDR \citep{anselin1995}. H2 is a paired bootstrap of Gini differences, with Holm adjustment. H3 reports ordinary least squares with HC3 standard errors, a spatial error model, and a spatial lag model side by side on \(N=23\) zones. A diagnostic \(p\)-value is not used to drop a model. The same Gini summary is repeated on resolution-8 cells as a check on the modifiable areal unit.
+
+The charger classifier uses the same five blocks. Scaling and any grid search are fit on the training blocks only. The primary scores are the mean ROC-AUC across those five folds, plus PR-AUC and the share of charger cells captured in the top fifth of scores. The pre-specified Phase A models are a constant prior, an L2 logistic regression, and a random forest. The primary comparison is that fold mean, not a pooled ranking of all cells together.
+
+Phase B adds graph models on the frozen 10-minute walk edges. Route A trains a GATv2 network and a graph Transformer from scratch, for ten seeds, under an inductive split that removes the test block and a transductive split that keeps cross-block edges while still hiding test labels. Route B adds text from the stripped POI file. BGE-M3 and a frozen Qwen3-Embedding-4B encoder supply vectors that are joined to the numeric features and passed to the same style of graph head. A LoRA fit of the Qwen encoder, rank 8 on the attention projections, is a further pre-specified arm. The corrected Colab run, which uses right padding and the first non-pad token for BGE, is reported below. Its JSON is not yet in the repository, so this paper does not add a loss, a revision hash, or a claim that the fine-tune succeeded. Run 1 is the earlier Colab export, from before that pooling correction. It stays archived and is not the score in Table 2.
+
+XGBoost, LightGBM, and histogram gradient boosting are an extra comparison outside the pre-specified plan. Their grids were searched only inside the training blocks. Every row is labelled exploratory.
+
+\section{Results}
+Figure 1 maps 15-minute composite accessibility and the FDR clusters. On resolution-9 cells the 15-minute EV Gini is 0.4984 (interval 0.4315 to 0.5566). The park Gini is 0.6115, health centres 0.4923, libraries 0.3249, bus stops 0.3876, and the composite 0.3203. About 35.54 percent of populated cells have zero 15-minute EV access. The composite Moran statistic is 0.6678, with 17 low-low and 11 high-high cells after FDR. The EV surface is globally clustered, but the FDR screen marks no EV low-low or high-high cells. H1 is supported for the composite map and only partly supported for chargers.
+
+The 15-minute paired difference of EV Gini minus park Gini is \(-0.1132\) (interval \(-0.1954\) to \(-0.0298\)). EV minus library is 0.1734 and EV minus bus is 0.1108. EV minus health centre is 0.0061, and that interval covers zero. Chargers are not uniformly more unequal than every traditional facility. For the 15-minute composite on 23 zones, the elderly-share coefficient is \(-0.2375\) under OLS-HC3, \(-0.1463\) under the spatial error model, and \(-0.3498\) under the spatial lag model. The intervals cover zero. H3, as stated, is not supported. The 15-minute composite Gini is 0.3660 at resolution 8 and 0.3203 at resolution 9.
+
+\begin{center}
+\includegraphics[width=\textwidth,height=0.20\textheight,keepaspectratio]{../outputs/figures/fig1_accessibility_lisa.png}\\[4pt]
+{\small Figure 1. Fifteen-minute composite accessibility and FDR local clusters. The colours describe the historical surface. They are not a siting recommendation.}
+\end{center}
+
+{\small
+\textbf{Table 1.} Fifteen-minute population-weighted Gini on resolution-9 cells, with bootstrap intervals. The elderly-share coefficients are in the text, not in this table.
+\par\vspace{0.4em}
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+Facility & Gini & CI low & CI high & Theil T \\
+\midrule
+Park & 0.6115 & 0.5288 & 0.6771 & 1.2912 \\
+Health centre & 0.4923 & 0.4124 & 0.5655 & 0.5383 \\
+Library & 0.3249 & 0.2624 & 0.3920 & 0.2766 \\
+Bus stop & 0.3876 & 0.3326 & 0.4411 & 0.5972 \\
+EV charger & 0.4984 & 0.4315 & 0.5566 & 0.6706 \\
+Composite & 0.3203 & 0.2484 & 0.3937 & 0.2883 \\
+\bottomrule
+\end{tabular}
+\end{center}
+}
+
+Table 2 is the charger classification. The primary pre-specified summary is the mean ROC-AUC across the five frozen folds: 0.500 for the constant prior, 0.736 for logistic regression, and 0.773 for the random forest. Route A, averaged over ten seeds, is 0.712 for inductive GATv2 and 0.740 for the inductive graph Transformer. Both sit below the forest. The corrected Colab scores, with JSON still pending, are 0.728 for inductive BGE-M3 with GATv2, 0.736 for transductive BGE-M3 with the graph Transformer, 0.708 for inductive frozen Qwen with GATv2, and 0.664 for inductive LoRA Qwen with GATv2. The LoRA figure is below the frozen Qwen figure. This report does not treat that fine-tune as successful, and it does not state a training loss, because no loss for the corrected run is in the repository. The exploratory trees are 0.741, 0.720, and 0.718. None of the Route A, corrected Route B, or exploratory scores exceed 0.773.
+
+\begin{samepage}
+{\small
+\textbf{Table 2.} Fold-mean ROC-AUC for \texttt{has\_ev\_charger}. Phase A and the exploratory trees use seed 42. Route A averages ten seeds. Corrected Colab values are point estimates supplied for this draft. Run 1 is the pre-correction archive and is omitted here.
+\par\vspace{0.35em}
+\begin{center}
+\begin{tabular}{llc}
+\toprule
+Model & Setting & ROC-AUC \\
+\midrule
+Constant prior & pre-specified & 0.500 \\
+Logistic regression & pre-specified & 0.736 \\
+Random forest & pre-specified, primary & 0.773 \\
+GATv2 & Route A, inductive & 0.712 \\
+Graph Transformer & Route A, inductive & 0.740 \\
+BGE-M3 + GATv2 & corrected Colab, inductive; JSON pending & 0.728 \\
+BGE-M3 + Transformer & corrected Colab, transductive; JSON pending & 0.736 \\
+Frozen Qwen + GATv2 & corrected Colab, inductive; JSON pending & 0.708 \\
+LoRA Qwen + GATv2 & corrected Colab, inductive; JSON pending & 0.664 \\
+XGBoost & exploratory & 0.741 \\
+LightGBM & exploratory & 0.720 \\
+HistGradientBoosting & exploratory & 0.718 \\
+\bottomrule
+\end{tabular}
+\end{center}
+}
+\end{samepage}
+
+\section{Discussion}
+Composite walking access is unequal and spatially clustered. Charger access is also unequal, but its local FDR clusters are empty, and the Gini gap versus parks, libraries, and bus stops does not point in one direction. Elderly share is not associated with lower composite accessibility in the three zone models that were fixed in advance. The classifier result is the same kind of statement. Under the frozen blocks, the random forest fold-mean ROC-AUC of 0.773 is the strongest pre-specified score in Table 2. The graph models and the exploratory trees are associated with the historical charger pattern, and none of them beat that forest score.
+
+Run 1 remains the Colab export from before the BGE pooling fix. The corrected numbers in Table 2 replace it for interpretation, with the limit that their JSON is pending. The inductive LoRA score of 0.664 does not show a gain over frozen Qwen or over the forest. Cells with low accessibility, no charger, and a high forest score can be listed for a field check. That list records the historical allocation. It is not evidence that a charger should be built there.
+
+Four limitations bound the reading. Building-group population still spreads people evenly inside one polygon, which is a poor description of Macao high-rises. Facility capacity is incomplete, including the imputed value 12.0 at station 9488798. Walk times ignore slope and have no cross-harbour link. A zone-level or cell-level association is not an association for an individual resident.
+
+\clearpage
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\section*{Contribution Statement}
+This report is a group product. The geographic-data role covers census geometries, the CEM feed, the OpenStreetMap walk network, and the H3 grids. The spatial-statistics role covers 2SFCA, Gini, Theil, LISA, and the zone regression. The machine-learning role covers the spatial-block baselines, the graph module, and the exploratory trees. The remaining role covers the MAUP check, the figures, and the assembly of this report. Names and student IDs belong on the blank lines of the cover. No member is credited with a causal siting result.
+
+\section*{AI Usage Declaration}
+A coding assistant in Cursor was used to plan, code, and draft the pipeline and this report. The K-Dense note of Kassis and coauthors is cited as arXiv:2609.00065 \citep{kassis2026}. The assistant drafted functions, tests, figure code, and prose. It was not allowed to invent a Gini, a regression coefficient, an AUC, or a LoRA training loss. Phase A numbers, Route A numbers, and the exploratory tree scores were checked against the committed CSV and JSON files. The four corrected Colab ROC-AUC values were entered as supplied for this draft, with an explicit note that their JSON is pending. Run 1 is labelled as the export from before the BGE pooling correction. Disagreements were resolved by editing the prose back to the source, not by writing a new estimate into the sentence.
+
+\end{document}
