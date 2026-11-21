@@ -34,7 +34,7 @@ Group X\par
 \begin{minipage}{0.9\textwidth}
 \raggedright
 \small
-The cover, references, contribution statement, and AI declaration are outside the main-text page count. Estimates in the main text are copied from the committed Phase A and Phase B tables, except the corrected Colab scores, whose JSON is not yet in the repository.
+The cover, references, contribution statement, and AI declaration are outside the main-text page count. Estimates in the main text are copied from the committed tables, including \texttt{outputs/metrics/phase\_b\_route\_b\_run2.json}.
 \end{minipage}
 \end{titlepage}
 
@@ -57,7 +57,7 @@ Accessibility is a Gaussian two-step floating catchment area score at 10 and 15 
 
 The charger classifier uses the same five blocks. Scaling and any grid search are fit on the training blocks only. The primary scores are the mean ROC-AUC across those five folds, plus PR-AUC and the share of charger cells captured in the top fifth of scores. The pre-specified Phase A models are a constant prior, an L2 logistic regression, and a random forest. The primary comparison is that fold mean, not a pooled ranking of all cells together.
 
-Phase B adds graph models on the frozen 10-minute walk edges. Route A trains a GATv2 network and a graph Transformer from scratch, for ten seeds, under an inductive split that removes the test block and a transductive split that keeps cross-block edges while still hiding test labels. Route B adds text from the stripped POI file. BGE-M3 and a frozen Qwen3-Embedding-4B encoder supply vectors that are joined to the numeric features and passed to the same style of graph head. A LoRA fit of the Qwen encoder, rank 8 on the attention projections, is a further pre-specified arm. The corrected Colab run, which uses right padding and the first non-pad token for BGE, is reported below. Its JSON is not yet in the repository, so this paper does not add a loss, a revision hash, or a claim that the fine-tune succeeded. Run 1 is the earlier Colab export, from before that pooling correction. It stays archived and is not the score in Table 2.
+Phase B adds graph models on the frozen 10-minute walk edges. Route A trains a GATv2 network and a graph Transformer from scratch, for ten seeds, under an inductive split that removes the test block and a transductive split that keeps cross-block edges while still hiding test labels. Route B joins BGE-M3 and Qwen3-Embedding-4B text vectors to the numeric features. The corrected Colab run is stored in \texttt{outputs/metrics/phase\_b\_route\_b\_run2.json} and \texttt{outputs/tables/phase\_b\_comparison\_run2.md}, with a copy under \texttt{outputs/colab\_runs/run2/}. BGE-M3 uses right padding and the first non-pad token. Its revision is {\ttfamily 5617a9f6\allowbreak 1b028005\allowbreak a4858fda\allowbreak c845db40\allowbreak 6aefb181}. Frozen Qwen and the LoRA run share revision {\ttfamily 5cf2132a\allowbreak bc99cad0\allowbreak 20ac570b\allowbreak 19d031ef\allowbreak ec650f2b}. LoRA uses rank 8 on the attention projections, 40 steps, and 5,898,240 trainable parameters. The encoder is 4-bit, while frozen Qwen is loaded in bf16, and the encoder uses one seed. The ten seeds belong to the graph head. Run 1 is the Colab export from before the BGE pooling correction. It stays archived and is not the score in Table 2.
 
 XGBoost, LightGBM, and histogram gradient boosting are an extra comparison outside the pre-specified plan. Their grids were searched only inside the training blocks. Every row is labelled exploratory.
 
@@ -90,11 +90,11 @@ Composite & 0.3203 & 0.2484 & 0.3937 & 0.2883 \\
 \end{center}
 }
 
-Table 2 is the charger classification. The primary pre-specified summary is the mean ROC-AUC across the five frozen folds: 0.500 for the constant prior, 0.736 for logistic regression, and 0.773 for the random forest. Route A, averaged over ten seeds, is 0.712 for inductive GATv2 and 0.740 for the inductive graph Transformer. Both sit below the forest. The corrected Colab scores, with JSON still pending, are 0.728 for inductive BGE-M3 with GATv2, 0.736 for transductive BGE-M3 with the graph Transformer, 0.708 for inductive frozen Qwen with GATv2, and 0.664 for inductive LoRA Qwen with GATv2. The LoRA figure is below the frozen Qwen figure. This report does not treat that fine-tune as successful, and it does not state a training loss, because no loss for the corrected run is in the repository. The exploratory trees are 0.741, 0.720, and 0.718. None of the Route A, corrected Route B, or exploratory scores exceed 0.773.
+Table 2 is the charger classification. The primary pre-specified summary is the mean ROC-AUC across the five frozen folds: 0.500 for the constant prior, 0.736 for logistic regression, and 0.773 for the random forest. Route A, averaged over ten seeds, is 0.712 for inductive GATv2 and 0.740 for the inductive graph Transformer. Both sit below the forest. From the committed run 2 file, inductive BGE-M3 with GATv2 is 0.728 and transductive BGE-M3 with the graph Transformer is 0.736. With the GATv2 head, inductive LoRA is below frozen Qwen (0.664 versus 0.708). With the TransformerConv head, inductive LoRA is above frozen Qwen (0.704 versus 0.692). On the transductive TransformerConv head the two scores are 0.695 and 0.696, so that ordering does not hold. Neither head reaches the random forest at 0.773. The first-to-last batch loss fell in four of the five folds and rose in fold 2 (1.036 to 1.379). Each value is one batch of 16, so the trace is noisy, and this report does not treat the fine-tune as successful. The exploratory trees are 0.741, 0.720, and 0.718. None of these scores exceed 0.773.
 
 \begin{samepage}
 {\small
-\textbf{Table 2.} Fold-mean ROC-AUC for \texttt{has\_ev\_charger}. Phase A and the exploratory trees use seed 42. Route A averages ten seeds. Corrected Colab values are point estimates supplied for this draft. Run 1 is the pre-correction archive and is omitted here.
+\textbf{Table 2.} Fold-mean ROC-AUC for \texttt{has\_ev\_charger}, copied from the committed run 2 comparison. Phase A and the exploratory trees use seed 42. Route A and the graph heads average ten seeds. Run 1, from before the BGE pooling correction, is omitted.
 \par\vspace{0.35em}
 \begin{center}
 \begin{tabular}{llc}
@@ -106,10 +106,10 @@ Logistic regression & pre-specified & 0.736 \\
 Random forest & pre-specified, primary & 0.773 \\
 GATv2 & Route A, inductive & 0.712 \\
 Graph Transformer & Route A, inductive & 0.740 \\
-BGE-M3 + GATv2 & corrected Colab, inductive; JSON pending & 0.728 \\
-BGE-M3 + Transformer & corrected Colab, transductive; JSON pending & 0.736 \\
-Frozen Qwen + GATv2 & corrected Colab, inductive; JSON pending & 0.708 \\
-LoRA Qwen + GATv2 & corrected Colab, inductive; JSON pending & 0.664 \\
+BGE-M3 + GATv2 & run 2, inductive & 0.728 \\
+BGE-M3 + Transformer & run 2, transductive & 0.736 \\
+Frozen Qwen + GATv2 & run 2, inductive & 0.708 \\
+LoRA Qwen + GATv2 & run 2, inductive & 0.664 \\
 XGBoost & exploratory & 0.741 \\
 LightGBM & exploratory & 0.720 \\
 HistGradientBoosting & exploratory & 0.718 \\
@@ -122,7 +122,7 @@ HistGradientBoosting & exploratory & 0.718 \\
 \section{Discussion}
 Composite walking access is unequal and spatially clustered. Charger access is also unequal, but its local FDR clusters are empty, and the Gini gap versus parks, libraries, and bus stops does not point in one direction. Elderly share is not associated with lower composite accessibility in the three zone models that were fixed in advance. The classifier result is the same kind of statement. Under the frozen blocks, the random forest fold-mean ROC-AUC of 0.773 is the strongest pre-specified score in Table 2. The graph models and the exploratory trees are associated with the historical charger pattern, and none of them beat that forest score.
 
-Run 1 remains the Colab export from before the BGE pooling fix. The corrected numbers in Table 2 replace it for interpretation, with the limit that their JSON is pending. The inductive LoRA score of 0.664 does not show a gain over frozen Qwen or over the forest. Cells with low accessibility, no charger, and a high forest score can be listed for a field check. That list records the historical allocation. It is not evidence that a charger should be built there.
+Run 1 remains the Colab export from before the BGE pooling fix. Table 2 uses run 2. With GATv2, inductive LoRA (0.664) is below frozen Qwen (0.708). With TransformerConv, inductive LoRA (0.704) is above frozen Qwen (0.692). Neither reaches the forest at 0.773, and the 4-bit encoder with one seed is not the same object as the bf16 frozen encoder. Cells with low accessibility, no charger, and a high forest score can be listed for a field check. That list records the historical allocation. It is not evidence that a charger should be built there.
 
 Four limitations bound the reading. Building-group population still spreads people evenly inside one polygon, which is a poor description of Macao high-rises. Facility capacity is incomplete, including the imputed value 12.0 at station 9488798. Walk times ignore slope and have no cross-harbour link. A zone-level or cell-level association is not an association for an individual resident.
 
@@ -134,6 +134,6 @@ Four limitations bound the reading. Building-group population still spreads peop
 This report is a group product. The geographic-data role covers census geometries, the CEM feed, the OpenStreetMap walk network, and the H3 grids. The spatial-statistics role covers 2SFCA, Gini, Theil, LISA, and the zone regression. The machine-learning role covers the spatial-block baselines, the graph module, and the exploratory trees. The remaining role covers the MAUP check, the figures, and the assembly of this report. Names and student IDs belong on the blank lines of the cover. No member is credited with a causal siting result.
 
 \section*{AI Usage Declaration}
-A coding assistant in Cursor was used to plan, code, and draft the pipeline and this report. The K-Dense note of Kassis and coauthors is cited as arXiv:2609.00065 \citep{kassis2026}. The assistant drafted functions, tests, figure code, and prose. It was not allowed to invent a Gini, a regression coefficient, an AUC, or a LoRA training loss. Phase A numbers, Route A numbers, and the exploratory tree scores were checked against the committed CSV and JSON files. The four corrected Colab ROC-AUC values were entered as supplied for this draft, with an explicit note that their JSON is pending. Run 1 is labelled as the export from before the BGE pooling correction. Disagreements were resolved by editing the prose back to the source, not by writing a new estimate into the sentence.
+A coding assistant in Cursor was used to plan, code, and draft the pipeline and this report. The K-Dense note of Kassis and coauthors is cited as arXiv:2609.00065 \citep{kassis2026}. The assistant drafted functions, tests, figure code, and prose. It was not allowed to invent a Gini, a regression coefficient, or an AUC. Run 2 scores, revisions, the trainable-parameter count, and the five batch losses were copied from \texttt{outputs/metrics/phase\_b\_route\_b\_run2.json}. Run 1 is labelled as the export from before the BGE pooling correction. Disagreements were resolved by editing the prose back to that file, not by writing a new estimate into the sentence.
 
 \end{document}

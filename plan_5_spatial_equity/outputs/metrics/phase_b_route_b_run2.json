@@ -1,0 +1,392 @@
+{
+  "task": "has_ev_charger text-attributed node classification",
+  "feature_columns": [
+    "pop_total",
+    "pop_65plus",
+    "pop_density",
+    "elderly_share",
+    "intersection_density",
+    "road_density_km_per_km2",
+    "res_bldg_share",
+    "com_bldg_share",
+    "bldg_coverage_ratio",
+    "dist_nearest_lrt_m",
+    "dist_nearest_bus_m"
+  ],
+  "text_dim": 64,
+  "encoders": {
+    "bge_m3": {
+      "model": "BAAI/bge-m3",
+      "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+      "total_parameters": 567754752,
+      "trainable": false
+    },
+    "qwen_frozen": {
+      "model": "Qwen/Qwen3-Embedding-4B",
+      "revision": "5cf2132abc99cad020ac570b19d031efec650f2b",
+      "total_parameters": 4021774336,
+      "trainable": false,
+      "instruction": "Represent this grid cell's district and places for a spatial classification task."
+    },
+    "qwen_lora": [
+      {
+        "base_model": "Qwen/Qwen3-Embedding-4B",
+        "r": 8,
+        "lora_alpha": 16,
+        "lora_dropout": 0.05,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj"
+        ],
+        "task_type": "FEATURE_EXTRACTION",
+        "max_steps": 40,
+        "learning_rate": 0.0001,
+        "batch_size": 16,
+        "seeds": [
+          42
+        ],
+        "mrl_dim": 64,
+        "revision": "5cf2132abc99cad020ac570b19d031efec650f2b",
+        "total_parameters": 2211014656,
+        "trainable_parameters": 5898240,
+        "seed": 42,
+        "n_fit": 258,
+        "fit_rows": "training_blocks",
+        "loss_first": 1.48399425,
+        "loss_last": 1.35442412,
+        "loss_fell": true,
+        "fold": 0
+      },
+      {
+        "base_model": "Qwen/Qwen3-Embedding-4B",
+        "r": 8,
+        "lora_alpha": 16,
+        "lora_dropout": 0.05,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj"
+        ],
+        "task_type": "FEATURE_EXTRACTION",
+        "max_steps": 40,
+        "learning_rate": 0.0001,
+        "batch_size": 16,
+        "seeds": [
+          42
+        ],
+        "mrl_dim": 64,
+        "revision": "5cf2132abc99cad020ac570b19d031efec650f2b",
+        "total_parameters": 2211014656,
+        "trainable_parameters": 5898240,
+        "seed": 42,
+        "n_fit": 258,
+        "fit_rows": "training_blocks",
+        "loss_first": 1.18162084,
+        "loss_last": 1.02645278,
+        "loss_fell": true,
+        "fold": 1
+      },
+      {
+        "base_model": "Qwen/Qwen3-Embedding-4B",
+        "r": 8,
+        "lora_alpha": 16,
+        "lora_dropout": 0.05,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj"
+        ],
+        "task_type": "FEATURE_EXTRACTION",
+        "max_steps": 40,
+        "learning_rate": 0.0001,
+        "batch_size": 16,
+        "seeds": [
+          42
+        ],
+        "mrl_dim": 64,
+        "revision": "5cf2132abc99cad020ac570b19d031efec650f2b",
+        "total_parameters": 2211014656,
+        "trainable_parameters": 5898240,
+        "seed": 42,
+        "n_fit": 255,
+        "fit_rows": "training_blocks",
+        "loss_first": 1.03627062,
+        "loss_last": 1.37939203,
+        "loss_fell": false,
+        "fold": 2
+      },
+      {
+        "base_model": "Qwen/Qwen3-Embedding-4B",
+        "r": 8,
+        "lora_alpha": 16,
+        "lora_dropout": 0.05,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj"
+        ],
+        "task_type": "FEATURE_EXTRACTION",
+        "max_steps": 40,
+        "learning_rate": 0.0001,
+        "batch_size": 16,
+        "seeds": [
+          42
+        ],
+        "mrl_dim": 64,
+        "revision": "5cf2132abc99cad020ac570b19d031efec650f2b",
+        "total_parameters": 2211014656,
+        "trainable_parameters": 5898240,
+        "seed": 42,
+        "n_fit": 188,
+        "fit_rows": "training_blocks",
+        "loss_first": 1.23607564,
+        "loss_last": 0.96161675,
+        "loss_fell": true,
+        "fold": 3
+      },
+      {
+        "base_model": "Qwen/Qwen3-Embedding-4B",
+        "r": 8,
+        "lora_alpha": 16,
+        "lora_dropout": 0.05,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj"
+        ],
+        "task_type": "FEATURE_EXTRACTION",
+        "max_steps": 40,
+        "learning_rate": 0.0001,
+        "batch_size": 16,
+        "seeds": [
+          42
+        ],
+        "mrl_dim": 64,
+        "revision": "5cf2132abc99cad020ac570b19d031efec650f2b",
+        "total_parameters": 2211014656,
+        "trainable_parameters": 5898240,
+        "seed": 42,
+        "n_fit": 189,
+        "fit_rows": "training_blocks",
+        "loss_first": 1.23813939,
+        "loss_last": 0.94091648,
+        "loss_fell": true,
+        "fold": 4
+      }
+    ]
+  },
+  "rows": [
+    {
+      "model": "bge_m3_gatv2",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "LoRA is fit on every training-block row. The ten seeds belong to the GATv2 or TransformerConv head.",
+      "roc_auc_mean": 0.72763667,
+      "roc_auc_std": 0.02235145,
+      "pr_auc_mean": 0.55881929,
+      "pr_auc_std": 0.02400662,
+      "top20_hit_rate_mean": 0.42133478,
+      "top20_hit_rate_std": 0.04921286
+    },
+    {
+      "model": "bge_m3_gatv2",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "LoRA is fit on every training-block row. The ten seeds belong to the GATv2 or TransformerConv head.",
+      "roc_auc_mean": 0.6799107,
+      "roc_auc_std": 0.01883448,
+      "pr_auc_mean": 0.47034686,
+      "pr_auc_std": 0.01538643,
+      "top20_hit_rate_mean": 0.37246753,
+      "top20_hit_rate_std": 0.02958522
+    },
+    {
+      "model": "bge_m3_graph_transformer",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "LoRA is fit on every training-block row. The ten seeds belong to the GATv2 or TransformerConv head.",
+      "roc_auc_mean": 0.73043561,
+      "roc_auc_std": 0.01426701,
+      "pr_auc_mean": 0.55053802,
+      "pr_auc_std": 0.03005935,
+      "top20_hit_rate_mean": 0.42454906,
+      "top20_hit_rate_std": 0.04081551
+    },
+    {
+      "model": "bge_m3_graph_transformer",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "LoRA is fit on every training-block row. The ten seeds belong to the GATv2 or TransformerConv head.",
+      "roc_auc_mean": 0.73593278,
+      "roc_auc_std": 0.01523954,
+      "pr_auc_mean": 0.56028295,
+      "pr_auc_std": 0.02945468,
+      "top20_hit_rate_mean": 0.43476551,
+      "top20_hit_rate_std": 0.04081087
+    },
+    {
+      "model": "qwen3_embedding_4b_frozen_gatv2",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "LoRA is fit on every training-block row. The ten seeds belong to the GATv2 or TransformerConv head.",
+      "roc_auc_mean": 0.70843104,
+      "roc_auc_std": 0.01646202,
+      "pr_auc_mean": 0.49400448,
+      "pr_auc_std": 0.04085232,
+      "top20_hit_rate_mean": 0.39809343,
+      "top20_hit_rate_std": 0.04894996
+    },
+    {
+      "model": "qwen3_embedding_4b_frozen_gatv2",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "LoRA is fit on every training-block row. The ten seeds belong to the GATv2 or TransformerConv head.",
+      "roc_auc_mean": 0.66679389,
+      "roc_auc_std": 0.03001888,
+      "pr_auc_mean": 0.44187268,
+      "pr_auc_std": 0.03512763,
+      "top20_hit_rate_mean": 0.31951118,
+      "top20_hit_rate_std": 0.03720481
+    },
+    {
+      "model": "qwen3_embedding_4b_frozen_graph_transformer",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "LoRA is fit on every training-block row. The ten seeds belong to the GATv2 or TransformerConv head.",
+      "roc_auc_mean": 0.69198979,
+      "roc_auc_std": 0.01771375,
+      "pr_auc_mean": 0.47334644,
+      "pr_auc_std": 0.02162444,
+      "top20_hit_rate_mean": 0.38572691,
+      "top20_hit_rate_std": 0.05986354
+    },
+    {
+      "model": "qwen3_embedding_4b_frozen_graph_transformer",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "LoRA is fit on every training-block row. The ten seeds belong to the GATv2 or TransformerConv head.",
+      "roc_auc_mean": 0.69588878,
+      "roc_auc_std": 0.02183047,
+      "pr_auc_mean": 0.48756893,
+      "pr_auc_std": 0.03626083,
+      "top20_hit_rate_mean": 0.37757395,
+      "top20_hit_rate_std": 0.04587488
+    },
+    {
+      "model": "qwen3_embedding_4b_lora_gatv2",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "LoRA is fit on every training-block row. The ten seeds belong to the GATv2 or TransformerConv head.",
+      "roc_auc_mean": 0.66404628,
+      "roc_auc_std": 0.02248774,
+      "pr_auc_mean": 0.51013508,
+      "pr_auc_std": 0.03431288,
+      "top20_hit_rate_mean": 0.36715368,
+      "top20_hit_rate_std": 0.04047814
+    },
+    {
+      "model": "qwen3_embedding_4b_lora_gatv2",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "LoRA is fit on every training-block row. The ten seeds belong to the GATv2 or TransformerConv head.",
+      "roc_auc_mean": 0.68083454,
+      "roc_auc_std": 0.02348356,
+      "pr_auc_mean": 0.49095019,
+      "pr_auc_std": 0.0268368,
+      "top20_hit_rate_mean": 0.37635642,
+      "top20_hit_rate_std": 0.01803545
+    },
+    {
+      "model": "qwen3_embedding_4b_lora_graph_transformer",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "LoRA is fit on every training-block row. The ten seeds belong to the GATv2 or TransformerConv head.",
+      "roc_auc_mean": 0.70438007,
+      "roc_auc_std": 0.02363236,
+      "pr_auc_mean": 0.51378863,
+      "pr_auc_std": 0.03303217,
+      "top20_hit_rate_mean": 0.40263167,
+      "top20_hit_rate_std": 0.02450238
+    },
+    {
+      "model": "qwen3_embedding_4b_lora_graph_transformer",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "LoRA is fit on every training-block row. The ten seeds belong to the GATv2 or TransformerConv head.",
+      "roc_auc_mean": 0.69522296,
+      "roc_auc_std": 0.01684613,
+      "pr_auc_mean": 0.53056152,
+      "pr_auc_std": 0.02624123,
+      "top20_hit_rate_mean": 0.37698593,
+      "top20_hit_rate_std": 0.03478719
+    }
+  ],
+  "parameter_count_gatv2": 1095169,
+  "parameter_count_graph_transformer": 439937,
+  "gnn_seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51
+  ],
+  "lora_seeds": [
+    42
+  ],
+  "lora_config": {
+    "base_model": "Qwen/Qwen3-Embedding-4B",
+    "r": 8,
+    "lora_alpha": 16,
+    "lora_dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj"
+    ],
+    "task_type": "FEATURE_EXTRACTION",
+    "max_steps": 40,
+    "learning_rate": 0.0001,
+    "batch_size": 16,
+    "seeds": [
+      42
+    ],
+    "mrl_dim": 64
+  },
+  "language": "correlational"
+}
