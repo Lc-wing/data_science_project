@@ -1,0 +1,282 @@
+{
+  "task": "has_ev_charger text-attributed node classification",
+  "feature_columns": [
+    "pop_total",
+    "pop_65plus",
+    "pop_density",
+    "elderly_share",
+    "intersection_density",
+    "road_density_km_per_km2",
+    "res_bldg_share",
+    "com_bldg_share",
+    "bldg_coverage_ratio",
+    "dist_nearest_lrt_m",
+    "dist_nearest_bus_m"
+  ],
+  "text_dim": 64,
+  "encoders": {
+    "bge_m3": {
+      "model": "BAAI/bge-m3",
+      "revision": "",
+      "total_parameters": 567754752,
+      "trainable": false
+    },
+    "qwen_frozen": {
+      "model": "Qwen/Qwen3-Embedding-4B",
+      "revision": "",
+      "total_parameters": 4021774336,
+      "trainable": false,
+      "instruction": "Represent this grid cell's district and places for a spatial classification task."
+    },
+    "qwen_lora": [
+      {
+        "base_model": "Qwen/Qwen3-Embedding-4B",
+        "r": 8,
+        "lora_alpha": 16,
+        "lora_dropout": 0.05,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj"
+        ],
+        "task_type": "FEATURE_EXTRACTION",
+        "max_steps": 40,
+        "learning_rate": 0.0001,
+        "batch_size": 16,
+        "seeds": [
+          42
+        ],
+        "mrl_dim": 64,
+        "revision": "",
+        "total_parameters": 2211014656,
+        "seed": 42,
+        "n_fit": 160,
+        "fold": 0
+      },
+      {
+        "base_model": "Qwen/Qwen3-Embedding-4B",
+        "r": 8,
+        "lora_alpha": 16,
+        "lora_dropout": 0.05,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj"
+        ],
+        "task_type": "FEATURE_EXTRACTION",
+        "max_steps": 40,
+        "learning_rate": 0.0001,
+        "batch_size": 16,
+        "seeds": [
+          42
+        ],
+        "mrl_dim": 64,
+        "revision": "",
+        "total_parameters": 2211014656,
+        "seed": 42,
+        "n_fit": 160,
+        "fold": 1
+      },
+      {
+        "base_model": "Qwen/Qwen3-Embedding-4B",
+        "r": 8,
+        "lora_alpha": 16,
+        "lora_dropout": 0.05,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj"
+        ],
+        "task_type": "FEATURE_EXTRACTION",
+        "max_steps": 40,
+        "learning_rate": 0.0001,
+        "batch_size": 16,
+        "seeds": [
+          42
+        ],
+        "mrl_dim": 64,
+        "revision": "",
+        "total_parameters": 2211014656,
+        "seed": 42,
+        "n_fit": 157,
+        "fold": 2
+      },
+      {
+        "base_model": "Qwen/Qwen3-Embedding-4B",
+        "r": 8,
+        "lora_alpha": 16,
+        "lora_dropout": 0.05,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj"
+        ],
+        "task_type": "FEATURE_EXTRACTION",
+        "max_steps": 40,
+        "learning_rate": 0.0001,
+        "batch_size": 16,
+        "seeds": [
+          42
+        ],
+        "mrl_dim": 64,
+        "revision": "",
+        "total_parameters": 2211014656,
+        "seed": 42,
+        "n_fit": 90,
+        "fold": 3
+      },
+      {
+        "base_model": "Qwen/Qwen3-Embedding-4B",
+        "r": 8,
+        "lora_alpha": 16,
+        "lora_dropout": 0.05,
+        "target_modules": [
+          "q_proj",
+          "k_proj",
+          "v_proj",
+          "o_proj"
+        ],
+        "task_type": "FEATURE_EXTRACTION",
+        "max_steps": 40,
+        "learning_rate": 0.0001,
+        "batch_size": 16,
+        "seeds": [
+          42
+        ],
+        "mrl_dim": 64,
+        "revision": "",
+        "total_parameters": 2211014656,
+        "seed": 42,
+        "n_fit": 90,
+        "fold": 4
+      }
+    ]
+  },
+  "rows": [
+    {
+      "model": "bge_m3_gatv2",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "Text projection is fit on the loss mask only. LoRA uses one pre-specified seed; the ten seeds are the GATv2 head.",
+      "roc_auc_mean": 0.71802778,
+      "roc_auc_std": 0.0222659,
+      "pr_auc_mean": 0.54099985,
+      "pr_auc_std": 0.02591083,
+      "top20_hit_rate_mean": 0.43595779,
+      "top20_hit_rate_std": 0.04071303
+    },
+    {
+      "model": "bge_m3_gatv2",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "Text projection is fit on the loss mask only. LoRA uses one pre-specified seed; the ten seeds are the GATv2 head.",
+      "roc_auc_mean": 0.67278282,
+      "roc_auc_std": 0.01151284,
+      "pr_auc_mean": 0.47767506,
+      "pr_auc_std": 0.0232604,
+      "top20_hit_rate_mean": 0.36474026,
+      "top20_hit_rate_std": 0.03432758
+    },
+    {
+      "model": "qwen3_embedding_4b_frozen_gatv2",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "Text projection is fit on the loss mask only. LoRA uses one pre-specified seed; the ten seeds are the GATv2 head.",
+      "roc_auc_mean": 0.70843104,
+      "roc_auc_std": 0.01646202,
+      "pr_auc_mean": 0.49400448,
+      "pr_auc_std": 0.04085232,
+      "top20_hit_rate_mean": 0.39809343,
+      "top20_hit_rate_std": 0.04894996
+    },
+    {
+      "model": "qwen3_embedding_4b_frozen_gatv2",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "Text projection is fit on the loss mask only. LoRA uses one pre-specified seed; the ten seeds are the GATv2 head.",
+      "roc_auc_mean": 0.66679389,
+      "roc_auc_std": 0.03001888,
+      "pr_auc_mean": 0.44187268,
+      "pr_auc_std": 0.03512763,
+      "top20_hit_rate_mean": 0.31951118,
+      "top20_hit_rate_std": 0.03720481
+    },
+    {
+      "model": "qwen3_embedding_4b_lora_gatv2",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "Text projection is fit on the loss mask only. LoRA uses one pre-specified seed; the ten seeds are the GATv2 head.",
+      "roc_auc_mean": 0.70787772,
+      "roc_auc_std": 0.01055708,
+      "pr_auc_mean": 0.50382869,
+      "pr_auc_std": 0.02152531,
+      "top20_hit_rate_mean": 0.4032702,
+      "top20_hit_rate_std": 0.02320571
+    },
+    {
+      "model": "qwen3_embedding_4b_lora_gatv2",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_colab",
+      "std_definition": "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds",
+      "note": "Text projection is fit on the loss mask only. LoRA uses one pre-specified seed; the ten seeds are the GATv2 head.",
+      "roc_auc_mean": 0.71813159,
+      "roc_auc_std": 0.01414674,
+      "pr_auc_mean": 0.50159008,
+      "pr_auc_std": 0.01029773,
+      "top20_hit_rate_mean": 0.4252399,
+      "top20_hit_rate_std": 0.02926831
+    }
+  ],
+  "parameter_count_gatv2": 1095169,
+  "gnn_seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51
+  ],
+  "lora_seeds": [
+    42
+  ],
+  "lora_config": {
+    "base_model": "Qwen/Qwen3-Embedding-4B",
+    "r": 8,
+    "lora_alpha": 16,
+    "lora_dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj"
+    ],
+    "task_type": "FEATURE_EXTRACTION",
+    "max_steps": 40,
+    "learning_rate": 0.0001,
+    "batch_size": 16,
+    "seeds": [
+      42
+    ],
+    "mrl_dim": 64
+  },
+  "language": "correlational"
+}

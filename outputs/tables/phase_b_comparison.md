@@ -18,9 +18,9 @@ Those two dispersions are not interchangeable.
 | graph_transformer | transductive | 0.729 ± 0.013 | 0.540 ± 0.034 | 0.412 ± 0.038 | ran_on_cpu |
 | graphsage_5k | inductive | 0.664 ± 0.043 | 0.466 ± 0.050 | 0.333 ± 0.066 | ran_on_cpu |
 | graphsage_5k | transductive | 0.663 ± 0.024 | 0.466 ± 0.054 | 0.334 ± 0.040 | ran_on_cpu |
-| bge_m3_gatv2 | inductive |  |  |  | not_run |
-| bge_m3_gatv2 | transductive |  |  |  | not_run |
-| qwen3_embedding_4b_frozen_gatv2 | inductive |  |  |  | not_run |
-| qwen3_embedding_4b_frozen_gatv2 | transductive |  |  |  | not_run |
-| qwen3_embedding_4b_lora_gatv2 | inductive |  |  |  | not_run |
-| qwen3_embedding_4b_lora_gatv2 | transductive |  |  |  | not_run |
+| bge_m3_gatv2 | inductive | 0.718 ± 0.022 | 0.541 ± 0.026 | 0.436 ± 0.041 | ran_on_colab |
+| bge_m3_gatv2 | transductive | 0.673 ± 0.012 | 0.478 ± 0.023 | 0.365 ± 0.034 | ran_on_colab |
+| qwen3_embedding_4b_frozen_gatv2 | inductive | 0.708 ± 0.016 | 0.494 ± 0.041 | 0.398 ± 0.049 | ran_on_colab |
+| qwen3_embedding_4b_frozen_gatv2 | transductive | 0.667 ± 0.030 | 0.442 ± 0.035 | 0.320 ± 0.037 | ran_on_colab |
+| qwen3_embedding_4b_lora_gatv2 | inductive | 0.708 ± 0.011 | 0.504 ± 0.022 | 0.403 ± 0.023 | ran_on_colab |
+| qwen3_embedding_4b_lora_gatv2 | transductive | 0.718 ± 0.014 | 0.502 ± 0.010 | 0.425 ± 0.029 | ran_on_colab |
