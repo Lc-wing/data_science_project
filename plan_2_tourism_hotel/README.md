@@ -12,7 +12,7 @@ Everything for Plan 2 lives in this folder: code, data, outputs, tests, and (lat
 | 2 | Panel build and freeze (splits, manifest, pre-registered analysis spec) | done |
 | 3 | EDA (STL, change points, scatter by period) | done |
 | 4 | H1/H2 panel fixed-effects regression with Driscoll–Kraay standard errors | done |
-| 5 | H3 rolling-origin backtest (seasonal naive, SARIMAX, LightGBM) | not started |
+| 5 | H3 rolling-origin backtest (seasonal naive, SARIMAX, LightGBM) | done |
 | 6 | Figures, tables, Phase A report draft, one-command replay | not started |
 
 Phase B is out of scope here.
@@ -154,12 +154,36 @@ The script reads `data/frozen/` only and fits the model of `data/frozen/analysis
 
 The model, the standard errors, and the tests were not changed after the fit. The diagnostics are reported and change nothing. `regression_summary.md` lists the choices the specification left open (for example the n / (n − k) scaling of the covariance); they were fixed before the first fit on the real outcome, and the code was tested on invented outcomes first.
 
+## Step 5: rolling-origin backtest for H3
+
+```bash
+uv run python scripts/05_forecast_backtest.py --stage validation  # choose orders and the grid
+uv run python scripts/05_forecast_backtest.py --stage test        # forecast the test origins once
+uv run python scripts/05_forecast_backtest.py                     # both, in that order
+```
+
+The validation stage reads `data/frozen/` only and writes the chosen SARIMAX orders and LightGBM hyperparameters to `outputs/metrics/forecast_selection.json`. The test stage reads that file and forecasts the 26 test origins (2024-07 to 2026-08). It does not choose anything. Every model is refit at every origin on months up to the origin.
+
+| File | Content |
+| --- | --- |
+| [`outputs/tables/forecast_summary.md`](outputs/tables/forecast_summary.md) | All tables of the step, and the H3 decision |
+| `outputs/metrics/forecast_selection.json` | Orders and hyperparameters chosen on the validation origins |
+| `outputs/tables/forecast_validation_*.csv` | Validation MAE of every candidate |
+| `outputs/tables/forecast_test_forecasts.csv` | The 104 forecasts of each run, with the observed occupancy |
+| `outputs/tables/forecast_test_metrics.csv`, `forecast_dm_tests.csv` | MAE, RMSE, MASE; Diebold–Mariano tests with Holm |
+| `outputs/tables/forecast_shap_values.csv`, `forecast_shap_importance.csv` | TreeSHAP of the main-run test forecasts |
+| `outputs/figures/fig_forecast_test_window.{png,pdf}` | Observed occupancy and the three forecasts |
+| `outputs/figures/fig_shap_importance_by_class.{png,pdf}` | Mean absolute SHAP value by star class |
+| `outputs/metrics/forecast_summary.json` | The same numbers, with the SHA-256 of the panel and of the specification |
+
+The comparison is predictive. SHAP values describe the fitted model, not a causal effect. The decision rule and the result are in the summary: H3 is not supported, because LightGBM's lower pooled error than SARIMAX is not distinguishable from equal accuracy after the Holm correction.
+
 ## Layout
 
 ```text
 plan_2_tourism_hotel/
 ├── pyproject.toml, uv.lock
-├── src/macao_tourism/      # config, ingest, audit, panel, splits, spec, freeze, eda, regression, plots, tables
+├── src/macao_tourism/      # config, ingest, audit, panel, splits, spec, freeze, eda, regression, forecast, plots, tables
 ├── scripts/                # one script per Phase A step
 ├── tests/
 ├── data/raw/               # official snapshots + data_provenance.json

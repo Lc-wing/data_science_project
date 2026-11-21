@@ -1,0 +1,227 @@
+{
+  "schema_version": "1.0.0",
+  "step": "Phase A step 5: choices made on the validation origins",
+  "panel_sha256": "9c9547d653c52a168f5b7d8b632458b7d62eece2c0e66c46fcbd8934de479729",
+  "analysis_spec_sha256": "347c14d671f53f9ba3fc472cb1eba972b4519c146a920144d9c356a71ca1a4d5",
+  "validation_origins": 36,
+  "validation_targets": [
+    [
+      "2018-01",
+      "2019-12"
+    ],
+    [
+      "2023-07",
+      "2024-06"
+    ]
+  ],
+  "test_months_read": 0,
+  "selection": {
+    "main": {
+      "sarimax": {
+        "5star": {
+          "order": [
+            1,
+            0,
+            1
+          ],
+          "seasonal_order": [
+            0,
+            1,
+            1,
+            12
+          ],
+          "validation_mae": 1.5522473835805484,
+          "fallback_used": false
+        },
+        "4star": {
+          "order": [
+            1,
+            1,
+            1
+          ],
+          "seasonal_order": [
+            0,
+            1,
+            1,
+            12
+          ],
+          "validation_mae": 2.1024192250712392,
+          "fallback_used": false
+        },
+        "3star": {
+          "order": [
+            1,
+            1,
+            1
+          ],
+          "seasonal_order": [
+            0,
+            1,
+            1,
+            12
+          ],
+          "validation_mae": 2.0224146018336464,
+          "fallback_used": false
+        },
+        "2star": {
+          "order": [
+            1,
+            1,
+            1
+          ],
+          "seasonal_order": [
+            0,
+            1,
+            1,
+            12
+          ],
+          "validation_mae": 3.0551414194170063,
+          "fallback_used": false
+        }
+      },
+      "lightgbm": {
+        "num_leaves": 8,
+        "min_data_in_leaf": 10,
+        "n_estimators": 400
+      }
+    },
+    "F1_logit": {
+      "sarimax": {
+        "5star": {
+          "order": [
+            1,
+            0,
+            1
+          ],
+          "seasonal_order": [
+            0,
+            1,
+            1,
+            12
+          ],
+          "validation_mae": 1.6041471803599405,
+          "fallback_used": false
+        },
+        "4star": {
+          "order": [
+            0,
+            1,
+            1
+          ],
+          "seasonal_order": [
+            0,
+            1,
+            1,
+            12
+          ],
+          "validation_mae": 2.030898427835964,
+          "fallback_used": false
+        },
+        "3star": {
+          "order": [
+            0,
+            1,
+            1
+          ],
+          "seasonal_order": [
+            0,
+            1,
+            1,
+            12
+          ],
+          "validation_mae": 2.13005788386675,
+          "fallback_used": false
+        },
+        "2star": {
+          "order": [
+            1,
+            1,
+            1
+          ],
+          "seasonal_order": [
+            0,
+            1,
+            1,
+            12
+          ],
+          "validation_mae": 2.864055414830764,
+          "fallback_used": false
+        }
+      },
+      "lightgbm": {
+        "num_leaves": 8,
+        "min_data_in_leaf": 10,
+        "n_estimators": 400
+      }
+    },
+    "F2_pandemic_included": {
+      "sarimax": {
+        "5star": {
+          "order": [
+            1,
+            1,
+            1
+          ],
+          "seasonal_order": [
+            1,
+            0,
+            1,
+            12
+          ],
+          "validation_mae": 1.5469176578443207,
+          "fallback_used": false
+        },
+        "4star": {
+          "order": [
+            1,
+            1,
+            1
+          ],
+          "seasonal_order": [
+            0,
+            1,
+            1,
+            12
+          ],
+          "validation_mae": 2.081001598366622,
+          "fallback_used": false
+        },
+        "3star": {
+          "order": [
+            1,
+            1,
+            1
+          ],
+          "seasonal_order": [
+            1,
+            0,
+            1,
+            12
+          ],
+          "validation_mae": 2.340144909707291,
+          "fallback_used": false
+        },
+        "2star": {
+          "order": [
+            1,
+            0,
+            0
+          ],
+          "seasonal_order": [
+            0,
+            1,
+            1,
+            12
+          ],
+          "validation_mae": 3.201146708541083,
+          "fallback_used": false
+        }
+      },
+      "lightgbm": {
+        "num_leaves": 4,
+        "min_data_in_leaf": 10,
+        "n_estimators": 400
+      }
+    }
+  }
+}
