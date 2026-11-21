@@ -1,0 +1,3 @@
+test,chi2,df,p_value
+equal_post_pandemic_slopes,15.3413521678,3,0.0015469992
+chow_post_interactions_on_focal_regressors,36.41515459,5,7.844e-07

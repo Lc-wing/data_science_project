@@ -23,29 +23,11 @@ from macao_tourism.config import (
     TIERS,
 )
 from macao_tourism.freeze import load_frozen
+from macao_tourism.tables import markdown_table, write_csv
 
 FIGURE_1 = "fig1_visitor_mix_and_occupancy"
 FIGURE_STL = "eda_stl_occupancy"
 FIGURE_SCATTER = "eda_scatter_occupancy_overnight"
-
-
-def write_csv(frame: pd.DataFrame, name: str) -> None:
-    OUTPUTS_TABLES_DIR.mkdir(parents=True, exist_ok=True)
-    frame.to_csv(OUTPUTS_TABLES_DIR / name, index=False, lineterminator="\n")
-
-
-def markdown_table(frame: pd.DataFrame, decimals: int = 2) -> str:
-    def cell(value: object) -> str:
-        if isinstance(value, float):
-            return f"{value:,.{decimals}f}"
-        return str(value)
-
-    lines = [
-        "| " + " | ".join(frame.columns) + " |",
-        "| " + " | ".join("---" for _ in frame.columns) + " |",
-    ]
-    lines += ["| " + " | ".join(cell(v) for v in row) + " |" for row in frame.to_numpy()]
-    return "\n".join(lines)
 
 
 def render_markdown(summary: dict, tables: dict[str, pd.DataFrame]) -> str:

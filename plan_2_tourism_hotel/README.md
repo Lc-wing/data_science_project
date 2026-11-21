@@ -11,7 +11,7 @@ Everything for Plan 2 lives in this folder: code, data, outputs, tests, and (lat
 | 1 | Data download and Day-1 audit | done |
 | 2 | Panel build and freeze (splits, manifest, pre-registered analysis spec) | done |
 | 3 | EDA (STL, change points, scatter by period) | done |
-| 4 | H1/H2 panel fixed-effects regression with Driscoll–Kraay standard errors | not started |
+| 4 | H1/H2 panel fixed-effects regression with Driscoll–Kraay standard errors | done |
 | 5 | H3 rolling-origin backtest (seasonal naive, SARIMAX, LightGBM) | not started |
 | 6 | Figures, tables, Phase A report draft, one-command replay | not started |
 
@@ -132,12 +132,34 @@ The script reads `data/frozen/` only, and stops if any frozen file differs from 
 
 One setting was changed after the first run. STL was first fitted once per star class over all 201 months. That fit put the pandemic collapse into the seasonal component of the months after it: for 5-star hotels in 2023-08 (occupancy 90.6%) it gave a seasonal component of −34.8 points. `outputs/tables/eda_stl_full_series_check.csv` keeps that result. The PELT settings were not changed.
 
+## Step 4: panel regression for H1 and H2
+
+```bash
+uv run python scripts/04_panel_regression.py
+```
+
+The script reads `data/frozen/` only and fits the model of `data/frozen/analysis_spec.json`: least squares with star-class indicators, class-specific slopes on log overnight visitors, a common slope on the same-day share, each with a post-pandemic shift, month-of-year indicators, and five controls. Standard errors are Driscoll–Kraay (Bartlett kernel, bandwidth 4, lags counted in calendar months). The coefficients are same-month conditional associations, not causal effects.
+
+| File | Content |
+| --- | --- |
+| [`outputs/tables/regression_summary.md`](outputs/tables/regression_summary.md) | All tables of the step |
+| `outputs/tables/regression_confirmatory.csv` | H1 and H2: estimate, standard error, 95% CI, p-value, Holm-adjusted p-value |
+| `outputs/tables/regression_slopes.csv` | Slopes before and after the pandemic, by star class |
+| `outputs/tables/regression_secondary.csv` | The two joint tests |
+| `outputs/tables/regression_sensitivity.csv` | H1 and H2 in the main run and the six sensitivity runs |
+| `outputs/tables/regression_diagnostics.csv` | Ljung–Box and Breusch–Pagan, reported only |
+| `outputs/tables/regression_coefficients.csv`, `regression_residuals.csv` | All coefficients; fitted values and residuals |
+| `outputs/figures/fig_regression_slopes_by_class.{png,pdf}` | Slopes with 95% confidence intervals |
+| `outputs/metrics/regression_summary.json` | The same numbers, with the SHA-256 of the panel and of the specification |
+
+The model, the standard errors, and the tests were not changed after the fit. The diagnostics are reported and change nothing. `regression_summary.md` lists the choices the specification left open (for example the n / (n − k) scaling of the covariance); they were fixed before the first fit on the real outcome, and the code was tested on invented outcomes first.
+
 ## Layout
 
 ```text
 plan_2_tourism_hotel/
 ├── pyproject.toml, uv.lock
-├── src/macao_tourism/      # config, ingest, audit, panel, splits, spec, freeze, eda, plots
+├── src/macao_tourism/      # config, ingest, audit, panel, splits, spec, freeze, eda, regression, plots, tables
 ├── scripts/                # one script per Phase A step
 ├── tests/
 ├── data/raw/               # official snapshots + data_provenance.json
