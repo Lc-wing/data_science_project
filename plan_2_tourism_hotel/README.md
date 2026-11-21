@@ -13,7 +13,7 @@ Everything for Plan 2 lives in this folder: code, data, outputs, tests, and (lat
 | 3 | EDA (STL, change points, scatter by period) | done |
 | 4 | H1/H2 panel fixed-effects regression with Driscoll–Kraay standard errors | done |
 | 5 | H3 rolling-origin backtest (seasonal naive, SARIMAX, LightGBM) | done |
-| 6 | Figures, tables, Phase A report draft, one-command replay | not started |
+| 6 | Figures, tables, Phase A report draft, one-command replay | done |
 
 Phase B is out of scope here.
 
@@ -178,12 +178,24 @@ The validation stage reads `data/frozen/` only and writes the chosen SARIMAX ord
 
 The comparison is predictive. SHAP values describe the fitted model, not a causal effect. The decision rule and the result are in the summary: H3 is not supported, because LightGBM's lower pooled error than SARIMAX is not distinguishable from equal accuracy after the Holm correction.
 
+## Step 6: report draft and one-command replay
+
+```bash
+uv run python scripts/06_write_report.py          # draft and numeric audit from the outputs
+uv run python scripts/run_phase_a.py --skip-download   # audit, freeze check, refit, report
+```
+
+`scripts/run_phase_a.py --skip-download` reruns steps 1 to 6 from the saved snapshots. It does not download, and it does not start Phase B. The validation stage refits every SARIMAX candidate, so the command takes several minutes. `--report-only` rebuilds the draft without refitting.
+
+The draft is [`report/CS482_GroupX_MacaoTourismHotel_PhaseA_Draft.pdf`](report/CS482_GroupX_MacaoTourismHotel_PhaseA_Draft.pdf). It has the five sections the checkpoint asks for: the question, the data, the methods, the results (Figure 1, Table 1, Figure 2), and the discussion. Phase B is not estimated. Every number in the main text is inserted from an output file. [`report/phase_a_audit.md`](report/phase_a_audit.md) records the check.
+
 ## Layout
 
 ```text
 plan_2_tourism_hotel/
 ├── pyproject.toml, uv.lock
-├── src/macao_tourism/      # config, ingest, audit, panel, splits, spec, freeze, eda, regression, forecast, plots, tables
+├── src/macao_tourism/      # config, ingest, audit, panel, splits, spec, freeze, eda, regression, forecast, report
+├── report/                 # Phase A draft, source, and numeric audit
 ├── scripts/                # one script per Phase A step
 ├── tests/
 ├── data/raw/               # official snapshots + data_provenance.json

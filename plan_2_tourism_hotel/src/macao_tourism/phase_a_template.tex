@@ -1,0 +1,104 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,margin=2.15cm]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\onehalfspacing
+\setlength{\parskip}{0.15em}
+\setlength{\parindent}{1.05em}
+\pdfinfoomitdate=1
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{22mm}
+{\Large Visitor mix and hotel occupancy by star class in Macao\par}
+\vspace{0.8em}
+{\large Phase A draft\par}
+\vspace{0.8em}
+CS482 Data Science\par
+Group X\par
+\vspace{0.6em}
+21 November 2026\par
+\vspace{1.6em}
+\begin{minipage}{\textwidth}
+\raggedright
+Draft for the Phase A checkpoint. The cover, references, contribution statement, and AI declaration are outside the main-text page count. Every number in the main text is copied from the Phase A output files. A deep-learning extension is specified in the project plan and is not part of this draft.
+\end{minipage}
+\end{titlepage}
+
+\section{Introduction}
+The question is whether the conditional association between Macao's visitor mix and hotel occupancy differs by star class after the pandemic, and whether next month's occupancy can be forecast from information dated no later than the current month. The outcome is the monthly occupancy rate of guest rooms, in percent, for the four star classes DSEC publishes: 5-star, 4-star, 3-star, and 2-star. The window is __WINDOW__.
+
+Three hypotheses were fixed before any model was fit. H1 says that, after the pandemic, the association between log overnight visitors and occupancy differs between 5-star and 3-star hotels. The null is that the two post-pandemic slopes are equal. H2 says that the association between the same-day visitor share and occupancy differs between the post-pandemic and the pre-pandemic period. The null is that the change in that slope is zero. H3 says that a global LightGBM, using only lags and the known calendar, forecasts next month's occupancy more accurately than a seasonal naive forecast and than a per-class SARIMAX. The decision rule was fixed in advance: H3 is supported only if LightGBM has the lower pooled test mean absolute error against both baselines and both pooled Holm-adjusted \(p\)-values are below 0.05.
+
+Hotel operators and the tourism authority can use the description to see which associations the published series actually show. The results are descriptive, associational, and predictive. They are not causal estimates, and they are not a pricing or staffing rule.
+
+\section{Data Collection and Preparation}
+Visitor arrivals and hotel series are taken from the DSEC Time Series Database behind the visitor page (\texttt{dsec.gov.mo/en-US/Statistic?id=402}) and the package-tour and hotel page (\texttt{id=403}). The snapshot was checked against DSEC's latest monthly workbooks. Mainland public holidays come from the State Council notices on gov.cn for 2010--2026, including three later notices that changed a published schedule. Typhoon days come from the Macao Meteorological and Geophysical Bureau: a day counts if tropical cyclone signal No.~8 or higher was in force for any part of that calendar day. Gaming revenue is optional in the plan and is not used.
+
+The frozen panel has __PANEL_ROWS__ rows: __N_TIERS__ star classes by __N_MONTHS__ months, from __WINDOW__, with no missing value. The plan's periods are __PRE_MONTHS__ pre-pandemic months (2010-01 to 2019-12), January 2020 as a transition month, __PANDEMIC_MONTHS__ pandemic months (2020-02 to 2022-12), and __POST_MONTHS__ post-pandemic months (2023-01 to 2026-09). The main sample is the pre-pandemic and post-pandemic months: __MAIN_MONTHS__ months and __MAIN_ROWS__ rows, of which __POST_ROWS__ are post-pandemic. Occupancy in the window runs from __OCC_MIN__ to __OCC_MAX__ percent. The window contains __HOLIDAY_PERIODS__ holiday periods (__HOLIDAY_DAYS__ holiday days) and __TYPHOON_DAYS__ typhoon days.
+
+DSEC's four labels are present in every month. The hotels inside a label are not a fixed set: the establishment count of a class changes in __EST_CHANGES__ tier-months, and rooms change by 10 percent or more in __ROOM_JUMPS__ tier-months. The largest jump is 3-star rooms in 2016-09, from __ROOMS_BEFORE__ to __ROOMS_AFTER__. Shares are computed from the published counts. The international share is 100 times one minus the share of arrivals whose travel document was issued in the mainland, Hong Kong, or Taiwan. Holiday days are stored twice: the final schedule, used in the ex-post regression, and the schedule published by the end of the previous month, used as the forecast feature. Those two counts differ in four months, and in none of the test targets.
+
+The forecast split was frozen with the panel. There are __VAL_ORIGINS__ validation origins, all before the first test origin, and __TEST_ORIGINS__ test origins from 2024-07 to 2026-08 (__TEST_FORECASTS__ forecasts, one month ahead). The first month with all twelve lags is 2011-01. The forecast of month \(t+1\) uses DSEC values up to month \(t\) as published on the download date. DSEC's publication lag and later revisions are not reproduced, so the errors are not those of a forecast made in real time. The frozen panel hash begins __PANEL_SHA__.
+
+\section{Methods}
+The exploratory description is separate from the tests. Occupancy is decomposed with a robust STL of period 12, one fit per star class in the pre-pandemic block and one in the post-pandemic block, with a seasonal pattern that is constant inside the block. The pandemic months are not decomposed: one fit across them pushed the collapse into the seasonal component of the months after them. Change points in the three visitor-mix shares are estimated with PELT on the seasonally adjusted series, for a piecewise-constant mean, with segments of at least 12 months. The penalty is \(2 \times \mathrm{noise\_sd}^{2} \times \ln n\), and the same run is reported at half, twice, and four times that penalty. The period boundaries used below are the ones in the plan. They were not taken from PELT.
+
+The ex-post model, fit by least squares on the main sample, is
+\[
+O_{i,t} = a_i + a^{\mathrm{post}}_i \mathrm{post}_t + \mathrm{month}_t + (b_i + b^{\mathrm{post}}_i \mathrm{post}_t)\log V_t + (c + c^{\mathrm{post}}\mathrm{post}_t) S_t + \mathrm{controls} + e_{i,t}.
+\]
+\(O\) is occupancy in percent, \(\log V\) is log overnight visitors, and \(S\) is the same-day share in percent. The controls, each with one coefficient, are the international share, the package-tour share, log rooms, holiday days, and typhoon days. Standard errors are Driscoll--Kraay with a Bartlett kernel. The bandwidth is \(\lfloor 4(T/100)^{2/9}\rfloor\), which is __BANDWIDTH__ for \(T=__MAIN_MONTHS__\), and lags are counted in calendar months, so nothing is carried across the gap between December 2019 and January 2023. Tests are two-sided at 0.05 with a normal reference and a 95 percent interval. H1 and H2 are adjusted by Holm over those two tests. Two secondary Wald tests are reported and are not part of that family: equality of the four post-pandemic slopes, and a Chow-type test of the five post interactions on the two focal regressors. Five sensitivity runs were specified in advance. Ljung--Box statistics and a Breusch--Pagan statistic are reported and do not change the model, the standard errors, or the tests.
+
+The forecast uses three models, each refit at every origin on target months up to that origin. The seasonal naive forecast is occupancy in the same month one year earlier. SARIMAX is fit per star class, with the holiday counts known at the origin as exogenous terms; occupancy from 2020-01 to 2022-12 is treated as missing in the main run. LightGBM is one global model. Its features are the star class, four calendar variables of the target month, and lags of 1, 2, 3, and 12 months. No other variable dated in the target month is used, and typhoon days of the target month are never a feature. Orders and the LightGBM grid point are chosen by validation mean absolute error. The candidates differ in differencing, so AIC and BIC are not used. The test origins are then forecast once. Accuracy is MAE, RMSE, and MASE, in percentage points, per class and pooled. Comparisons use the Diebold--Mariano test with the Harvey--Leybourne--Newbold correction, absolute-error loss, and horizon 1, Holm-adjusted over the ten tests (two baselines by four classes and the pooled series). TreeSHAP values, path-dependent, are computed for the LightGBM fit at each test origin. The background is that origin's training window, the output is the forecast in percentage points, and the values are checked for additivity.
+
+\section{Results}
+Mean monthly visitor mix moves from the pre-pandemic period to the post-pandemic period as follows. The same-day share goes from __PRE_SAME__ to __POST_SAME__ percent, the international share from __PRE_INTL__ to __POST_INTL__, and the package-tour share from __PRE_TOUR__ to __POST_TOUR__. Mean overnight arrivals go from __PRE_ON__ to __POST_ON__ a month. In the pandemic months the international share averages __PAN_INTL__ percent and the package-tour share __PAN_TOUR__ percent. __CHANGE_POINTS__ Mean occupancy goes from __OCC5_PRE__ to __OCC5_POST__ percent for 5-star hotels, __OCC4_PRE__ to __OCC4_POST__ for 4-star, __OCC3_PRE__ to __OCC3_POST__ for 3-star, and __OCC2_PRE__ to __OCC2_POST__ for 2-star. After the pandemic the seasonal peak of occupancy is August in all four classes. These descriptions are not tests of H1--H3.
+
+On the main sample of __MAIN_ROWS__ rows, the regression has __N_COEF__ coefficients and \(R^{2}=__R2__\). The H1 contrast, 5-star minus 3-star in the post-pandemic slope on log overnight visitors, is __H1_EST__ (SE __H1_SE__, 95 percent CI __H1_LO__ to __H1_HI__, Holm-adjusted \(p=__H1_HOLM__\)). The null is rejected at 0.05. The post-pandemic slope itself is __B5_POST__ for 5-star hotels (CI __B5_LO__ to __B5_HI__) and __B3_POST__ for 3-star hotels (CI __B3_LO__ to __B3_HI__). A month with 10 percent more overnight visitors, the other regressors equal, has about __TEN_5__ points higher 5-star occupancy and about __TEN_3__ points higher 3-star occupancy. The H2 change in the same-day-share slope is __H2_EST__ (SE __H2_SE__, CI __H2_LO__ to __H2_HI__, Holm-adjusted \(p=__H2_HOLM__\)). The null is not rejected. That is not evidence that the change is zero: the interval runs from __H2_LO__ to __H2_HI__ points of occupancy per point of same-day share. The secondary tests reject equal post-pandemic slopes (\(\chi^{2}(__DF_EQ__)=__CHI_EQ__\), \(p=__P_EQ__\)) and reject the five post interactions jointly (\(\chi^{2}(__DF_CHOW__)=__CHI_CHOW__\), \(p__P_CHOW__\)).
+
+The same sign for H1 appears in all seven runs, and the null is rejected after Holm in six. In the fully interacted run the Holm-adjusted \(p\) is __S5_HOLM__. H2 is rejected after Holm in one run only, the run with class-specific trends (estimate __S4_EST__, Holm-adjusted \(p=__S4_HOLM__\)). The H2 result depends on how the trend is modelled. The confirmatory result remains the main run. Ljung--Box \(p\)-values are below 0.05 in __LB_LOW__ of __LB_N__ class-block-lag cells, and the Breusch--Pagan \(p\) is __BP_P__. The residuals are serially correlated and heteroskedastic. The model was not changed on that basis.
+
+Pooled test MAE is __MAE_LGB__ for LightGBM, __MAE_SAR__ for SARIMAX, and __MAE_NAIVE__ for the seasonal naive forecast (RMSE __RMSE_LGB__, __RMSE_SAR__, __RMSE_NAIVE__; MASE __MASE_LGB__, __MASE_SAR__, __MASE_NAIVE__). LightGBM is lower than both baselines. Against the seasonal naive forecast the pooled loss difference is __DM_N_EST__ (CI __DM_N_LO__ to __DM_N_HI__, Holm-adjusted \(p=__DM_N_HOLM__\)). Against SARIMAX it is __DM_S_EST__ (CI __DM_S_LO__ to __DM_S_HI__, Holm-adjusted \(p=__DM_S_HOLM__\)). Only the first of those two is below 0.05, so H3 is not supported. Per class, LightGBM MAE is __MAE5__, __MAE4__, __MAE3__, and __MAE2__. No class-level comparison with SARIMAX has a Holm-adjusted \(p\) below 0.05. On the logit scale, with metrics back-transformed to percentage points, pooled MAE is __F1_LGB__ and __F1_SAR__, and H3 is again not supported. Keeping the pandemic months in training raises LightGBM's pooled MAE to __F2_LGB__, above SARIMAX at __F2_SAR__ and the seasonal naive forecast at __F2_NAIVE__; those LightGBM forecasts sit __F2_BIAS__ points below the observed occupancy on average.
+
+The chosen main-run SARIMAX order is (1, 0, 1) with seasonal order (0, 1, 1, 12) for 5-star hotels, and (1, 1, 1) with seasonal order (0, 1, 1, 12) for the other three classes. The chosen LightGBM point is 8 leaves, at least 10 rows per leaf, and 400 trees. No validation candidate failed to converge, and all __N_FITS__ test fits converged. TreeSHAP, which describes this model and not a causal contribution, puts the largest mean absolute value on occupancy one month earlier (__SHAP1__ points), then on overnight visitors one year earlier (__SHAP2__), then on guest rooms one month earlier (__SHAP3__). The largest gap between the forecast and the base value plus the SHAP values is under \(10^{-12}\).
+
+\begin{center}
+\includegraphics[width=\textwidth,height=0.26\textheight,keepaspectratio]{../outputs/figures/fig1_visitor_mix_and_occupancy.png}\\[2pt]
+{\small Figure 1. Visitor-mix shares with PELT change points, and occupancy by star class. The grey band is the plan's pandemic window. The marks are exploratory.}
+\end{center}
+
+__TABLE_ONE__
+
+\begin{center}
+\includegraphics[width=0.92\textwidth,height=0.16\textheight,keepaspectratio]{../outputs/figures/fig_regression_slopes_by_class.png}\\[2pt]
+{\small Figure 2. Conditional slopes before and after the pandemic, with 95 percent intervals. A slope is an association in the regression, not a causal quantity.}
+\end{center}
+
+\section{Discussion}
+H1 is supported in the pre-specified model: after the pandemic, occupancy moves with overnight visitors more strongly for 5-star hotels than for 3-star hotels, by __H1_EST__ points of occupancy per unit of log overnight visitors (CI __H1_LO__ to __H1_HI__). H2 is not supported. The data are compatible with a change in the same-day slope anywhere from __H2_LO__ to __H2_HI__, and a different trend specification rejects the null, so the result should be read with that sensitivity next to it. H3 is not supported. LightGBM beats the seasonal naive forecast on the pooled test series and does not beat SARIMAX by a margin the ten-test correction can separate from zero. The pooled difference against SARIMAX is __DM_S_EST__ points, and the interval crosses zero.
+
+Two uses follow, both short of a recommendation to change a policy. A hotel that still applies the pre-pandemic slope of overnight visitors to a 3-star occupancy plan is using a stronger association than the post-pandemic sample shows. A forecast user who adopts LightGBM instead of SARIMAX sees a pooled MAE difference of __DM_S_EST__ points in this window, LightGBM minus SARIMAX, and that difference is not distinguishable from zero at the pre-specified threshold. Neither statement is a causal claim about marketing, pricing, or the border regime.
+
+The limits are the ones the design cannot remove. The post-pandemic block has only __POST_MONTHS__ months, so several intervals are wide, and the normal reference rests on __MAIN_MONTHS__ months of serially correlated residuals. A star class is not a fixed set of hotels: establishment counts change, and the rise in 2-star mean occupancy from __OCC2_PRE__ to __OCC2_POST__ sits next to that recomposition. DSEC revises its series, and the backtest does not replay those revisions. The regression uses same-month visitor counts, so it describes the month after the fact and shares the seasonal pattern of the two series. Putting the pandemic months into the training window makes the LightGBM forecasts worse, which is a reason to keep the pre-specified exclusion rather than a reason to search for a better one after the fact. Phase B, the deep-learning extension, is not estimated here.
+
+\clearpage
+\begin{thebibliography}{9}
+\bibitem{cleveland1990} Cleveland, R.~B., Cleveland, W.~S., McRae, J.~E., and Terpenning, I. (1990). STL: A seasonal-trend decomposition procedure based on loess. \textit{Journal of Official Statistics}, 6(1), 3--73.
+\bibitem{diebold1995} Diebold, F.~X., and Mariano, R.~S. (1995). Comparing predictive accuracy. \textit{Journal of Business and Economic Statistics}, 13(3), 253--263.
+\bibitem{driscoll1998} Driscoll, J.~C., and Kraay, A.~C. (1998). Consistent covariance matrix estimation with spatially dependent panel data. \textit{Review of Economics and Statistics}, 80(4), 549--560.
+\bibitem{harvey1997} Harvey, D., Leybourne, S., and Newbold, P. (1997). Testing the equality of prediction mean squared errors. \textit{International Journal of Forecasting}, 13(2), 281--291.
+\bibitem{holm1979} Holm, S. (1979). A simple sequentially rejective multiple test procedure. \textit{Scandinavian Journal of Statistics}, 6(2), 65--70.
+\bibitem{killick2012} Killick, R., Fearnhead, P., and Eckley, I.~A. (2012). Optimal detection of changepoints with a linear computational cost. \textit{Journal of the American Statistical Association}, 107(500), 1590--1598.
+\bibitem{lundberg2017} Lundberg, S.~M., and Lee, S.-I. (2017). A unified approach to interpreting model predictions. \textit{Advances in Neural Information Processing Systems}, 30.
+\end{thebibliography}
+
+\section*{Contribution statement}
+Draft placeholder. The group should replace this note with who downloaded the series, who checked the freeze, who read the tests, and who read the draft.
+
+\section*{AI declaration}
+Draft statement, to be confirmed by the group. An AI coding assistant was used to download and parse the official files, to fit the models named in the pre-registered specification, and to draft this text. No number in the main text was typed in by hand: each one is inserted from an output file, and \texttt{report/phase\_a\_audit.md} records the check. The group still has to read the draft against those files before signing the declaration.
+
+\end{document}

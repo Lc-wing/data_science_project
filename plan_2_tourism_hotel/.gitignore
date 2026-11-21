@@ -17,3 +17,9 @@ Thumbs.db
 
 # Downloaded SMG PDFs (about 160 MB). data/raw/ keeps their URL, size, SHA-256, and text.
 .cache/
+
+# LaTeX side files. The draft PDF and the audit are kept.
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
