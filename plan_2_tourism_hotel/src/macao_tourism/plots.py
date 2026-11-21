@@ -249,3 +249,50 @@ def figure_slopes(slopes: pd.DataFrame, focal: str, share: str) -> Figure:
     common.set_ylabel("Occupancy (pp) per pp of\nsame-day share")
     common.set_title("Same-day share", loc="left", fontsize=8, pad=3)
     return fig
+
+
+MODEL_STYLES = {
+    "seasonal_naive": ("Seasonal naive", "#7f8c8d", ":"),
+    "sarimax": ("SARIMAX", "#d68910", "--"),
+    "lightgbm": ("LightGBM", "#1e8449", "-"),
+}
+
+
+def figure_test_window(forecasts: pd.DataFrame) -> Figure:
+    """Occupancy and the three one-month-ahead forecasts over the test window, by star class."""
+    fig, axes = plt.subplots(2, 2, figsize=(7.2, 4.6), sharex=True)
+    for ax, tier in zip(axes.ravel(), TIERS, strict=True):
+        rows = forecasts[forecasts["tier"] == tier].sort_values("target")
+        dates = month_start(rows["target"])
+        ax.plot(dates, rows["actual"], color="#111111", linewidth=1.3, label="Observed")
+        for model, (label, color, style) in MODEL_STYLES.items():
+            ax.plot(dates, rows[model], color=color, linewidth=1.0, linestyle=style, label=label)
+        ax.set_title(TIER_LABELS[tier], loc="left", fontsize=8, pad=3)
+        ax.xaxis.set_major_locator(mdates.MonthLocator(bymonth=(1, 7)))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m"))
+    for ax in axes[:, 0]:
+        ax.set_ylabel("Occupancy rate (%)")
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels, ncols=4, loc="lower center", bbox_to_anchor=(0.5, -0.03), fontsize=7
+    )
+    fig.subplots_adjust(hspace=0.22, wspace=0.16)
+    return fig
+
+
+def figure_shap_importance(importance: pd.DataFrame, top: int = 10) -> Figure:
+    """Mean absolute SHAP value of the most used features, by star class."""
+    rows = importance.head(top).iloc[::-1]
+    fig, ax = plt.subplots(figsize=(7.2, 3.6))
+    height = 0.8 / len(TIERS)
+    for position, tier in enumerate(TIERS):
+        offsets = [index + (len(TIERS) / 2 - position - 0.5) * height for index in range(len(rows))]
+        ax.barh(
+            offsets, rows[tier], height=height, color=TIER_COLORS[tier], label=TIER_LABELS[tier]
+        )
+    ax.set_yticks(range(len(rows)))
+    ax.set_yticklabels(rows["feature"])
+    ax.set_xlabel("Mean absolute SHAP value (percentage points of the forecast)")
+    ax.grid(axis="y", visible=False)
+    ax.legend(fontsize=7, loc="lower right")
+    return fig
