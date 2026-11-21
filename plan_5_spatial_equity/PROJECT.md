@@ -1,7 +1,7 @@
 # Project: MacaoSpatialEquity — Plan 5 Phase A (CS482 Data Science)
 
 > **Single Source of Truth** maintained by the top-level Project Orchestrator (`orchestrator_r1`).
-> Scope: Complete **all Phase A (阶段A) tasks** of `plans/plan_5_macao_facilities_ev_graph_dl.md` (v2) in full compliance with `plans/00_review_report.md` and CS482 `Project-requirements` (Google Drive ID `1-F3ff-pTu3-pbU5cIzW343U1u-AgWrfs-gJx7qZfOV8`), culminating in verified frozen Phase A→B artifacts, programmatic Figure 1 / Table 1, a 3.5–3.8 A4 page Phase A report draft passing the 12/03 Go/No-Go checkpoint, and 100% E2E + Tier-5 adversarial verification.
+> Scope: Complete **all Phase A (阶段A) tasks** of `../plans/plan_5_macao_facilities_ev_graph_dl.md` (v2) in full compliance with `../plans/00_review_report.md` and CS482 `Project-requirements` (Google Drive ID `1-F3ff-pTu3-pbU5cIzW343U1u-AgWrfs-gJx7qZfOV8`), culminating in verified frozen Phase A→B artifacts, programmatic Figure 1 / Table 1, a 3.5–3.8 A4 page Phase A report draft passing the 12/03 Go/No-Go checkpoint, and 100% E2E + Tier-5 adversarial verification.
 
 ---
 
@@ -66,10 +66,10 @@
 
 ## Code Layout
 
-All project code, data, outputs, report, and tests live at `/home/antigravity/Lc-wing/data_science_project` (NEVER place source code, data, or tests inside `.agents/teamwork/`):
+All Plan 5 code, data, outputs, report, and tests live in the `plan_5_spatial_equity/` folder of the repository (NEVER place source code, data, or tests inside `.agents/teamwork/`). The shared `plans/` folder is one level up, at the repository root:
 
 ```text
-/home/antigravity/Lc-wing/data_science_project/
+plan_5_spatial_equity/
 ├── .gitignore
 ├── pyproject.toml                   # uv + Python 3.11+, ruff (line-length=100), pytest, MPLBACKEND=Agg
 ├── uv.lock
@@ -77,7 +77,7 @@ All project code, data, outputs, report, and tests live at `/home/antigravity/Lc
 ├── TEST_INFRA.md                    # E2E test infrastructure & feature coverage plan (E2E Track owned)
 ├── TEST_READY.md                    # E2E suite readiness signal & runner command (E2E Track owned)
 ├── README.md                        # Project overview & reproducible Phase A CLI instructions
-├── plans/                           # Existing read-only planning blueprints
+├── ../plans/                        # Shared read-only planning blueprints (repository root)
 ├── data/
 │   ├── raw/                         # Timestamped raw snapshots + data_provenance.json (URLs, dates, SHA-256)
 │   ├── interim/                     # Intermediate EPSG:32649 layers & analysis joins

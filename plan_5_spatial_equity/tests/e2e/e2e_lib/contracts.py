@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-# tests/e2e/e2e_lib/contracts.py -> repository root
+# tests/e2e/e2e_lib/contracts.py -> Plan 5 project root (plan_5_spatial_equity/)
 DEFAULT_REPO_ROOT = Path(__file__).resolve().parents[3]
 
 # Geofabrik extract cached by M1 at data/interim/macau.gpkg. It stays CRS84

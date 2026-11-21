@@ -7,7 +7,7 @@
 
 ## 1. Test Philosophy
 
-1. **100% Opaque-Box & Requirement-Driven**: Every test in `tests/e2e/` is derived strictly from authoritative user/course specifications (`ORIGINAL_REQUEST.md`, CS482 `Project-requirements`, `plans/plan_5_macao_facilities_ev_graph_dl.md`, `plans/00_review_report.md`) and `PROJECT.md § Interface Contracts`.
+1. **100% Opaque-Box & Requirement-Driven**: Every test in `tests/e2e/` is derived strictly from authoritative user/course specifications (`ORIGINAL_REQUEST.md`, CS482 `Project-requirements`, `../plans/plan_5_macao_facilities_ev_graph_dl.md`, `../plans/00_review_report.md`) and `PROJECT.md § Interface Contracts`.
 2. **Zero Internal Implementation Coupling**: No file under `tests/e2e/` may import `src/macao_equity/*` or read internal source modules for test assertions (enforced automatically via AST inspection). All verification operates strictly on user-facing deliverables (`.gpkg`, `.csv`, `.json`, `.graphml`, `.png`, `.tex`, `.bib`, `.pdf`, `.md`, `pyproject.toml`, CLI scripts).
 3. **Independent Pure-Math Oracles**: Statistical and ML claims are NOT trusted on face value. `tests/e2e/e2e_lib/oracle.py` independently recomputes population-weighted Gini, parish-decomposed Theil's T (with $0\ln 0 = 0$), Benjamini–Hochberg FDR, Holm–Bonferroni step-down p-values, OLS with HC3 robust standard errors & VIF, Spearman rank correlation, tie-aware ROC-AUC, PR-AUC (average precision), Brier score, and Top-20% Hit Rate directly from frozen data artifacts.
 4. **Mathematically Sound & Non-Prescriptive**:
@@ -68,7 +68,7 @@ tests/e2e/
 - `conftest.py` registers `--project-root <path>` with precedence:
   1. `--project-root` CLI flag
   2. `MACAO_EQUITY_ROOT` environment variable
-  3. Default: the repository root that contains `tests/e2e/` (resolved from `tests/e2e/e2e_lib/contracts.py`, not a machine-specific checkout path)
+  3. Default: the Plan 5 folder (`plan_5_spatial_equity/`) that contains `tests/e2e/` (resolved from `tests/e2e/e2e_lib/contracts.py`, not a machine-specific checkout path)
 - Run the suite from that root with `uv run pytest tests/e2e --project-root .` (or omit `--project-root` to use the default above). M2–M4 artifact tests stay in the suite and fail until those milestones exist.
 - Read-only SQLite URI (`file:<path>?mode=ro`) guarantees reading frozen `.gpkg` artifacts NEVER writes `-wal`/`-shm` sidecars or alters mtimes/SHA-256 checksums.
 - Dual-path handling for `data_provenance.json` (`outputs/metrics/data_provenance.json` preferred, fallback `data/raw/data_provenance.json`; if both exist, Tier 3 asserts agreement).

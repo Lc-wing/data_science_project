@@ -7,14 +7,14 @@ No M1–M4 product code was changed. No scientific threshold was relaxed to obta
 
 ## Command
 
-From the repository root, with `uv` on `PATH`:
+From the Plan 5 folder (`plan_5_spatial_equity/`), with `uv` on `PATH`:
 
 ```bash
 uv sync --all-groups
 uv run pytest tests/e2e --project-root .
 ```
 
-Omit `--project-root` only when the default (the repository that contains `tests/e2e/`) is the tree under test. Do not set `MACAO_E2E_IN_SELF_TEST`; that variable is the child-process recursion guard.
+Omit `--project-root` only when the default (the Plan 5 folder that contains `tests/e2e/`) is the tree under test. Do not set `MACAO_E2E_IN_SELF_TEST`; that variable is the child-process recursion guard.
 
 `tests/e2e/test_e2e_self_validation.py` is in scope (`TEST_INFRA.md` §§3 and 5). `tests/e2e/test_tier5_adversarial.py` is the Tier 5 hardening (`TEST_INFRA.md` §6).
 
