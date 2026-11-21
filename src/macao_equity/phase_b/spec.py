@@ -97,10 +97,14 @@ PHASE_A_MODELS_IN_TABLE: tuple[str, ...] = (
     "random_forest",
 )
 
-ROUTE_B_ARMS: tuple[str, ...] = (
-    "bge_m3_gatv2",
-    "qwen3_embedding_4b_frozen_gatv2",
-    "qwen3_embedding_4b_lora_gatv2",
+ROUTE_B_EMBEDDINGS: tuple[str, ...] = (
+    "bge_m3",
+    "qwen3_embedding_4b_frozen",
+    "qwen3_embedding_4b_lora",
+)
+ROUTE_B_HEADS: tuple[str, ...] = ("gatv2", "graph_transformer")
+ROUTE_B_ARMS: tuple[str, ...] = tuple(
+    f"{embedding}_{head}" for embedding in ROUTE_B_EMBEDDINGS for head in ROUTE_B_HEADS
 )
 
 

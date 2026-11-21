@@ -8,6 +8,7 @@ The numeric GATv2 arm is Route A; this module does not retrain it.
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -24,7 +25,7 @@ from macao_equity.phase_b.comparison import (
 )
 from macao_equity.phase_b.data import PhaseBBundle
 from macao_equity.phase_b.metrics import mean_std
-from macao_equity.phase_b.models import build_model, parameter_count
+from macao_equity.phase_b.models import build_model, parameter_count, trainable_parameter_count
 from macao_equity.phase_b.spec import (
     BGE_MODEL_ID,
     PARAM_BUDGET_MAX,
@@ -42,7 +43,9 @@ from macao_equity.phase_b.spec import (
     QWEN_MODEL_ID,
     QWEN_TASK_INSTRUCTION,
     ROUTE_B_ARMS,
+    ROUTE_B_EMBEDDINGS,
     ROUTE_B_GNN_SEEDS,
+    ROUTE_B_HEADS,
     ROUTE_B_LORA_SEEDS,
     SPEC_BUDGET,
     TEXT_DIM,
@@ -52,7 +55,7 @@ from macao_equity.phase_b.spec import (
     WEIGHT_DECAY,
     EpochBudget,
 )
-from macao_equity.phase_b.splits import make_fold_split
+from macao_equity.phase_b.splits import make_fold_split, training_block_mask
 from macao_equity.phase_b.train import train_one_fold
 
 REFUSAL = (
@@ -129,9 +132,17 @@ def last_token_pool(hidden: torch.Tensor, attention_mask: torch.Tensor) -> torch
     return hidden[batch, lengths]
 
 
-def cls_pool(hidden: torch.Tensor) -> torch.Tensor:
-    """BGE-M3 dense vector is the CLS state."""
-    return hidden[:, 0]
+def cls_pool(hidden: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
+    """BGE-M3 CLS is the first non-pad token.
+
+    Right padding leaves that token at position 0. Left padding puts pad tokens
+    there, so position 0 is not read unless it is a real token.
+    """
+    if attention_mask.shape[0] != hidden.shape[0]:
+        raise ValueError("attention mask and hidden batch sizes differ")
+    first_real = attention_mask.to(dtype=torch.long).argmax(dim=1)
+    batch = torch.arange(hidden.shape[0], device=hidden.device)
+    return hidden[batch, first_real]
 
 
 def qwen_prompt(text: str) -> str:
@@ -191,20 +202,39 @@ def _encode_hidden(
             if pool == "last":
                 pooled = last_token_pool(hidden, tokens["attention_mask"])
             elif pool == "cls":
-                pooled = cls_pool(hidden)
+                pooled = cls_pool(hidden, tokens["attention_mask"])
             else:
                 raise ValueError(pool)
         rows.append(pooled.float().cpu().numpy())
     return np.vstack(rows)
 
 
-def _load_encoder(model_id: str, *, quantized: bool) -> tuple[Any, Any, str]:
+def checkpoint_revision(model_id: str, model: Any) -> str:
+    """Hub commit if the lookup works, otherwise the config hash, otherwise unavailable."""
+    config = getattr(model, "config", None)
+    from_config = str(getattr(config, "_commit_hash", "") or "")
+    from_hub = ""
+    try:
+        from huggingface_hub import model_info
+
+        from_hub = str(model_info(model_id).sha or "")
+    except Exception:
+        from_hub = ""
+    return from_hub or from_config or "unavailable"
+
+
+def _load_encoder(
+    model_id: str,
+    *,
+    quantized: bool,
+    padding_side: str,
+) -> tuple[Any, Any, str]:
     from transformers import AutoModel, AutoTokenizer, BitsAndBytesConfig
 
     dtype = _compute_dtype()
     tokenizer = AutoTokenizer.from_pretrained(
         model_id,
-        padding_side="left",
+        padding_side=padding_side,
         trust_remote_code=False,
     )
     kwargs: dict[str, Any] = {"trust_remote_code": False}
@@ -220,7 +250,7 @@ def _load_encoder(model_id: str, *, quantized: bool) -> tuple[Any, Any, str]:
         kwargs["torch_dtype"] = dtype
         kwargs["device_map"] = "auto"
     model = AutoModel.from_pretrained(model_id, **kwargs)
-    revision = str(getattr(model.config, "_commit_hash", "") or "")
+    revision = checkpoint_revision(model_id, model)
     return model, tokenizer, revision
 
 
@@ -230,7 +260,7 @@ def encode_bge_m3(
     allow_weight_download: bool,
 ) -> tuple[np.ndarray, dict[str, Any]]:
     ensure_route_b_runtime(allow_weight_download)
-    model, tokenizer, revision = _load_encoder(BGE_MODEL_ID, quantized=False)
+    model, tokenizer, revision = _load_encoder(BGE_MODEL_ID, quantized=False, padding_side="right")
     total = _assert_param_cap(model, BGE_MODEL_ID)
     embeddings = _encode_hidden(model, tokenizer, texts, "cls")
     meta = {
@@ -250,7 +280,11 @@ def encode_qwen_frozen(
 ) -> tuple[np.ndarray, dict[str, Any]]:
     ensure_route_b_runtime(allow_weight_download)
     prompted = [qwen_prompt(text) for text in texts]
-    model, tokenizer, revision = _load_encoder(QWEN_MODEL_ID, quantized=False)
+    model, tokenizer, revision = _load_encoder(
+        QWEN_MODEL_ID,
+        quantized=False,
+        padding_side="left",
+    )
     total = _assert_param_cap(model, QWEN_MODEL_ID)
     embeddings = _encode_hidden(model, tokenizer, prompted, "last")
     meta = {
@@ -272,14 +306,18 @@ def finetune_qwen_lora(
     allow_weight_download: bool,
     seed: int,
 ) -> tuple[np.ndarray, dict[str, Any]]:
-    """QLoRA on attention projections. The fit mask excludes the outer test block."""
+    """QLoRA on attention projections. ``fit_mask`` is every training-block row."""
     ensure_route_b_runtime(allow_weight_download)
     if int(seed) not in ROUTE_B_LORA_SEEDS:
         raise ValueError("LoRA seed is not in the pre-specified list")
     from peft import LoraConfig, TaskType, get_peft_model
 
     prompted = [qwen_prompt(text) for text in texts]
-    model, tokenizer, revision = _load_encoder(QWEN_MODEL_ID, quantized=True)
+    model, tokenizer, revision = _load_encoder(
+        QWEN_MODEL_ID,
+        quantized=True,
+        padding_side="left",
+    )
     lora = LoraConfig(
         r=QWEN_LORA_R,
         lora_alpha=QWEN_LORA_ALPHA,
@@ -290,6 +328,7 @@ def finetune_qwen_lora(
     )
     model = get_peft_model(model, lora)
     total = _assert_param_cap(model, "Qwen3-Embedding-4B LoRA")
+    trainable = trainable_parameter_count(model)
     device = next(model.parameters()).device
     head = torch.nn.Linear(TEXT_DIM, 1).to(device=device, dtype=torch.float32)
     mask = np.asarray(fit_mask, dtype=bool)
@@ -310,8 +349,8 @@ def finetune_qwen_lora(
     generator = torch.Generator()
     generator.manual_seed(int(seed))
     model.train()
-    steps = 0
-    while steps < QWEN_LORA_MAX_STEPS:
+    losses: list[float] = []
+    while len(losses) < QWEN_LORA_MAX_STEPS:
         draw = torch.randint(0, fit_index.size, (QWEN_LORA_BATCH_SIZE,), generator=generator)
         batch_ids = fit_index[draw.numpy()]
         batch_text = [prompted[int(index)] for index in batch_ids]
@@ -330,17 +369,26 @@ def finetune_qwen_lora(
         logits = head(truncated).view(-1)
         target = torch.tensor(labels[batch_ids], dtype=torch.float32, device=device)
         loss = criterion(logits, target)
+        if not torch.isfinite(loss):
+            raise RuntimeError("non-finite LoRA loss")
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
         optimizer.step()
-        steps += 1
+        losses.append(float(loss.detach().cpu()))
+    first_loss = float(losses[0])
+    last_loss = float(losses[-1])
     embeddings = mrl_truncate(_encode_hidden(model, tokenizer, prompted, "last"), TEXT_DIM)
     meta = {
         **_lora_config_dict(),
         "revision": revision,
         "total_parameters": total,
+        "trainable_parameters": int(trainable),
         "seed": int(seed),
         "n_fit": int(mask.sum()),
+        "fit_rows": "training_blocks",
+        "loss_first": float(np.round(first_loss, 8)),
+        "loss_last": float(np.round(last_loss, 8)),
+        "loss_fell": bool(last_loss < first_loss),
     }
     del model
     return embeddings, meta
@@ -360,8 +408,8 @@ def _summary_from_folds(fold_frame: pd.DataFrame) -> list[dict[str, Any]]:
                     "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds"
                 ),
                 "note": (
-                    "Text projection is fit on the loss mask only. "
-                    "LoRA uses one pre-specified seed; the ten seeds are the GATv2 head."
+                    "LoRA is fit on every training-block row. "
+                    "The ten seeds belong to the GATv2 or TransformerConv head."
                 ),
             }
             for metric in PRIMARY_METRICS:
@@ -383,60 +431,67 @@ def run_fused_heads(
     seeds: tuple[int, ...] = ROUTE_B_GNN_SEEDS,
     budget: EpochBudget = SPEC_BUDGET,
 ) -> dict[str, Any]:
-    """Train GATv2 on fused features. Embeddings are already computed."""
-    head_params = parameter_count(build_model("gatv2", bundle.x.shape[1] + TEXT_DIM))
-    if head_params < PARAM_BUDGET_MIN or head_params > PARAM_BUDGET_MAX:
-        raise RuntimeError(f"fused GATv2 has {head_params} parameters, outside 0.2M–1.5M")
+    """Train GATv2 and TransformerConv on fused features. Embeddings are already computed."""
+    fused_dim = bundle.x.shape[1] + TEXT_DIM
+    head_params = {
+        head: parameter_count(build_model(head, fused_dim)) for head in ROUTE_B_HEADS
+    }
+    for head, count in head_params.items():
+        if count < PARAM_BUDGET_MIN or count > PARAM_BUDGET_MAX:
+            raise RuntimeError(f"fused {head} has {count} parameters, outside 0.2M–1.5M")
     fold_rows: list[dict[str, Any]] = []
-    for arm in ROUTE_B_ARMS:
-        method = arm_methods[arm]
-        stored = arm_embeddings[arm]
-        for protocol in PROTOCOLS:
-            for seed in seeds:
-                for fold in range(5):
-                    split = make_fold_split(
-                        bundle.blocks,
-                        bundle.src,
-                        bundle.dst,
-                        fold=fold,
-                        protocol=protocol,
-                    )
-                    text = stored[fold] if isinstance(stored, dict) else stored
-                    projected = project_text(
-                        text,
-                        method=method,
-                        fit_mask=split.loss_mask,
-                        dim=TEXT_DIM,
-                        seed=42,
-                    )
-                    fused = fuse_features(bundle.x, projected)
-                    fit = train_one_fold(
-                        fused,
-                        bundle.y,
-                        bundle.blocks,
-                        bundle.src,
-                        bundle.dst,
-                        model_name="gatv2",
-                        protocol=protocol,
-                        fold=fold,
-                        seed=int(seed),
-                        budget=budget,
-                    )
-                    fold_rows.append(
-                        {
-                            "model": arm,
-                            "protocol": protocol,
-                            "seed": int(seed),
-                            "fold": fold,
-                            "roc_auc": fit.metrics["roc_auc"],
-                            "pr_auc": fit.metrics["pr_auc"],
-                            "top20_hit_rate": fit.metrics["top20_hit_rate"],
-                            "best_epoch": fit.best_epoch,
-                        }
-                    )
+    for embedding in ROUTE_B_EMBEDDINGS:
+        method = arm_methods[embedding]
+        stored = arm_embeddings[embedding]
+        for head in ROUTE_B_HEADS:
+            model_name = f"{embedding}_{head}"
+            for protocol in PROTOCOLS:
+                for seed in seeds:
+                    for fold in range(5):
+                        split = make_fold_split(
+                            bundle.blocks,
+                            bundle.src,
+                            bundle.dst,
+                            fold=fold,
+                            protocol=protocol,
+                        )
+                        text = stored[fold] if isinstance(stored, dict) else stored
+                        projected = project_text(
+                            text,
+                            method=method,
+                            fit_mask=split.loss_mask,
+                            dim=TEXT_DIM,
+                            seed=42,
+                        )
+                        fused = fuse_features(bundle.x, projected)
+                        fit = train_one_fold(
+                            fused,
+                            bundle.y,
+                            bundle.blocks,
+                            bundle.src,
+                            bundle.dst,
+                            model_name=head,
+                            protocol=protocol,
+                            fold=fold,
+                            seed=int(seed),
+                            budget=budget,
+                        )
+                        fold_rows.append(
+                            {
+                                "model": model_name,
+                                "protocol": protocol,
+                                "seed": int(seed),
+                                "fold": fold,
+                                "roc_auc": fit.metrics["roc_auc"],
+                                "pr_auc": fit.metrics["pr_auc"],
+                                "top20_hit_rate": fit.metrics["top20_hit_rate"],
+                                "best_epoch": fit.best_epoch,
+                            }
+                        )
     fold_frame = pd.DataFrame(fold_rows)
     return {
-        "parameter_count_gatv2": head_params,
+        "parameter_count_gatv2": head_params["gatv2"],
+        "parameter_count_graph_transformer": head_params["graph_transformer"],
         "gnn_seeds": [int(seed) for seed in seeds],
         "lora_seeds": list(ROUTE_B_LORA_SEEDS),
         "lora_config": _lora_config_dict(),
@@ -451,7 +506,7 @@ def run_route_b(
     allow_weight_download: bool,
     budget: EpochBudget = SPEC_BUDGET,
 ) -> dict[str, Any]:
-    """Download, encode, optionally LoRA-fit, then train the fused GATv2 heads."""
+    """Download, encode, LoRA-fit on training blocks, then train both graph heads."""
     ensure_route_b_runtime(allow_weight_download)
     texts = bundle.poi_text.tolist()
     bge, bge_meta = encode_bge_m3(texts, allow_weight_download=True)
@@ -460,16 +515,9 @@ def run_route_b(
     lora_meta: list[dict[str, Any]] = []
     lora_seed = ROUTE_B_LORA_SEEDS[0]
     for fold in range(5):
-        split = make_fold_split(
-            bundle.blocks,
-            bundle.src,
-            bundle.dst,
-            fold=fold,
-            protocol="inductive",
-        )
         encoded, meta = finetune_qwen_lora(
             texts,
-            split.loss_mask,
+            training_block_mask(bundle.blocks, fold),
             bundle.y,
             allow_weight_download=True,
             seed=lora_seed,
@@ -481,14 +529,14 @@ def run_route_b(
     heads = run_fused_heads(
         bundle,
         {
-            "bge_m3_gatv2": bge,
-            "qwen3_embedding_4b_frozen_gatv2": frozen,
-            "qwen3_embedding_4b_lora_gatv2": lora_by_fold,
+            "bge_m3": bge,
+            "qwen3_embedding_4b_frozen": frozen,
+            "qwen3_embedding_4b_lora": lora_by_fold,
         },
         {
-            "bge_m3_gatv2": "pca",
-            "qwen3_embedding_4b_frozen_gatv2": "mrl",
-            "qwen3_embedding_4b_lora_gatv2": "as_is",
+            "bge_m3": "pca",
+            "qwen3_embedding_4b_frozen": "mrl",
+            "qwen3_embedding_4b_lora": "as_is",
         },
         seeds=tuple(PHASE_B_SEEDS),
         budget=budget,
@@ -500,6 +548,7 @@ def run_route_b(
         "encoders": {"bge_m3": bge_meta, "qwen_frozen": frozen_meta, "qwen_lora": lora_meta},
         "rows": heads["rows"],
         "parameter_count_gatv2": heads["parameter_count_gatv2"],
+        "parameter_count_graph_transformer": heads["parameter_count_graph_transformer"],
         "gnn_seeds": heads["gnn_seeds"],
         "lora_seeds": heads["lora_seeds"],
         "lora_config": heads["lora_config"],
@@ -508,23 +557,53 @@ def run_route_b(
     return {"payload": payload, "fold_frame": heads["fold_frame"]}
 
 
-def write_route_b_and_comparison(
+RUN1_LIVE_NAMES = frozenset(
+    {
+        "phase_b_route_b.json",
+        "phase_b_route_b_folds.csv",
+        "phase_b_comparison.csv",
+        "phase_b_comparison.md",
+    }
+)
+
+
+def run2_output_paths(project_root: Path) -> dict[str, Path]:
+    """Paths for the second Colab run. Run 1's files are not in this map."""
+    root = Path(project_root)
+    tables = root / "outputs" / "tables"
+    paths = {
+        "metrics": root / "outputs" / "metrics" / "phase_b_route_b_run2.json",
+        "folds": tables / "phase_b_route_b_folds_run2.csv",
+        "comparison_csv": tables / "phase_b_comparison_run2.csv",
+        "comparison_md": tables / "phase_b_comparison_run2.md",
+        "archive": root / "outputs" / "colab_runs" / "run2",
+    }
+    for path in paths.values():
+        _refuse_protected(path)
+    return paths
+
+
+def _refuse_protected(path: Path) -> None:
+    if path.name in RUN1_LIVE_NAMES:
+        raise RuntimeError(f"refusing to overwrite the first Colab outputs: {path}")
+    if "colab_runs" in path.parts and "run1" in path.parts:
+        raise RuntimeError(f"refusing to overwrite archived run 1: {path}")
+
+
+def write_route_b_run2(
     result: dict[str, Any],
     *,
-    metrics_path: Path,
-    tables_dir: Path,
+    project_root: Path,
     phase_a_metrics: Path,
     route_a_metrics: Path,
 ) -> dict[str, Path]:
-    """Write Route B JSON and rebuild the comparison table around it."""
-    metrics_path = Path(metrics_path)
-    tables_dir = Path(tables_dir)
-    metrics_path.parent.mkdir(parents=True, exist_ok=True)
-    tables_dir.mkdir(parents=True, exist_ok=True)
-    metrics_path.write_text(
-        json.dumps(result["payload"], indent=2, allow_nan=False) + "\n",
-        encoding="utf-8",
-    )
+    """Write run 2 beside the archived first Colab comparison."""
+    paths = run2_output_paths(project_root)
+    paths["metrics"].parent.mkdir(parents=True, exist_ok=True)
+    paths["folds"].parent.mkdir(parents=True, exist_ok=True)
+    paths["archive"].mkdir(parents=True, exist_ok=True)
+    payload_text = json.dumps(result["payload"], indent=2, allow_nan=False) + "\n"
+    paths["metrics"].write_text(payload_text, encoding="utf-8")
     route_a_payload = load_json(route_a_metrics)
     phase_a_payload = load_json(phase_a_metrics)
     rows = build_comparison_rows(
@@ -533,15 +612,11 @@ def write_route_b_and_comparison(
         result["payload"],
     )
     frame = comparison_frame(rows)
-    csv_path = tables_dir / "phase_b_comparison.csv"
-    md_path = tables_dir / "phase_b_comparison.md"
-    fold_path = tables_dir / "phase_b_route_b_folds.csv"
-    frame.to_csv(csv_path, index=False)
-    md_path.write_text(to_markdown(frame), encoding="utf-8")
-    result["fold_frame"].to_csv(fold_path, index=False)
-    return {
-        "metrics": metrics_path,
-        "comparison_csv": csv_path,
-        "comparison_md": md_path,
-        "folds": fold_path,
-    }
+    frame.to_csv(paths["comparison_csv"], index=False)
+    paths["comparison_md"].write_text(to_markdown(frame), encoding="utf-8")
+    result["fold_frame"].to_csv(paths["folds"], index=False)
+    for key in ("metrics", "folds", "comparison_csv", "comparison_md"):
+        archived = paths["archive"] / paths[key].name
+        _refuse_protected(archived)
+        shutil.copyfile(paths[key], archived)
+    return paths

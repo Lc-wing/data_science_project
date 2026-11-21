@@ -40,6 +40,17 @@ class FoldSplit:
         return int(np.sum(self.loss_mask))
 
 
+def training_block_mask(blocks: np.ndarray, test_block: int) -> np.ndarray:
+    """Rows in every block except the outer test block.
+
+    This is the LoRA fit set. It keeps the inner validation block. The GNN loss
+    still drops that block through ``FoldSplit.loss_mask``.
+    """
+    if test_block not in range(5):
+        raise ValueError(f"test block must be 0..4, got {test_block}")
+    return np.asarray(blocks, dtype=int) != int(test_block)
+
+
 def inner_val_block(test_block: int) -> int:
     """Largest remaining block id. Fixed rule, not chosen by a score."""
     if test_block not in range(5):

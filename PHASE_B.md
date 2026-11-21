@@ -41,27 +41,34 @@ Outputs:
 
 `acc15_ev_charger` is used only in the candidate screen, after scores exist. A candidate has no charger, accessibility at or below the all-cell median, and a mean inductive GATv2 probability at or above the 80th percentile among cells with no charger. The attention file is a qualitative neighbor list for seed 42, not an importance claim.
 
-## What runs on Colab (L4 or A100, about 20–45 minutes)
+## What runs on Colab (L4 or A100)
 
 This VM does not download `Qwen/Qwen3-Embedding-4B` or `BAAI/bge-m3`. `scripts/colab_phase_b.py` exits before any hub call unless it is started with `--allow-weight-download` **and** CUDA is available.
 
-On Colab, open `notebooks/phase_b_colab.ipynb` or run:
+If the repository is already cloned, `git pull` the branch `cursor/phase-b-graph-dl-a0b9` before running. Open `notebooks/phase_b_colab.ipynb` or run:
 
 ```bash
 pip install -q h3 torch-geometric transformers peft bitsandbytes accelerate
-python scripts/run_phase_b_route_a.py   # skip if the CPU metrics are already in the repo
 python scripts/colab_phase_b.py --allow-weight-download
 ```
 
+Do not rerun `scripts/run_phase_b_route_a.py`. Route A metrics are already in the repo. The command writes run 2 only:
+
+- `outputs/metrics/phase_b_route_b_run2.json`
+- `outputs/tables/phase_b_route_b_folds_run2.csv`
+- `outputs/tables/phase_b_comparison_run2.csv`
+- `outputs/tables/phase_b_comparison_run2.md`
+- a copy under `outputs/colab_runs/run2/`
+
+It does not replace `outputs/colab_runs/run1/` or `outputs/tables/phase_b_comparison.csv`.
+
 `h3` is imported as soon as `scripts/colab_phase_b.py` loads `macao_equity.ml.baselines`. A stock Colab runtime already provides geopandas, shapely, pyproj, numpy, pandas, and scikit-learn. `torch-geometric` is the other import-time package that runtime does not include. `transformers`, `peft`, `bitsandbytes`, and `accelerate` are used when the weight download actually starts.
 
-Route B arms, same blocks and the same GATv2 head:
+Route B text arms, each with a GATv2 head and a TransformerConv head, both protocols, seeds 42–51:
 
-1. Numeric GATv2 — copied from Route A, not trained again.
-2. Frozen `BAAI/bge-m3` (CLS pool) + PCA to 64 dimensions fit on the loss-mask rows only.
+1. Numeric GATv2 and TransformerConv — copied from Route A, not trained again.
+2. Frozen `BAAI/bge-m3`. The tokenizer pads on the right, and the CLS vector is the first non-pad token. PCA to 64 dimensions is fit on the GNN loss-mask rows only.
 3. Frozen `Qwen/Qwen3-Embedding-4B` + MRL truncation to 64 dimensions, then L2 normalization.
-4. QLoRA (`r=8`, alpha 16, dropout 0.05, targets `q_proj`, `k_proj`, `v_proj`, `o_proj`, 4-bit NF4, 40 steps, seed 42) fit on the loss mask only, then the same 64-dimensional export.
+4. QLoRA (`r=8`, alpha 16, dropout 0.05, targets `q_proj`, `k_proj`, `v_proj`, `o_proj`, 4-bit NF4, 40 steps, learning rate 1e-4, seed 42) fit on every training-block row. The inner validation block stays in that fit. The outer test block stays out. The JSON records the checkpoint revision, trainable parameter count, and the first and last step losses.
 
-The ten seeds apply to the GATv2 head. The 4B LoRA encoder uses one pre-specified seed so the Colab run stays inside the plan's 20–45 minute budget. Repeating LoRA across ten seeds is not a second model choice; it is left out of this budget on purpose. The script records the checkpoint revision, the LoRA config, and both seed lists. Total parameters of the encoder must stay ≤ 5B.
-
-Route B writes `outputs/metrics/phase_b_route_b.json` and refreshes the comparison table. Until that file exists, the Route B rows are `not_run` with an explicit blocker. They are not removed.
+The ten seeds apply to the graph heads. The 4B LoRA encoder uses one pre-specified seed. Step count, MRL width, and 4-bit loading are unchanged. Total parameters of the encoder must stay ≤ 5B.

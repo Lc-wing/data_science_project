@@ -23,6 +23,7 @@ from macao_equity.phase_b.data import load_phase_b_bundle
 from macao_equity.phase_b.metrics import score_binary
 from macao_equity.phase_b.models import build_model, parameter_count
 from macao_equity.phase_b.route_b import (
+    cls_pool,
     ensure_route_b_runtime,
     fuse_features,
     last_token_pool,
@@ -30,6 +31,7 @@ from macao_equity.phase_b.route_b import (
     pca_project,
     project_text,
     qwen_prompt,
+    run2_output_paths,
 )
 from macao_equity.phase_b.spec import (
     PARAM_BUDGET_MAX,
@@ -40,13 +42,14 @@ from macao_equity.phase_b.spec import (
     QWEN_LORA_TARGET_MODULES,
     ROUTE_A_MODELS,
     ROUTE_B_ARMS,
+    ROUTE_B_HEADS,
     SAGE_PARAM_MAX,
     SAGE_PARAM_MIN,
     TEXT_DIM,
     TOTAL_PARAM_LIMIT,
     EpochBudget,
 )
-from macao_equity.phase_b.splits import make_fold_split
+from macao_equity.phase_b.splits import make_fold_split, training_block_mask
 from macao_equity.phase_b.train import train_one_fold
 
 
@@ -144,10 +147,12 @@ def test_parameter_caps() -> None:
     transformer = parameter_count(build_model("graph_transformer", 11))
     sage = parameter_count(build_model("graphsage_5k", 11))
     fused = parameter_count(build_model("gatv2", 11 + TEXT_DIM))
+    fused_transformer = parameter_count(build_model("graph_transformer", 11 + TEXT_DIM))
     assert PARAM_BUDGET_MIN <= gat <= PARAM_BUDGET_MAX
     assert PARAM_BUDGET_MIN <= transformer <= PARAM_BUDGET_MAX
     assert SAGE_PARAM_MIN <= sage <= SAGE_PARAM_MAX
     assert PARAM_BUDGET_MIN <= fused <= PARAM_BUDGET_MAX
+    assert PARAM_BUDGET_MIN <= fused_transformer <= PARAM_BUDGET_MAX
     assert fused < TOTAL_PARAM_LIMIT
 
 
@@ -292,6 +297,49 @@ def test_fuse_keeps_numeric_block_untouched() -> None:
     fused = fuse_features(numeric, text)
     assert fused.shape == (3, 6)
     assert np.allclose(fused[:, :4], numeric)
+
+
+def test_cls_pool_does_not_read_a_left_pad_position() -> None:
+    hidden = torch.tensor(
+        [
+            [[9.0, 1.0], [3.0, 4.0], [5.0, 6.0]],
+            [[7.0, 8.0], [1.0, 2.0], [0.0, 0.0]],
+        ]
+    )
+    mask = torch.tensor([[0, 1, 1], [1, 1, 0]])
+    pooled = cls_pool(hidden, mask)
+    assert torch.equal(pooled[0], hidden[0, 1])
+    assert not torch.equal(pooled[0], hidden[0, 0])
+    assert torch.equal(pooled[1], hidden[1, 0])
+
+
+def test_lora_fit_mask_keeps_the_inner_validation_block() -> None:
+    graph = _synthetic_graph()
+    mask = training_block_mask(graph["blocks"], 0)
+    split = make_fold_split(
+        graph["blocks"],
+        graph["src"],
+        graph["dst"],
+        fold=0,
+        protocol="inductive",
+    )
+    assert np.array_equal(mask, graph["blocks"] != 0)
+    assert bool(np.any(mask & split.val_mask))
+    assert not bool(np.any(mask & split.test_mask))
+
+
+def test_route_b_run2_keeps_transformer_and_leaves_run1() -> None:
+    assert "graph_transformer" in ROUTE_B_HEADS
+    assert "gatv2" in ROUTE_B_HEADS
+    assert "bge_m3_graph_transformer" in ROUTE_B_ARMS
+    assert "qwen3_embedding_4b_lora_gatv2" in ROUTE_B_ARMS
+    root = Path("/tmp/phase-b-run2-paths")
+    paths = run2_output_paths(root)
+    assert paths["metrics"].name == "phase_b_route_b_run2.json"
+    assert paths["comparison_csv"].name == "phase_b_comparison_run2.csv"
+    assert paths["archive"].name == "run2"
+    assert "run1" not in paths["metrics"].parts
+    assert paths["comparison_md"].name != "phase_b_comparison.md"
 
 
 def test_last_token_pool_respects_padding() -> None:

@@ -26,6 +26,11 @@ def parameter_count(module: nn.Module) -> int:
     return int(sum(param.numel() for param in module.parameters()))
 
 
+def trainable_parameter_count(module: nn.Module) -> int:
+    """Parameters that receive gradients. Frozen base weights are excluded."""
+    return int(sum(param.numel() for param in module.parameters() if param.requires_grad))
+
+
 class _AttentionBlock(nn.Module):
     """Input projection, two residual attention layers, and a logit head."""
 
