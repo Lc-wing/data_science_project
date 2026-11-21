@@ -48,10 +48,12 @@ This VM does not download `Qwen/Qwen3-Embedding-4B` or `BAAI/bge-m3`. `scripts/c
 On Colab, open `notebooks/phase_b_colab.ipynb` or run:
 
 ```bash
-pip install -q torch-geometric transformers peft bitsandbytes accelerate
+pip install -q h3 torch-geometric transformers peft bitsandbytes accelerate
 python scripts/run_phase_b_route_a.py   # skip if the CPU metrics are already in the repo
 python scripts/colab_phase_b.py --allow-weight-download
 ```
+
+`h3` is imported as soon as `scripts/colab_phase_b.py` loads `macao_equity.ml.baselines`. A stock Colab runtime already provides geopandas, shapely, pyproj, numpy, pandas, and scikit-learn. `torch-geometric` is the other import-time package that runtime does not include. `transformers`, `peft`, `bitsandbytes`, and `accelerate` are used when the weight download actually starts.
 
 Route B arms, same blocks and the same GATv2 head:
 
