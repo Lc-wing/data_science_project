@@ -1,0 +1,35 @@
+key,indicator_id,parent_id,label_en,label_zh,path_en,unit_en,dsec_min_year,dsec_max_year
+occupancy_5star,13011,13016,5-star hotels,五星級,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Hotels -- 5-star hotels,%,1997,2026
+occupancy_4star,13012,13016,4-star hotels,四星級,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Hotels -- 4-star hotels,%,1997,2026
+occupancy_3star,13013,13016,3-star hotels,三星級,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Hotels -- 3-star hotels,%,1997,2026
+occupancy_2star,13014,13016,2-star hotels,二星級,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Hotels -- 2-star hotels,%,1997,2026
+occupancy_hotels,13016,13005,Hotels,酒店,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Hotels,%,1997,2026
+occupancy_guesthouses,13015,13005,Guest-houses,公寓,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Guest-houses,%,1997,2021
+occupancy_economical,67592,13005,Economical accommodation establishments,經濟型住宿場所,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Economical accommodation establishments,%,2022,2026
+rooms_5star,25008,25007,5-star hotels,五星級,Tourism and services -- Tourism -- Hotel establishments -- Guest rooms -- Hotels -- 5-star hotels,No.,1999,2026
+rooms_4star,25009,25007,4-star hotels,四星級,Tourism and services -- Tourism -- Hotel establishments -- Guest rooms -- Hotels -- 4-star hotels,No.,1999,2026
+rooms_3star,25010,25007,3-star hotels,三星級,Tourism and services -- Tourism -- Hotel establishments -- Guest rooms -- Hotels -- 3-star hotels,No.,1999,2026
+rooms_2star,25011,25007,2-star hotels,二星級,Tourism and services -- Tourism -- Hotel establishments -- Guest rooms -- Hotels -- 2-star hotels,No.,1999,2026
+rooms_hotels,25007,13004,Hotels,酒店,Tourism and services -- Tourism -- Hotel establishments -- Guest rooms -- Hotels,No.,1999,2026
+establishments_5star,25002,25001,5-star hotels,五星級,Tourism and services -- Tourism -- Hotel establishments -- Operating establishments -- Hotels -- 5-star hotels,No.,1999,2026
+establishments_4star,25003,25001,4-star hotels,四星級,Tourism and services -- Tourism -- Hotel establishments -- Operating establishments -- Hotels -- 4-star hotels,No.,1999,2026
+establishments_3star,25004,25001,3-star hotels,三星級,Tourism and services -- Tourism -- Hotel establishments -- Operating establishments -- Hotels -- 3-star hotels,No.,1999,2026
+establishments_2star,25005,25001,2-star hotels,二星級,Tourism and services -- Tourism -- Hotel establishments -- Operating establishments -- Hotels -- 2-star hotels,No.,1999,2026
+establishments_hotels,25001,13003,Hotels,酒店,Tourism and services -- Tourism -- Hotel establishments -- Operating establishments -- Hotels,No.,1999,2026
+guests_5star,25093,25063,5-star hotels,五星級,Tourism and services -- Tourism -- Hotel establishments -- No. of guests -- Hotels -- 5-star hotels,No.,1999,2026
+guests_4star,25122,25063,4-star hotels,四星級,Tourism and services -- Tourism -- Hotel establishments -- No. of guests -- Hotels -- 4-star hotels,No.,1999,2026
+guests_3star,25151,25063,3-star hotels,三星級,Tourism and services -- Tourism -- Hotel establishments -- No. of guests -- Hotels -- 3-star hotels,No.,1999,2026
+guests_2star,25180,25063,2-star hotels,二星級,Tourism and services -- Tourism -- Hotel establishments -- No. of guests -- Hotels -- 2-star hotels,No.,1999,2026
+guests_hotels,25064,25063,Total,酒店總數,Tourism and services -- Tourism -- Hotel establishments -- No. of guests -- Hotels -- Total,No.,1999,2026
+package_tour_visitors,26001,13009,Grand total,總數,Tourism and services -- Tourism -- Travel agencies -- Visitors on package tours -- Grand total,No.,1999,2026
+visitors_total,14040,60397,By Issuing Place of Travel Document,證件簽發地,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Issuing Place of Travel Document,No.,2008,2026
+visitors_same_day,14272,60395,By Issuing Place of Travel Document,證件簽發地,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Same-day Visitors -- By Issuing Place of Travel Document,No.,2008,2026
+visitors_overnight,57251,60396,By Issuing Place of Travel Document,證件簽發地,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Overnight Visitors -- By Issuing Place of Travel Document,No.,2008,2026
+visitors_mainland,14042,14040,Chinese mainland,中國內地,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Issuing Place of Travel Document -- Chinese mainland,No.,2008,2026
+visitors_hong_kong,14043,14040,Hong Kong SAR,香港特區,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Issuing Place of Travel Document -- Hong Kong SAR,No.,2008,2026
+visitors_taiwan,14044,14040,Taiwan region,台灣地區,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Issuing Place of Travel Document -- Taiwan region,No.,2008,2026
+visitors_by_sea,14024,14023,By sea,海路,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Mode of Transport -- By sea,No.,2008,2026
+visitors_by_land,14028,14023,By land,陸路,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Mode of Transport -- By land,No.,2008,2026
+visitors_by_air,14032,14023,By air,空路,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Mode of Transport -- By air,No.,2008,2026
+stay_all_visitors,14302,14301,Visitors by Issuing Place of Travel Document,按證件簽發地統計之旅客,Tourism and services -- Tourism -- Visitors -- Average Length of Stay of Visitors -- Visitors by Issuing Place of Travel Document,Day,2011,2026
+stay_overnight_visitors,14330,14301,Overnight Visitors by Issuing Place of Travel Document,按證件簽發地統計之留宿旅客,Tourism and services -- Tourism -- Visitors -- Average Length of Stay of Visitors -- Overnight Visitors by Issuing Place of Travel Document,Day,2011,2026

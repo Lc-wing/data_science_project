@@ -1,0 +1,35 @@
+key,indicator_id,dsec_path,unit,first_month,last_month,months_with_value,panel_months_with_value,panel_months_missing,missing_span,zero_by_remark,revised_flag_months,latest_dsec_update
+occupancy_5star,13011,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Hotels -- 5-star hotels,%,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+occupancy_4star,13012,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Hotels -- 4-star hotels,%,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+occupancy_3star,13013,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Hotels -- 3-star hotels,%,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+occupancy_2star,13014,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Hotels -- 2-star hotels,%,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+occupancy_hotels,13016,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Hotels,%,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+occupancy_guesthouses,13015,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Guest-houses,%,2008-01,2021-12,168,144,57,2022-01..2026-09,0,0,2022-05-05
+occupancy_economical,67592,Tourism and services -- Tourism -- Hotel establishments -- Average occupancy rate -- Economical accommodation establishments,%,2022-01,2026-09,57,57,144,2010-01..2021-12,0,0,2026-10-29
+rooms_5star,25008,Tourism and services -- Tourism -- Hotel establishments -- Guest rooms -- Hotels -- 5-star hotels,No.,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+rooms_4star,25009,Tourism and services -- Tourism -- Hotel establishments -- Guest rooms -- Hotels -- 4-star hotels,No.,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+rooms_3star,25010,Tourism and services -- Tourism -- Hotel establishments -- Guest rooms -- Hotels -- 3-star hotels,No.,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+rooms_2star,25011,Tourism and services -- Tourism -- Hotel establishments -- Guest rooms -- Hotels -- 2-star hotels,No.,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+rooms_hotels,25007,Tourism and services -- Tourism -- Hotel establishments -- Guest rooms -- Hotels,No.,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+establishments_5star,25002,Tourism and services -- Tourism -- Hotel establishments -- Operating establishments -- Hotels -- 5-star hotels,No.,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+establishments_4star,25003,Tourism and services -- Tourism -- Hotel establishments -- Operating establishments -- Hotels -- 4-star hotels,No.,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+establishments_3star,25004,Tourism and services -- Tourism -- Hotel establishments -- Operating establishments -- Hotels -- 3-star hotels,No.,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+establishments_2star,25005,Tourism and services -- Tourism -- Hotel establishments -- Operating establishments -- Hotels -- 2-star hotels,No.,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+establishments_hotels,25001,Tourism and services -- Tourism -- Hotel establishments -- Operating establishments -- Hotels,No.,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+guests_5star,25093,Tourism and services -- Tourism -- Hotel establishments -- No. of guests -- Hotels -- 5-star hotels,No.,2008-01,2026-09,225,201,0,,0,1,2026-10-29
+guests_4star,25122,Tourism and services -- Tourism -- Hotel establishments -- No. of guests -- Hotels -- 4-star hotels,No.,2008-01,2026-09,225,201,0,,0,0,2026-10-29
+guests_3star,25151,Tourism and services -- Tourism -- Hotel establishments -- No. of guests -- Hotels -- 3-star hotels,No.,2008-01,2026-09,225,201,0,,0,1,2026-10-29
+guests_2star,25180,Tourism and services -- Tourism -- Hotel establishments -- No. of guests -- Hotels -- 2-star hotels,No.,2008-01,2026-09,225,201,0,,0,1,2026-10-29
+guests_hotels,25064,Tourism and services -- Tourism -- Hotel establishments -- No. of guests -- Hotels -- Total,No.,2008-01,2026-09,225,201,0,,0,1,2026-10-29
+package_tour_visitors,26001,Tourism and services -- Tourism -- Travel agencies -- Visitors on package tours -- Grand total,No.,2008-01,2026-09,225,201,0,,4,3,2026-10-29
+visitors_total,14040,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Issuing Place of Travel Document,No.,2008-01,2026-10,226,201,0,,0,0,2026-11-18
+visitors_same_day,14272,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Same-day Visitors -- By Issuing Place of Travel Document,No.,2008-01,2026-10,226,201,0,,0,0,2026-11-18
+visitors_overnight,57251,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Overnight Visitors -- By Issuing Place of Travel Document,No.,2008-01,2026-10,226,201,0,,0,0,2026-11-18
+visitors_mainland,14042,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Issuing Place of Travel Document -- Chinese mainland,No.,2008-01,2026-10,226,201,0,,0,0,2026-11-18
+visitors_hong_kong,14043,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Issuing Place of Travel Document -- Hong Kong SAR,No.,2008-01,2026-10,226,201,0,,0,0,2026-11-18
+visitors_taiwan,14044,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Issuing Place of Travel Document -- Taiwan region,No.,2008-01,2026-10,226,201,0,,0,0,2026-11-18
+visitors_by_sea,14024,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Mode of Transport -- By sea,No.,2008-01,2026-10,226,201,0,,5,0,2026-11-18
+visitors_by_land,14028,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Mode of Transport -- By land,No.,2008-01,2026-10,226,201,0,,0,0,2026-11-18
+visitors_by_air,14032,Tourism and services -- Tourism -- Visitors -- Visitor Arrivals -- Number of visitors in and after 2008 -- Visitors -- By Mode of Transport -- By air,No.,2008-01,2026-10,226,201,0,,0,0,2026-11-18
+stay_all_visitors,14302,Tourism and services -- Tourism -- Visitors -- Average Length of Stay of Visitors -- Visitors by Issuing Place of Travel Document,Day,2011-01,2026-10,190,189,12,2010-01..2010-12,0,0,2026-11-18
+stay_overnight_visitors,14330,Tourism and services -- Tourism -- Visitors -- Average Length of Stay of Visitors -- Overnight Visitors by Issuing Place of Travel Document,Day,2011-01,2026-10,190,189,12,2010-01..2010-12,0,0,2026-11-18

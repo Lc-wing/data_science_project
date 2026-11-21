@@ -1,0 +1,1780 @@
+{
+  "schema_version": "1.0.0",
+  "note": "Raw snapshots for Plan 2. Paths are relative to plan_2_tourism_hotel/. Every file was downloaded from the official source at the URL shown.",
+  "files": {
+    "data/raw/cn_holiday_notices/amendment_2015_victory_day.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Later notice changing a published schedule: 2015_victory_day",
+      "url": "https://www.gov.cn/zhengce/content/2015-05/13/content_9742.htm",
+      "downloaded_at_utc8": "2026-11-21T12:27:01+08:00",
+      "bytes": 25272,
+      "sha256": "03c462bb1daa0236153abcac013b3a9b2c475319e691909f693ebb6176789f40"
+    },
+    "data/raw/cn_holiday_notices/amendment_2019_labour_day.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Later notice changing a published schedule: 2019_labour_day",
+      "url": "https://www.gov.cn/zhengce/content/2019-03/22/content_5375877.htm",
+      "downloaded_at_utc8": "2026-11-21T12:27:02+08:00",
+      "bytes": 26746,
+      "sha256": "24f5424177a58f1ffc46dd85686aa82c2d2be49270b3de72a746d5e996840ea9"
+    },
+    "data/raw/cn_holiday_notices/amendment_2020_spring_festival_extension.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Later notice changing a published schedule: 2020_spring_festival_extension",
+      "url": "https://www.gov.cn/zhengce/content/2020-01/27/content_5472352.htm",
+      "downloaded_at_utc8": "2026-11-21T12:27:02+08:00",
+      "bytes": 26327,
+      "sha256": "84c55a51a09b3825c2e61a18ebf6d51b50ef78e550f9dd7d831b47da4f784660"
+    },
+    "data/raw/cn_holiday_notices/notice_2010.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2010 public-holiday arrangement",
+      "url": "https://www.gov.cn/zwgk/2009-12/08/content_1482691.htm",
+      "downloaded_at_utc8": "2026-11-21T12:26:54+08:00",
+      "bytes": 14278,
+      "sha256": "b17704ee7469d63f5273fa74b6fd5ac4d5499f5e1b1153e61a172cdb8a27f713"
+    },
+    "data/raw/cn_holiday_notices/notice_2011.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2011 public-holiday arrangement",
+      "url": "https://www.gov.cn/zwgk/2010-12/10/content_1762643.htm",
+      "downloaded_at_utc8": "2026-11-21T12:26:54+08:00",
+      "bytes": 14223,
+      "sha256": "8c0f81ed1718e9844ce11eec9c15a55c71c4ba8fbb6bab83a6f8fc956b414cb8"
+    },
+    "data/raw/cn_holiday_notices/notice_2012.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2012 public-holiday arrangement",
+      "url": "https://www.gov.cn/zwgk/2011-12/06/content_2012097.htm",
+      "downloaded_at_utc8": "2026-11-21T12:26:55+08:00",
+      "bytes": 14221,
+      "sha256": "5016e8d6ce14a921e51680dc176b12b3c5b631ba98f3aa6190b0d918d94a1805"
+    },
+    "data/raw/cn_holiday_notices/notice_2013.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2013 public-holiday arrangement",
+      "url": "https://www.gov.cn/zwgk/2012-12/10/content_2286598.htm",
+      "downloaded_at_utc8": "2026-11-21T12:26:55+08:00",
+      "bytes": 14430,
+      "sha256": "a31930f4577685a453021105dd304bf6808e1b8de4c0547aae0713c80b3b565f"
+    },
+    "data/raw/cn_holiday_notices/notice_2014.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2014 public-holiday arrangement",
+      "url": "https://www.gov.cn/zwgk/2013-12/11/content_2546204.htm",
+      "downloaded_at_utc8": "2026-11-21T12:26:56+08:00",
+      "bytes": 13977,
+      "sha256": "f4fcb3527aae0c5d414a1fac33225d4f93c28de4a2189c709fef3dc78ef39b36"
+    },
+    "data/raw/cn_holiday_notices/notice_2015.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2015 public-holiday arrangement",
+      "url": "https://www.gov.cn/zhengce/content/2014-12/16/content_9302.htm",
+      "downloaded_at_utc8": "2026-11-21T12:26:57+08:00",
+      "bytes": 27212,
+      "sha256": "99c7b03bea5f5cb9db302d91a3c9629d8e8ca2925cac7f2fc6a437ed18a57b84"
+    },
+    "data/raw/cn_holiday_notices/notice_2016.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2016 public-holiday arrangement",
+      "url": "https://www.gov.cn/zhengce/content/2015-12/10/content_10394.htm",
+      "downloaded_at_utc8": "2026-11-21T12:26:57+08:00",
+      "bytes": 25504,
+      "sha256": "e5f981ba8e0d8674c12ea33e4f1b9102696e70f78d866ab5c4aaad5d41a6fba2"
+    },
+    "data/raw/cn_holiday_notices/notice_2017.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2017 public-holiday arrangement",
+      "url": "https://www.gov.cn/zhengce/content/2016-12/01/content_5141603.htm",
+      "downloaded_at_utc8": "2026-11-21T12:26:58+08:00",
+      "bytes": 27123,
+      "sha256": "bdebcb4181d469919f8d17738fcb9ae1d8b343044ba83147cee74e55bcc3f69b"
+    },
+    "data/raw/cn_holiday_notices/notice_2018.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2018 public-holiday arrangement",
+      "url": "https://www.gov.cn/zhengce/content/2017-11/30/content_5243579.htm",
+      "downloaded_at_utc8": "2026-11-21T12:26:58+08:00",
+      "bytes": 27176,
+      "sha256": "49356017ba8c82200c41e5dd93cc96fef98074c5f9aca41a49bcea97a3d617d4"
+    },
+    "data/raw/cn_holiday_notices/notice_2019.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2019 public-holiday arrangement",
+      "url": "https://www.gov.cn/zhengce/content/2018-12/06/content_5346276.htm",
+      "downloaded_at_utc8": "2026-11-21T12:26:59+08:00",
+      "bytes": 27598,
+      "sha256": "73b36e547397f5f2823f202884c0088f23a24ae5d424c12c99a5d707d7108428"
+    },
+    "data/raw/cn_holiday_notices/notice_2020.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2020 public-holiday arrangement",
+      "url": "https://www.gov.cn/zhengce/content/2019-11/21/content_5454164.htm",
+      "downloaded_at_utc8": "2026-11-21T12:26:59+08:00",
+      "bytes": 27651,
+      "sha256": "3e8baae2871bd151327081dc8c8c5be23161f7e5ec6632960e41ab1623538d9a"
+    },
+    "data/raw/cn_holiday_notices/notice_2021.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2021 public-holiday arrangement",
+      "url": "https://www.gov.cn/zhengce/content/2020-11/25/content_5564127.htm",
+      "downloaded_at_utc8": "2026-11-21T12:26:59+08:00",
+      "bytes": 27327,
+      "sha256": "469714156f2e93d0166129f7b1e32edbc0a579ec2cc4cc70f67375fb5ccb6a1e"
+    },
+    "data/raw/cn_holiday_notices/notice_2022.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2022 public-holiday arrangement",
+      "url": "https://www.gov.cn/zhengce/content/2021-10/25/content_5644835.htm",
+      "downloaded_at_utc8": "2026-11-21T12:27:00+08:00",
+      "bytes": 27307,
+      "sha256": "f064ccbd2288cc38d69af0cf424ab70f21bdd93a1ab4927e6dc36c18bc8db49d"
+    },
+    "data/raw/cn_holiday_notices/notice_2023.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2023 public-holiday arrangement",
+      "url": "https://www.gov.cn/zhengce/content/2022-12/08/content_5730844.htm",
+      "downloaded_at_utc8": "2026-11-21T12:27:00+08:00",
+      "bytes": 27466,
+      "sha256": "dab4dd161e7c805ff4742c4e5b03fb5632b965ba06b9c17b1e3191126628a5ce"
+    },
+    "data/raw/cn_holiday_notices/notice_2024.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2024 public-holiday arrangement",
+      "url": "https://www.gov.cn/zhengce/content/202310/content_6911527.htm",
+      "downloaded_at_utc8": "2026-11-21T12:27:00+08:00",
+      "bytes": 27378,
+      "sha256": "07c413835443b958c5bf40b94dd47a027bc8b27707c7dd720e5a7d5903807c99"
+    },
+    "data/raw/cn_holiday_notices/notice_2025.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2025 public-holiday arrangement",
+      "url": "https://www.gov.cn/zhengce/content/202411/content_6986382.htm",
+      "downloaded_at_utc8": "2026-11-21T12:27:01+08:00",
+      "bytes": 28972,
+      "sha256": "0510bc1f09ef9b5719e01cf0fa33f618e2a61f05ee7912c549042fea1c31c6a4"
+    },
+    "data/raw/cn_holiday_notices/notice_2026.html": {
+      "source": "State Council of the PRC (gov.cn)",
+      "description": "Notice on the 2026 public-holiday arrangement",
+      "url": "https://www.gov.cn/zhengce/content/202511/content_7047090.htm",
+      "downloaded_at_utc8": "2026-11-21T12:27:01+08:00",
+      "bytes": 27547,
+      "sha256": "36fe1206ceb7685bc8827350d9552d60fff8393919f6afd0d1b0161c97628c0d"
+    },
+    "data/raw/dsec_releases/AllReleases_en-US_TourismAndServices.json": {
+      "source": "DSEC",
+      "description": "Index of all tourism releases (publication list behind id=402 and id=403)",
+      "url": "https://www.dsec.gov.mo/StatisticsJSON/AllReleases_en-US_TourismAndServices.json",
+      "downloaded_at_utc8": "2026-11-21T12:26:47+08:00",
+      "bytes": 542884,
+      "sha256": "41c1ab634df1a25dbee524a837b4aa6f8aca30d9c69ac841629ebb49d74022da"
+    },
+    "data/raw/dsec_releases/CPE_EOH_FR_2026_M09.xlsx": {
+      "source": "DSEC",
+      "description": "Statistical tables, PackageToursAndHotelOccupancyRate, 2026-09 (release 31988)",
+      "url": "https://www.dsec.gov.mo/getAttachment/0a7de0e1-d866-4d83-8b6f-8e0ad41554ab/CPE_EOH_FR_2026_M09.aspx",
+      "downloaded_at_utc8": "2026-11-21T12:26:54+08:00",
+      "bytes": 80048,
+      "sha256": "0db10800f72c8e237ee9b3ce8ab6396422101ba9567085437ccb0bf41c0a038c"
+    },
+    "data/raw/dsec_releases/CPE_MV_FR_2026_M10.xlsx": {
+      "source": "DSEC",
+      "description": "Statistical tables, VisitorArrivals, 2026-10 (release 32063)",
+      "url": "https://www.dsec.gov.mo/getAttachment/e41d9978-9622-4b50-9c89-06b8d93d016d/CPE_MV_FR_2026_M10.aspx",
+      "downloaded_at_utc8": "2026-11-21T12:26:51+08:00",
+      "bytes": 548941,
+      "sha256": "54b246291d202b9bcca0637898faff9266bdcc29ee7f484b1e5abb0ddab69765"
+    },
+    "data/raw/dsec_tsdb/children_13003.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 13003",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/13003",
+      "downloaded_at_utc8": "2026-11-21T12:25:51+08:00",
+      "bytes": 5241,
+      "sha256": "f5dc6313479a26396cf6d27519883b2f5bc581c77c8f706dc2f3f070c409b786"
+    },
+    "data/raw/dsec_tsdb/children_13004.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 13004",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/13004",
+      "downloaded_at_utc8": "2026-11-21T12:25:52+08:00",
+      "bytes": 5076,
+      "sha256": "4fd05cac500380130bbd7eab598c242f93a8dedee58f5fa6c246525538dd0b0e"
+    },
+    "data/raw/dsec_tsdb/children_13005.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 13005",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/13005",
+      "downloaded_at_utc8": "2026-11-21T12:25:54+08:00",
+      "bytes": 5160,
+      "sha256": "8101336516590856219bbaccebbb84a08321ad0337274c10c529ad8cb4abcde9"
+    },
+    "data/raw/dsec_tsdb/children_13009.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 13009",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/13009",
+      "downloaded_at_utc8": "2026-11-21T12:25:56+08:00",
+      "bytes": 5182,
+      "sha256": "0037372c70a58824e1d17460ed78a2751549d9177bd143f7fdd698687158379a"
+    },
+    "data/raw/dsec_tsdb/children_13016.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 13016",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/13016",
+      "downloaded_at_utc8": "2026-11-21T12:25:59+08:00",
+      "bytes": 7138,
+      "sha256": "edc5243ab26a0cdeedfa60e5630b28c41452e18b6ea69e2d2a9b7c8bc93b8803"
+    },
+    "data/raw/dsec_tsdb/children_14023.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 14023",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/14023",
+      "downloaded_at_utc8": "2026-11-21T12:26:00+08:00",
+      "bytes": 6138,
+      "sha256": "a981fe06bd662201f99587e63210bdc9d9c9c401b27ab9620a7129b3b15ca2cd"
+    },
+    "data/raw/dsec_tsdb/children_14040.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 14040",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/14040",
+      "downloaded_at_utc8": "2026-11-21T12:26:04+08:00",
+      "bytes": 117008,
+      "sha256": "08936d266c7ea2e8510fc20617c26d94e26363493abdf047990657e359ede49a"
+    },
+    "data/raw/dsec_tsdb/children_14301.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 14301",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/14301",
+      "downloaded_at_utc8": "2026-11-21T12:26:05+08:00",
+      "bytes": 7141,
+      "sha256": "4cde20cf2b757d4b56277220a5188c484a8bcfa376f45932cee1630b28fccefa"
+    },
+    "data/raw/dsec_tsdb/children_25001.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 25001",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/25001",
+      "downloaded_at_utc8": "2026-11-21T12:26:06+08:00",
+      "bytes": 7246,
+      "sha256": "789cf600ce036b4d8d862996fa53e1f2268737ae3370e3e65affba5710f022ab"
+    },
+    "data/raw/dsec_tsdb/children_25007.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 25007",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/25007",
+      "downloaded_at_utc8": "2026-11-21T12:26:08+08:00",
+      "bytes": 7026,
+      "sha256": "a23d93a71d616abf386e06dd2825e37987092341d99efbe29595fd5d6aa811e3"
+    },
+    "data/raw/dsec_tsdb/children_25063.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 25063",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/25063",
+      "downloaded_at_utc8": "2026-11-21T12:26:09+08:00",
+      "bytes": 8929,
+      "sha256": "a61f7173135baa3925125c934eb866670e9618a633fd9d2c40aa99d51ca80c21"
+    },
+    "data/raw/dsec_tsdb/children_60395.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 60395",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/60395",
+      "downloaded_at_utc8": "2026-11-21T12:26:11+08:00",
+      "bytes": 11048,
+      "sha256": "124772895a9a4c00cb9241f1b39ea9b3be553a4109db8f25f2251bc8d1f32e69"
+    },
+    "data/raw/dsec_tsdb/children_60396.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 60396",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/60396",
+      "downloaded_at_utc8": "2026-11-21T12:26:14+08:00",
+      "bytes": 10980,
+      "sha256": "ee456e2c0e20bc90261b0d06aa6f17fa27327b363d750f0633c25d9788a673e7"
+    },
+    "data/raw/dsec_tsdb/children_60397.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Metadata of the indicators under node 60397",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/Indicatorv3/60397",
+      "downloaded_at_utc8": "2026-11-21T12:26:20+08:00",
+      "bytes": 23212,
+      "sha256": "bf24a8bc4ad24feddc1cc6311ef515fc459a594fb39ea014e37b5539cb3119b6"
+    },
+    "data/raw/dsec_tsdb/values_monthly_hotel_guests.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Monthly values, group hotel_guests",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/IndicatorValue/LatestSameEndPeriodv3",
+      "downloaded_at_utc8": "2026-11-21T12:26:23+08:00",
+      "bytes": 387753,
+      "sha256": "698e795d355a940349a1c4b62f5c5efa3fbe66c3d90bc6220696bed7c2de7cab",
+      "request_body": {
+        "indicator_ids": [
+          25093,
+          25122,
+          25151,
+          25180,
+          25064
+        ],
+        "language": "en-US",
+        "types": [
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL"
+        ],
+        "dataPeriods": [
+          "MONTHLY"
+        ],
+        "fromYear": 2008,
+        "toYear": 2026
+      }
+    },
+    "data/raw/dsec_tsdb/values_monthly_hotel_occupancy.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Monthly values, group hotel_occupancy",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/IndicatorValue/LatestSameEndPeriodv3",
+      "downloaded_at_utc8": "2026-11-21T12:26:30+08:00",
+      "bytes": 594896,
+      "sha256": "00d36f98738d6fa5eb9557b63cf637ba4f7f7ef02d6720579e8d3454a76be1b3",
+      "request_body": {
+        "indicator_ids": [
+          13011,
+          13012,
+          13013,
+          13014,
+          13016,
+          13015,
+          67592
+        ],
+        "language": "en-US",
+        "types": [
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL"
+        ],
+        "dataPeriods": [
+          "MONTHLY"
+        ],
+        "fromYear": 2008,
+        "toYear": 2026
+      }
+    },
+    "data/raw/dsec_tsdb/values_monthly_hotel_supply.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Monthly values, group hotel_supply",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/IndicatorValue/LatestSameEndPeriodv3",
+      "downloaded_at_utc8": "2026-11-21T12:26:34+08:00",
+      "bytes": 767348,
+      "sha256": "286051a75b8e50baac7c124b90d1166390b30c0fe9a353ec00cd39989125beb7",
+      "request_body": {
+        "indicator_ids": [
+          25008,
+          25009,
+          25010,
+          25011,
+          25007,
+          25002,
+          25003,
+          25004,
+          25005,
+          25001
+        ],
+        "language": "en-US",
+        "types": [
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL"
+        ],
+        "dataPeriods": [
+          "MONTHLY"
+        ],
+        "fromYear": 2008,
+        "toYear": 2026
+      }
+    },
+    "data/raw/dsec_tsdb/values_monthly_package_tours.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Monthly values, group package_tours",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/IndicatorValue/LatestSameEndPeriodv3",
+      "downloaded_at_utc8": "2026-11-21T12:26:37+08:00",
+      "bytes": 79385,
+      "sha256": "e75a59dc78280344222762af4c61e648c7cc8150226c379c906c6ba179eae249",
+      "request_body": {
+        "indicator_ids": [
+          26001
+        ],
+        "language": "en-US",
+        "types": [
+          "VAL"
+        ],
+        "dataPeriods": [
+          "MONTHLY"
+        ],
+        "fromYear": 2008,
+        "toYear": 2026
+      }
+    },
+    "data/raw/dsec_tsdb/values_monthly_visitor_arrivals.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Monthly values, group visitor_arrivals",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/IndicatorValue/LatestSameEndPeriodv3",
+      "downloaded_at_utc8": "2026-11-21T12:26:41+08:00",
+      "bytes": 701569,
+      "sha256": "71669259175defab88b978078fce23cfb002a9f2137d856a362fd91cd2a02d20",
+      "request_body": {
+        "indicator_ids": [
+          14040,
+          14272,
+          57251,
+          14042,
+          14043,
+          14044,
+          14024,
+          14028,
+          14032
+        ],
+        "language": "en-US",
+        "types": [
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL",
+          "VAL"
+        ],
+        "dataPeriods": [
+          "MONTHLY"
+        ],
+        "fromYear": 2008,
+        "toYear": 2026
+      }
+    },
+    "data/raw/dsec_tsdb/values_monthly_visitor_stay.json": {
+      "source": "DSEC Time Series Database",
+      "description": "Monthly values, group visitor_stay",
+      "url": "https://www.dsec.gov.mo/TimeSeriesApi/App/IndicatorValue/LatestSameEndPeriodv3",
+      "downloaded_at_utc8": "2026-11-21T12:26:44+08:00",
+      "bytes": 128866,
+      "sha256": "f85d6be1ab27b733f5c13b4334e2e50cee7cf8c2f156ba0f353401e4f3e4259c",
+      "request_body": {
+        "indicator_ids": [
+          14302,
+          14330
+        ],
+        "language": "en-US",
+        "types": [
+          "VAL",
+          "VAL"
+        ],
+        "dataPeriods": [
+          "MONTHLY"
+        ],
+        "fromYear": 2008,
+        "toYear": 2026
+      }
+    },
+    "data/raw/smg_tropical_cyclone/annual_signal_stats.json": {
+      "source": "SMG",
+      "description": "Annual frequency of each tropical cyclone signal since 1968",
+      "url": "https://cms.smg.gov.mo/en/api/sitecontent/259",
+      "downloaded_at_utc8": "2026-11-21T12:27:04+08:00",
+      "bytes": 26071,
+      "sha256": "b42519188155a43652b6ae00671ba3de1b4b18a05e5ffd60ac203114f8f7f13d"
+    },
+    "data/raw/smg_tropical_cyclone/monthly_summary_list.json": {
+      "source": "SMG",
+      "description": "List of monthly climate summary PDFs",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/CLI/CLI_Month_report",
+      "downloaded_at_utc8": "2026-11-21T12:27:06+08:00",
+      "bytes": 9293,
+      "sha256": "e4c89e637315e544c521ea3bfb383427e9ffa1a5d5cbc9e1be01fea0c7c89199"
+    },
+    "data/raw/smg_tropical_cyclone/monthly_summary_text/c_resumo_202601.txt": {
+      "source": "SMG",
+      "description": "Monthly climate summary c_resumo_202601.pdf, text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/CLI/CLI_Month_report/c_resumo_202601.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 2357,
+      "sha256": "95a29dbd29917e43c9caba9e2f8c35eef61032cb270f287b56ebfe7941b80c66",
+      "pdf_sha256": "cfbada1050059ca3c4372a0f883ea84ae2f2d84886542d6cce9e706e0edc60be",
+      "pdf_bytes": 1297680
+    },
+    "data/raw/smg_tropical_cyclone/monthly_summary_text/c_resumo_202602.txt": {
+      "source": "SMG",
+      "description": "Monthly climate summary c_resumo_202602.pdf, text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/CLI/CLI_Month_report/c_resumo_202602.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 2508,
+      "sha256": "ce5753ab0f4eee37690073f9eabd392f77bd753ed000007c04c2c97d7914cd63",
+      "pdf_sha256": "d7b20b4a6d3f820ec52458d404b342d2f4865a821fa8dfd5f2b308abb04604ef",
+      "pdf_bytes": 1125405
+    },
+    "data/raw/smg_tropical_cyclone/monthly_summary_text/c_resumo_202603.txt": {
+      "source": "SMG",
+      "description": "Monthly climate summary c_resumo_202603.pdf, text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/CLI/CLI_Month_report/c_resumo_202603.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 2787,
+      "sha256": "2ea65f230ced0ebae3c3654f69e448c4fb84e8ae87310e44c2caf408f00b88dd",
+      "pdf_sha256": "ce81b188275c9bb39d5322bc8ae88f95f8f95d8fca865ea68114eb653c182632",
+      "pdf_bytes": 1092456
+    },
+    "data/raw/smg_tropical_cyclone/monthly_summary_text/c_resumo_202604.txt": {
+      "source": "SMG",
+      "description": "Monthly climate summary c_resumo_202604.pdf, text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/CLI/CLI_Month_report/c_resumo_202604.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 3178,
+      "sha256": "c9e3193ff7c517d648c420eba3783a3dfb83793512fcefc1921ce81e08f5a7e4",
+      "pdf_sha256": "d472f59923f22ab304dd2985359feb22923802b0a96bf04a21ce800e2af246dc",
+      "pdf_bytes": 17152403
+    },
+    "data/raw/smg_tropical_cyclone/monthly_summary_text/c_resumo_202605.txt": {
+      "source": "SMG",
+      "description": "Monthly climate summary c_resumo_202605.pdf, text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/CLI/CLI_Month_report/c_resumo_202605.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 3702,
+      "sha256": "dfa2f8b6a9939191a4e0c0dc31e843b62eadcae76d41b93abb46c26740a74938",
+      "pdf_sha256": "0e7c2bfecdc6272f8ce19768e8bb3307eb570e609cf587c4b6380e18db8c472f",
+      "pdf_bytes": 1353002
+    },
+    "data/raw/smg_tropical_cyclone/monthly_summary_text/c_resumo_202606.txt": {
+      "source": "SMG",
+      "description": "Monthly climate summary c_resumo_202606.pdf, text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/CLI/CLI_Month_report/c_resumo_202606.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5059,
+      "sha256": "a68422010d7d05e09f19b2d1db1ebb232c14adb410c62138b2ec3c83daa2d3d3",
+      "pdf_sha256": "8813967838ed445b35024f41f4d49e485f068a0aff27a70c70fa09cdba6a22cb",
+      "pdf_bytes": 1155686
+    },
+    "data/raw/smg_tropical_cyclone/monthly_summary_text/c_resumo_202607.txt": {
+      "source": "SMG",
+      "description": "Monthly climate summary c_resumo_202607.pdf, text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/CLI/CLI_Month_report/c_resumo_202607.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 7447,
+      "sha256": "d20a54068c5d75848363354cf3045beb9ea8be8afc5109ff9b7c0353bfa237fb",
+      "pdf_sha256": "d47a8955fe8b58020ae3f7b9162116e6cff393c7b07d9e424bd2dd01a6d4f6c2",
+      "pdf_bytes": 3604266
+    },
+    "data/raw/smg_tropical_cyclone/monthly_summary_text/c_resumo_202608.txt": {
+      "source": "SMG",
+      "description": "Monthly climate summary c_resumo_202608.pdf, text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/CLI/CLI_Month_report/c_resumo_202608.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4457,
+      "sha256": "f627db27198d6ba57f11a1c1585b00def984f2da834366feb329fca6532e75ba",
+      "pdf_sha256": "bb279a74a4837aafb6c8fcd0e4e91377a44c1fcea96a0c029c18f3c77ea855ab",
+      "pdf_bytes": 4040925
+    },
+    "data/raw/smg_tropical_cyclone/monthly_summary_text/c_resumo_202609.txt": {
+      "source": "SMG",
+      "description": "Monthly climate summary c_resumo_202609.pdf, text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/CLI/CLI_Month_report/c_resumo_202609.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 3027,
+      "sha256": "dc2da8d9df37f5dfcca062d56b8517c228e00ac246deed6ec02ad11d3416c25f",
+      "pdf_sha256": "1ce54e3c83cf502d103892229f8f635da5fb174e5c54c15015771f15763731a6",
+      "pdf_bytes": 4922159
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2010.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2010",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2010",
+      "downloaded_at_utc8": "2026-11-21T12:27:07+08:00",
+      "bytes": 196,
+      "sha256": "728360f11ecdb2329476d3d8a717f908cd614a0c93aa87b964a8c68d76d81975"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2011.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2011",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2011",
+      "downloaded_at_utc8": "2026-11-21T12:27:08+08:00",
+      "bytes": 196,
+      "sha256": "8320f47402eb4328c888c40975539919dab5f921af35836385c4c8d865142701"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2012.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2012",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2012",
+      "downloaded_at_utc8": "2026-11-21T12:27:10+08:00",
+      "bytes": 196,
+      "sha256": "d022c5eb6681df30bf87bedcd69632adaca74ac96cf79217ed6099b956808f92"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2013.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2013",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2013",
+      "downloaded_at_utc8": "2026-11-21T12:27:11+08:00",
+      "bytes": 274,
+      "sha256": "e59b19e518f93ed8ad184989563f4e96c8c8a464ed0795f849b96779d08e8439"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2014.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2014",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2014",
+      "downloaded_at_utc8": "2026-11-21T12:27:13+08:00",
+      "bytes": 130,
+      "sha256": "18b1d1d4b2379f2c8ae88791327f719651c1c1e3b4edbd4328d4fafb454efae2"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2015.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2015",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2015",
+      "downloaded_at_utc8": "2026-11-21T12:27:14+08:00",
+      "bytes": 118,
+      "sha256": "71480ffef6b59c11bfdeb0d9a5cd2a9af964efba19ca13c077086428001e5400"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2016.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2016",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2016",
+      "downloaded_at_utc8": "2026-11-21T12:27:16+08:00",
+      "bytes": 331,
+      "sha256": "2b0b12175d627fb5656377e6856a039099383d6844a2635da467e467ad120fdf"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2017.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2017",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2017",
+      "downloaded_at_utc8": "2026-11-21T12:27:17+08:00",
+      "bytes": 337,
+      "sha256": "82ad2c9e3f586a8fd7960f6e63bf5467af1b73c4bf6921ed0ac1f499133e33db"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2018.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2018",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2018",
+      "downloaded_at_utc8": "2026-11-21T12:27:18+08:00",
+      "bytes": 199,
+      "sha256": "e4ac41c4cdb55a7bb328e23f21706a85d9b0eb056ab5a190297c0d00a8bba4a7"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2019.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2019",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2019",
+      "downloaded_at_utc8": "2026-11-21T12:27:20+08:00",
+      "bytes": 131,
+      "sha256": "fcb7a2edcf06164e2149216ee2c5a8f22fd8a9440b59e24ec7d936b553063bfc"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2020.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2020",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2020",
+      "downloaded_at_utc8": "2026-11-21T12:27:21+08:00",
+      "bytes": 131,
+      "sha256": "86596aa382c52d77e220f72b928bf89365d8a153d34aa1fdccfc445952500df3"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2021.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2021",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2021",
+      "downloaded_at_utc8": "2026-11-21T12:27:22+08:00",
+      "bytes": 225,
+      "sha256": "35384441e4b8786dae8e177e38a4be7a1e4896c317310052913fb8bdc426fb3c"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2022.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2022",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2022",
+      "downloaded_at_utc8": "2026-11-21T12:27:26+08:00",
+      "bytes": 173,
+      "sha256": "350ad98bb12a4bb7f24718aef32ca3b83ed6cec36e97a45d625136feef5664a2"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2023.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2023",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2023",
+      "downloaded_at_utc8": "2026-11-21T12:27:27+08:00",
+      "bytes": 131,
+      "sha256": "3af2b201eb9ba7158bbb41efbca6e88f8611f0a17110c3b669132f4aa43a7540"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2024.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2024",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2024",
+      "downloaded_at_utc8": "2026-11-21T12:27:28+08:00",
+      "bytes": 183,
+      "sha256": "526b31b242dbda52cfdc5e6dd323d18b13e6a6a0ca532569e5787e1ed9e398a3"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2025.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2025",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2025",
+      "downloaded_at_utc8": "2026-11-21T12:27:31+08:00",
+      "bytes": 397,
+      "sha256": "c840cb0703b26af275f8c37ec27fed3184e1d81f1694cb93c1e3018f76b9f762"
+    },
+    "data/raw/smg_tropical_cyclone/report_list_2026.json": {
+      "source": "SMG",
+      "description": "List of tropical cyclone reports, 2026",
+      "url": "https://new-api.smg.gov.mo/reportlist?folder=/pdf/tc/2026",
+      "downloaded_at_utc8": "2026-11-21T12:27:32+08:00",
+      "bytes": 79,
+      "sha256": "bff8e0828b06962adb3f4a271b879c72c392aa8eee9a01610e305edb652e169e"
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2010/c_1002.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1002.pdf (2010), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2010/c_1002.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1872,
+      "sha256": "23bf6f965cd714134896e939d3957f9a6b4f807b3e72bc8f1512def5e7204f0a",
+      "pdf_sha256": "9a4935abaeee83fa84ce6e02e3941cb53d6420d40f523c7e3ceaa3ba12f16fdd",
+      "pdf_bytes": 107347
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2010/c_1003.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1003.pdf (2010), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2010/c_1003.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1929,
+      "sha256": "b5caf2df8496e1a5715b5769a6ed7ee7232b2f60875be252d8c2e79e07c33020",
+      "pdf_sha256": "2b3fb18b32ad36577ac32981eee5bbebde8092f9457fa7b8c177358117043c8c",
+      "pdf_bytes": 93842
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2010/c_1006.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1006.pdf (2010), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2010/c_1006.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 2127,
+      "sha256": "1d876764f1eb082a0813cc3580a7aae08558b78bf35841cc3c595c054ebdb75c",
+      "pdf_sha256": "d9326f55c23b7ee8646689f14802c0663c377d3e71b94d411d79d13d478c3e49",
+      "pdf_bytes": 95490
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2010/c_1011.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1011.pdf (2010), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2010/c_1011.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 2229,
+      "sha256": "e36721c3dab0eb990478400f0217b6073c7f3a7e268dffe111ba44ae8af74c13",
+      "pdf_sha256": "d9a3aff4a0202875b41c613156e6c7dc1b2c83a1ec48755c2e5361545405fbc4",
+      "pdf_bytes": 94423
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2010/c_1013.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1013.pdf (2010), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2010/c_1013.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 2066,
+      "sha256": "49ddbd788ec72ef05f590cdae9b2df26c1ec4067524b40f1d8bbc0ca09e18071",
+      "pdf_sha256": "0ab9374e466e70aff20a46b029eb464392b3323c0131ec9ad269de41379d2337",
+      "pdf_bytes": 93601
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2011/c_1103.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1103.pdf (2011), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2011/c_1103.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 967,
+      "sha256": "12efcad2e57d84cfa9aa04c8936fa348f1d0b17488162c3b8efcb5361b0c8c3c",
+      "pdf_sha256": "101fe2f6cc81fe0404d268963109fb43577dbb595ca57245f6ecb004acd88445",
+      "pdf_bytes": 238627
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2011/c_1104.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1104.pdf (2011), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2011/c_1104.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1406,
+      "sha256": "811be98bd7ae377feadd6c78ada77f45b2ced582c1fbf8094738c95afa3dc6d4",
+      "pdf_sha256": "608b6b81f1fff14f787553bb9603c623c1ccafc02bea6f040df7b094abc7d3af",
+      "pdf_bytes": 115445
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2011/c_1108.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1108.pdf (2011), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2011/c_1108.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1348,
+      "sha256": "baef4d4c03059d2d4bb83f5e4b891cae3c34546b611b05539782d76db5bf3fb9",
+      "pdf_sha256": "9c9f908b1629350e9614d0de3fc043fa0b7c7091e565c73a2d4e536b55cfacff",
+      "pdf_bytes": 267946
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2011/c_1117.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1117.pdf (2011), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2011/c_1117.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1431,
+      "sha256": "64f3e740de213639bbd682d12321c926616914f788ac8ed04d84951c93b7f074",
+      "pdf_sha256": "73cce016e3492729406297a8bf5bfda9f1a54156780a921f407149b392426eff",
+      "pdf_bytes": 273357
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2011/c_1119.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1119.pdf (2011), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2011/c_1119.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1483,
+      "sha256": "53740bc32011d68c3df81bfee8de2667f55eb304fb5b392b0f0c85e9d959500e",
+      "pdf_sha256": "2f1012729f3e525f5034b7d2c79e3d279f33a921345c436566c3c89025bf75c3",
+      "pdf_bytes": 265354
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2012/c_1205.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1205.pdf (2012), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2012/c_1205.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 960,
+      "sha256": "b490cb3d3844cc39c4149769520d427158339e9f36f80eb14477e625e029507c",
+      "pdf_sha256": "946130671ce1a9ab1629aa5495349a489cb3d2d20765c76ff09c5bb58967ca0f",
+      "pdf_bytes": 247815
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2012/c_1206.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1206.pdf (2012), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2012/c_1206.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1047,
+      "sha256": "9f19c2f7514e9967e2912a879add283b2b512a47c155acb064f619157f591d57",
+      "pdf_sha256": "851db5b6276ce25446999f954a2ebb00e974fc1a7796464b77951ec289a1b5ac",
+      "pdf_bytes": 258412
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2012/c_1208.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1208.pdf (2012), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2012/c_1208.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1243,
+      "sha256": "eb6a6dcf29c67db228d1c53a6767ede18e3ff79746a864fbaa7df03846230ff5",
+      "pdf_sha256": "2be17d3d5c2b1a90187241b1fc65b822f8bb5711cf11ce484faaa809be608df1",
+      "pdf_bytes": 264839
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2012/c_1213.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1213.pdf (2012), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2012/c_1213.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1170,
+      "sha256": "385d234a3fdccaa771757a42570334931b903740681142c683a13c959d18ad54",
+      "pdf_sha256": "3f7f5ebe1dc20bcae660d583907e8f4789e2d60a9d97a1e72f4812d65777bd1a",
+      "pdf_bytes": 171329
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2012/c_1214.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1214.pdf (2012), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2012/c_1214.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1376,
+      "sha256": "0ebb41be363e0bcfc9657f153ad4071f50ae4a8d1d66d5a42274f58e5480449f",
+      "pdf_sha256": "03706ced6f5276e701c0441423cd3c56ecbee31039f18b4bb85d44bf1487d76e",
+      "pdf_bytes": 260696
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2013/c_1305.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1305.pdf (2013), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2013/c_1305.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 800,
+      "sha256": "529513b5b09daf52234e893d48bcb720d28b3f8232eb090665b84ebb91ec8c95",
+      "pdf_sha256": "a001e9af619d000d50da348091b4b3c7a1d7ca1e3a53573b7399a6540c3fedf1",
+      "pdf_bytes": 280250
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2013/c_1306.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1306.pdf (2013), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2013/c_1306.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1401,
+      "sha256": "bde1550fde908ddc2d6f0f1a52421bda5ba474590fefd55db497a59c77795f21",
+      "pdf_sha256": "352146a9ddd609d2ab5d07c327e0a91ee2035308cf5c66207f2cfa97724f55f3",
+      "pdf_bytes": 664455
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2013/c_1308.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1308.pdf (2013), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2013/c_1308.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1133,
+      "sha256": "876de06bb6b34f15ab7fe74209b96bc67cf016e08ce54c1cf0c1e8423bb0eb57",
+      "pdf_sha256": "915412aca8e6fd27881f3d43e24c0057cf8352625ba3e5b12cdebb947d095e9a",
+      "pdf_bytes": 225389
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2013/c_1309.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1309.pdf (2013), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2013/c_1309.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 947,
+      "sha256": "42732c95950ffff9e8b7a625d38a4e6a5068d30d7f5e52276636c595f65e8d15",
+      "pdf_sha256": "d7181e641df2d0ab75074f8e9742c6e34e87e13214aeb6c755867ae960be4cc0",
+      "pdf_bytes": 9122200
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2013/c_1311.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1311.pdf (2013), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2013/c_1311.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1219,
+      "sha256": "de0b10d87674576278c7a5317258161ac9e3bb6a6e069a1bf753ac74319a1604",
+      "pdf_sha256": "ea33a2b99913bd72c2102183895ce525205de875f7aba2dfbfff04d6c76ce614",
+      "pdf_bytes": 6181494
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2013/c_1319.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1319.pdf (2013), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2013/c_1319.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1208,
+      "sha256": "eb07b24a5aebc928a35cfd9cd04f3f0645f0c910090813fa80ab27ff0bf4fc06",
+      "pdf_sha256": "4af847b78c651b4353723c2ad7dff1ee892001773ac0a7d94be357a86cafada2",
+      "pdf_bytes": 3460465
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2013/c_1329.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1329.pdf (2013), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2013/c_1329.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1443,
+      "sha256": "6060f0128584916592c600fb1069abd469b2417cc8cdc7f7bc7f2d511ada1efd",
+      "pdf_sha256": "43b9da793345d86b210f4758f7211f9268cf8a44cfa89b060f0887f8a94ccea0",
+      "pdf_bytes": 8259285
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2014/c_1409.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1409.pdf (2014), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2014/c_1409.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1231,
+      "sha256": "698f594dbb62ec1d0684254223fbbf39ee02935944054ad5aa775967ce810f13",
+      "pdf_sha256": "2ec0ee97a6bf19024ee17163877530c9459b530f17f2a0598c46724abd76d4bb",
+      "pdf_bytes": 281956
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2014/c_1415.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1415.pdf (2014), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2014/c_1415.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1274,
+      "sha256": "cb8a96f76f85a2aa3cf35c196ddccecc9f0a6f1ded40cc1d486f2615b0622372",
+      "pdf_sha256": "ea0078c516c5f3304e6c1f7bbe9c8854f0554c53078f0038bcd0aacc175b8c9e",
+      "pdf_bytes": 123900
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2014/c_14noname.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_14noname.pdf (2014), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2014/c_14noname.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 672,
+      "sha256": "3a32124ae76822e0eb3008cff6c00d7aa3b274630b50321889c4f43ed317556f",
+      "pdf_sha256": "a53b90993cd6ed15f36b1e9c72468613128c1ac9971519306fc19afdd030ef5d",
+      "pdf_bytes": 110793
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2015/c_1508.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1508.pdf (2015), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2015/c_1508.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 800,
+      "sha256": "d2ca9e5abbd2056fd01ca25ced9c47bdd7fafa5d221d3b7e52655d2f4cb01b91",
+      "pdf_sha256": "2aeeb5184a2c94ed3c6989a55072bb79f10c8bac7b949fb0da6a03c05c236a9f",
+      "pdf_bytes": 151881
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2015/c_1510.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1510.pdf (2015), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2015/c_1510.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1529,
+      "sha256": "6d71258971c5b5a638dc044506a97e32a1c5ac03da658a9645fcd7b1c3e497c7",
+      "pdf_sha256": "e33e53f5e495ff047fcde22d5b73290794c06eb1b6b4677edf6b338cc2a0d900",
+      "pdf_bytes": 164509
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2015/c_1522.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1522.pdf (2015), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2015/c_1522.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1272,
+      "sha256": "d5190f17a426ba6c0a227e3a78d1291076e20d1fa39555218abaaa645d5f8a5e",
+      "pdf_sha256": "a98a40cdbdd38ea1d739c23b5eb1b042a32d5f33a1aee19474435bbf07b7e0f0",
+      "pdf_bytes": 140610
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2016/c_1603.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1603.pdf (2016), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2016/c_1603.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 846,
+      "sha256": "7738b4b67050018bece84a06ef8937fe9194769108a549b8de4f72a2c3d84b7f",
+      "pdf_sha256": "ab86c88199b31a5a0ebf8dda71c9d8f8bc974fe597715fe61e353960550d6e6b",
+      "pdf_bytes": 198706
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2016/c_1604.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1604.pdf (2016), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2016/c_1604.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1170,
+      "sha256": "bc5076e6153ac43ad1ab483a070222a104ca2b07cb219e42d46792ad4a649844",
+      "pdf_sha256": "078f972e29c67a12cb82951ab924d52976373f7deed3b837e98523c603a768a4",
+      "pdf_bytes": 214002
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2016/c_1608.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1608.pdf (2016), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2016/c_1608.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 817,
+      "sha256": "6cf857c36d89d403b55e77f589588b67c2e4799f6291dc79ddc1533490d6b517",
+      "pdf_sha256": "38211b78d408e5dbdd79b016ca8543839efcd202c793f2e804a140f176672f46",
+      "pdf_bytes": 200878
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2016/c_1614.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1614.pdf (2016), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2016/c_1614.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 966,
+      "sha256": "4b2eb87e00311a9d3948972e3cbb1faf236a440a15cd5406962113147335a487",
+      "pdf_sha256": "2da5bff45b965f7019cb7f5b8a033474e26545941b60600e677779fcd339b85b",
+      "pdf_bytes": 143637
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2016/c_1619.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1619.pdf (2016), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2016/c_1619.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1080,
+      "sha256": "4149ddb0b929c395a29fa7e5772abe66875d7d5eb4369c409874a3cca5ac9d35",
+      "pdf_sha256": "c2601e4f9577244a54495e67f24ecaf6f7624411b5a64089e82631f8e39c691d",
+      "pdf_bytes": 144280
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2016/c_1621.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1621.pdf (2016), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2016/c_1621.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1191,
+      "sha256": "429daccc8807b04c700b63346d016564707699cc64c3ce63ac1005ac029c16b1",
+      "pdf_sha256": "174d877c10e726643b1e0fb468995e1a20a712397326ff8a7ff5ea8eb01933ae",
+      "pdf_bytes": 149839
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2016/c_1622.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1622.pdf (2016), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2016/c_1622.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1182,
+      "sha256": "8066a49e5514fd1de76a4d4df480c1b373a1e5a634a9290768e9a6b7219aa136",
+      "pdf_sha256": "8882f6f53eee5f72857f5f73b935691214e796e84d4e3c03275d7b458b597b49",
+      "pdf_bytes": 153695
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2016/c_16noname_1.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_16noname_1.pdf (2016), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2016/c_16noname_1.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 653,
+      "sha256": "07e3a350e3ae2ae6496c98449ea057274ddc5448ff8e75d2ae0a0699d77a27cd",
+      "pdf_sha256": "099685f327997bbbec930b940c12cc2c9963d3cb560dbce126d280cd668fae55",
+      "pdf_bytes": 277658
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2017/c_1702.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1702.pdf (2017), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2017/c_1702.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1087,
+      "sha256": "6927425b10214f04b135bf8e8794df12376cf73e50842013bdd8fb19fb2d23e4",
+      "pdf_sha256": "cc01662bc7e9f92721bf8472e334e1b381da8820de143ccfabdef49e643b9d35",
+      "pdf_bytes": 149958
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2017/c_1707.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1707.pdf (2017), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2017/c_1707.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 1104,
+      "sha256": "a5c87557f1d7743bc9b2dfd3ce870b39a778329420bd7f3253ed209450295967",
+      "pdf_sha256": "4e45482344a0702a4b11a74d36f5f12dfb4e0e1dbaa42d2c6fbc4ecf69bf3e5c",
+      "pdf_bytes": 146331
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2017/c_1713.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1713.pdf (2017), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2017/c_1713.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5488,
+      "sha256": "808aa50d3d2dfdd30b8aa1b9c9f9db2adf59875d158c8835a5474a29dba83366",
+      "pdf_sha256": "c8d93db840eed4c6e574b68702d6ca6bddad2fa64c473610ef5cee2d093c56d7",
+      "pdf_bytes": 363231
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2017/c_1714.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1714.pdf (2017), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2017/c_1714.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4574,
+      "sha256": "18a65fd7db2b4d2e7db0662b010dd22d9737ee2ea4b945f23950bb6634aa6728",
+      "pdf_sha256": "69151af11c36c8184ddf09c89453a51b31ee049ffe72d2d6f49256c173aa00ca",
+      "pdf_bytes": 296330
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2017/c_1716.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1716.pdf (2017), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2017/c_1716.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 2762,
+      "sha256": "31f3248895c867bd0e8745ac4d3a707890996b8bb3e8b6723cf578a6fd4c2cb2",
+      "pdf_sha256": "b598172c07032561daba84cc47ff93c6ec40e1933700b7e191f3da7298c9ef02",
+      "pdf_bytes": 259660
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2017/c_1719.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1719.pdf (2017), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2017/c_1719.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 2675,
+      "sha256": "9dea75a6195901994499dca91378eb23c31064e9e99dcc96538309046d248524",
+      "pdf_sha256": "8169a5ff750f68f0031516b627d6fc8e9cda49806029a51937402ac391ccae98",
+      "pdf_bytes": 275839
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2017/c_1720.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1720.pdf (2017), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2017/c_1720.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4191,
+      "sha256": "9eda3381c11ff9f9bdb0cc6d1a8fdaa99f38b4ac7aad1bd786be7fc10111ce49",
+      "pdf_sha256": "c0e47897b051a975551d2c0da61ef7f08b0d5441d3c04561b851e6d47035e7e6",
+      "pdf_bytes": 299219
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2017/c_17nameless_1.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_17nameless_1.pdf (2017), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2017/c_17nameless_1.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 2062,
+      "sha256": "0cc49efc2d26b5a585dda34cb8b8aa801e0c8e1f9b0142b9d0ebd42cefd3113f",
+      "pdf_sha256": "9dbb1242e51200f5f306883740899c18262bec569b02ebde0b76d3b593ca581b",
+      "pdf_bytes": 240701
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2018/c_1804.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1804.pdf (2018), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2018/c_1804.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4565,
+      "sha256": "65ab049a10d277d41ea0285510d731d8d8338c394c50587639f1e0b53613142e",
+      "pdf_sha256": "87d4cb5dac40f6e840b1aae15b3187930c501ff2f2e56075a494472de070087c",
+      "pdf_bytes": 5098785
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2018/c_1809.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1809.pdf (2018), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2018/c_1809.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 3954,
+      "sha256": "48d2b840a08a74f5a74ce28166dd9516fcb0444b135db518bd5d85fc7fec0fdc",
+      "pdf_sha256": "085915c10827d4cf84ba7987284ebba143a4c9b4074de36d11834631f272996a",
+      "pdf_bytes": 4816555
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2018/c_1816.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1816.pdf (2018), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2018/c_1816.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 8156,
+      "sha256": "4f2291c761805f8f0d3bdd057ce529063b15de29a30b012ac093ec990eb98ed8",
+      "pdf_sha256": "7468de978efeae7ef17ee5a47e5d66e1a72e41d389531ee6703bf67c5208e19c",
+      "pdf_bytes": 5890818
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2018/c_1822.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1822.pdf (2018), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2018/c_1822.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 8471,
+      "sha256": "b41d19b1cefa3e26d2ed05c8fa8293d35d7815e7a0ebfd265cc68a440117de68",
+      "pdf_sha256": "62870f3bc7983b086c76cdfb8788dcace38f2f4cdcefcc09b90a883e0eddc609",
+      "pdf_bytes": 5719868
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2018/c_1823.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1823.pdf (2018), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2018/c_1823.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5740,
+      "sha256": "f5766bee0fd225168393143fdae0f6c2ab99e08c7a65ae6cdf44233f1688ba63",
+      "pdf_sha256": "0f6aaec6cf461972cb5335bdfef254f0e20af1be93109b097ec652a29be8b242",
+      "pdf_bytes": 5027910
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2018/c_1826.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1826.pdf (2018), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2018/c_1826.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4659,
+      "sha256": "7edf98c276692fe2a37f773c9b25bca3ae9b3b0ea4826f8ebf286bce4a1aea60",
+      "pdf_sha256": "6da6ed7f34045bb6abf2be43a3a624f6941af2df6f878b6ecd14b28ed6a15686",
+      "pdf_bytes": 5131964
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2018/c_18nameless_1.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_18nameless_1.pdf (2018), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2018/c_18nameless_1.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4071,
+      "sha256": "e90f472a2fc96b1746824adeb01221beff9aba9ed6760325ad3ae1e67a8c872a",
+      "pdf_sha256": "1780282cd9accf6de834f5f52e1aad0b3de93059f20a9145f26fb484a06e1191",
+      "pdf_bytes": 4703853
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2019/c_1904.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1904.pdf (2019), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2019/c_1904.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5894,
+      "sha256": "f356ecb93ebe8df3d0d909b00a2f535daf13bca47bc2b94ea57d8477bb43018d",
+      "pdf_sha256": "4883b82784b77747d5d930063da3cbccc7ca4ff36649ff45a1bdd117cda32211",
+      "pdf_bytes": 1124482
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2019/c_1907.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1907.pdf (2019), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2019/c_1907.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 7337,
+      "sha256": "a72fbf107e9f507bd5cf1242179a705067d15d61eccdec3e1d38ca1255d1b39a",
+      "pdf_sha256": "7e11966be2a25ddee442c8f48f15639cf83c0997df52744802f5a171b12033f9",
+      "pdf_bytes": 1271159
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2019/c_1911.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1911.pdf (2019), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2019/c_1911.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4972,
+      "sha256": "668abae1b7bbb4fd9a8f95e77d3e43929a31288ad1ada11e5d57e8fb70b7ad59",
+      "pdf_sha256": "9bc4a2fbeaa44b6f06c5ab5cef68edeb26b0f20ed6bc55a1c4137fdc72f946a4",
+      "pdf_bytes": 1969132
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2019/c_1912.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1912.pdf (2019), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2019/c_1912.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5733,
+      "sha256": "6214bf683c54f8bb41bb97f601605a190456ec5ce9ae2804052d8fd2ec915c89",
+      "pdf_sha256": "e32a7b711087134dddbdb75059709b2db031900d72ae2f74ca753e5a3f7f60dc",
+      "pdf_bytes": 1054611
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2019/c_1914.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_1914.pdf (2019), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2019/c_1914.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5007,
+      "sha256": "386d4621003ccc07f2437f554398958d49bddbb78fda061eee3f5e17e171fbf2",
+      "pdf_sha256": "0b6d18d444b455b966a04a75e71bc300a73c2081647cc1553b08c5a13e12f82e",
+      "pdf_bytes": 1131819
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2020/c_2002.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2002.pdf (2020), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2020/c_2002.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 3994,
+      "sha256": "687c0bbba604a64b891acd4a0b51cc991f59fc33359ea06ebe9035de26bc7d17",
+      "pdf_sha256": "f2c9a7bd0c05e02ef9ad9e8c337b0b24ef7ba2659c05dd55832672baf29ab4b1",
+      "pdf_bytes": 927841
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2020/c_2003.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2003.pdf (2020), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2020/c_2003.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5511,
+      "sha256": "539a763a7b784636e68fec19a7e18e3d6f9c0d14f18c53fada3aa5a69c6153de",
+      "pdf_sha256": "78a9175cbffe4494676fb9779726df8d80f3fe833ca1143ccc134c676d360d7f",
+      "pdf_bytes": 946316
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2020/c_2007.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2007.pdf (2020), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2020/c_2007.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 6004,
+      "sha256": "5a2c07f86d173fc4133a333d249cb4f5d49c8d14aa88ab2dc85a1c195e479eb4",
+      "pdf_sha256": "331a4f223d9cb21071d2cefc0c21d9123b19df3d305ba14b33cd71237ecbbe15",
+      "pdf_bytes": 1099095
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2020/c_2016.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2016.pdf (2020), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2020/c_2016.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5531,
+      "sha256": "243f27f8968a1ab5e5f716ff399deb38ae0460f22201e3495ead1ecdd3521e31",
+      "pdf_sha256": "e6d5211f6b00143fa53284d3f1aecd57ab738f00d1d01cb0c9e2e759d99b4368",
+      "pdf_bytes": 1011843
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2020/c_2017.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2017.pdf (2020), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2020/c_2017.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4219,
+      "sha256": "a81fbe18477ce15753fd11c0f9ddafa9cc372fe8df0115865f1f2ef92bf93041",
+      "pdf_sha256": "85adc731d6d3fffcc2372fa3ef42c8a5eae19e81ccf425b73cbb5120e66cb28b",
+      "pdf_bytes": 877963
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2021/c_2104.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2104.pdf (2021), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2021/c_2104.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4057,
+      "sha256": "e7f24b12bfd6aaedea52386fb4a7b33e1db0bf28a7e0880b97553c315fc0d26f",
+      "pdf_sha256": "b7c6779894edf4327bfc95fe101d280fe8f45be55d20b660a78618b1adaa96ec",
+      "pdf_bytes": 937504
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2021/c_2105nameless.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2105nameless.pdf (2021), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2021/c_2105nameless.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4014,
+      "sha256": "1bc1eff9e58d20e4ff42e1809f7d83c7b11f8a727f63fcedf8b815fa339ba7dc",
+      "pdf_sha256": "7c3a1655e25e2d3d067662e84dcbdc68d63d9ef2261c6391499eadcf299e830a",
+      "pdf_bytes": 881813
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2021/c_2107.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2107.pdf (2021), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2021/c_2107.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5979,
+      "sha256": "66693bbfb1d58917ed245e500e765dbb78b8de04c95ac301ee1a2794156578ae",
+      "pdf_sha256": "7a995703286b6f405a9f307112cab80b95c882538047297d1e9b9c7e5e11a657",
+      "pdf_bytes": 992949
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2021/c_2109.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2109.pdf (2021), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2021/c_2109.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4470,
+      "sha256": "8c0fa62bceae582b5822a9502249e69e0eaeefad19d0ed2351625b892f7b8036",
+      "pdf_sha256": "eaa5a6a70963450c669dba90a240d5cdf135eeb19c6e6dbd817c05439416bdb8",
+      "pdf_bytes": 972341
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2021/c_2113.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2113.pdf (2021), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2021/c_2113.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4080,
+      "sha256": "41abb581f9ae505f3cea2e3a9c3ccc34dcb26cc5c02c1f86eaf5baf9377e9fa5",
+      "pdf_sha256": "48261399dfefea6ae2ab948d01064a7af2d5c8b4fda9f95b7af39e824e7aac92",
+      "pdf_bytes": 890099
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2021/c_2117.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2117.pdf (2021), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2021/c_2117.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 6575,
+      "sha256": "2b20030abc70a1107d86292b8edf3ed619a566de0466799ad3f782011de3d2ae",
+      "pdf_sha256": "e35c392555a3653ae05e1aeb224f963536ce0ba413b1bd84800abb3e83e2526d",
+      "pdf_bytes": 1084324
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2021/c_2118.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2118.pdf (2021), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2021/c_2118.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5915,
+      "sha256": "07ae7ca68c1465c623a5ae52e192a6812a79fde5b3745356def200d33dcc2f14",
+      "pdf_sha256": "2adaeae1d376413133ef481e15f573ed28167428052a1f51dc9ada8bf19972e6",
+      "pdf_bytes": 1045350
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2021/c_2122.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2122.pdf (2021), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2021/c_2122.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5105,
+      "sha256": "5588438fb4a4f67878fae1fbe3e0e21f211d8c948f23da0971d96f126b2dbd85",
+      "pdf_sha256": "d2e03f674f104234c2027c482a78ddc477de36c698ab0fad76b37278e26bb9dd",
+      "pdf_bytes": 936917
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2022/c_2203.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2203.pdf (2022), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2022/c_2203.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5754,
+      "sha256": "1b507207cb7e2ab14abd9273173820682422b0419bd65a29213a278909c8f855",
+      "pdf_sha256": "a37deb56d14ba8fd3895277a6ab2d7878ed520b5b88706caa8a2949d6b16a773",
+      "pdf_bytes": 1074246
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2022/c_2204nameless.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2204nameless.pdf (2022), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2022/c_2204nameless.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 3592,
+      "sha256": "3a451a7b129457838c93e60061902d7e6fa163dfc58047a5e82aa8831e95798e",
+      "pdf_sha256": "4d671e2c8a3351154a5df6ff41ac210e0e2100502e65fcc7afb6ed68dfa8872b",
+      "pdf_bytes": 927470
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2022/c_2207.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2207.pdf (2022), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2022/c_2207.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5728,
+      "sha256": "e1f2b21af518e9634c1f90caeb17a4a099c4fb4e66d8035bec134fc7b3ac4ab4",
+      "pdf_sha256": "5fd103fc3f1010d71035594b028167651e67fe3e67acb65a42a869108c381389",
+      "pdf_bytes": 986352
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2022/c_2209.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2209.pdf (2022), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2022/c_2209.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 6055,
+      "sha256": "9d68129791015f6204857530542370b66a9b6868f63774e6d3755c842a2859e7",
+      "pdf_sha256": "2cde11cd47fc3da7e0bd32a861da11e2eeefcf3a84f69aef72494c52d60adbf7",
+      "pdf_bytes": 1037500
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2022/c_2220.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2220.pdf (2022), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2022/c_2220.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4557,
+      "sha256": "00d0fe26815f759ee69db788b4f8fe9a2309467d4d50a51ae7d41b7441d42f62",
+      "pdf_sha256": "f9e1d07298f8570eb698338577df6004e74803b6b880f5ca79ecb765792333dc",
+      "pdf_bytes": 915052
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2022/c_2222.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2222.pdf (2022), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2022/c_2222.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 6049,
+      "sha256": "a2aa3f24359064c508ad8b5b7a6a0acfeeadc9d16b9882a403667bf49df01f0e",
+      "pdf_sha256": "ef0791f5e0036708d392b9f6ac15de67934208d72a4b4560874fcb5c065e35f6",
+      "pdf_bytes": 993456
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2023/c_2304.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2304.pdf (2023), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2023/c_2304.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 6257,
+      "sha256": "ba6319a9d353092e0833af209dfdbe9e44b08d87b34fbd205aa42f7887aebd8f",
+      "pdf_sha256": "569b80a6a1339d78a5058dd61db1f434dc107e6ff5ac75f92f7d1d87563f6b3b",
+      "pdf_bytes": 1229042
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2023/c_2305.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2305.pdf (2023), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2023/c_2305.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4076,
+      "sha256": "923674a1a39e69d0652015aea623ef360f0b1602d0ae28e41c369dab38c21e2a",
+      "pdf_sha256": "cec32b0bb611b87106cf01e8a7c6ca8e14f3a497a6734cf51bb3a2ac89d83290",
+      "pdf_bytes": 953756
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2023/c_2309.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2309.pdf (2023), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2023/c_2309.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 7337,
+      "sha256": "c3f064e7f354dc01f61976046df8ab11074a60edaa98ee088692fae82de11141",
+      "pdf_sha256": "cb5092c4a26d3509c1e9168a2b124ff581b7007057486a8ba3db350de6d081d1",
+      "pdf_bytes": 1078398
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2023/c_2311.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2311.pdf (2023), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2023/c_2311.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4123,
+      "sha256": "8b33e211890e54fa44355bf6a577c46e53f56e6ad3d54fe607c26dc31bc6932a",
+      "pdf_sha256": "7bcbdc71b761f6763e4afcbc9e6f846f969d76cb6bfd0de2d4ede10e1f2602a0",
+      "pdf_bytes": 961837
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2023/c_2314.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2314.pdf (2023), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2023/c_2314.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 6528,
+      "sha256": "f79746a1bc3c83d42ca7e2c95dcc1e00b4350b152bc2b86afc743e273c4579b4",
+      "pdf_sha256": "dee22d16a8d45b601c68b3d6462bfac005be0eeb88fc2337bffa671d9d3d4453",
+      "pdf_bytes": 1028188
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2024/c_2402.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2402.pdf (2024), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2024/c_2402.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4063,
+      "sha256": "67e0cc7960f70f956e62c89d987f58e9f52e87fbea78fccc8f8dcf86606c9932",
+      "pdf_sha256": "818150f4e7c76144158c98a10a92456a409b70f3821464ba2705635aadda3e5d",
+      "pdf_bytes": 970559
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2024/c_2404.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2404.pdf (2024), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2024/c_2404.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5317,
+      "sha256": "060b22bbdbeaeff698f00d85c51c79bb2ce8a777ae46ee2255b851f8d569dd3d",
+      "pdf_sha256": "119119bc417fbbd6093e5baf24b09043e2ff68224087ac824a49c00e0802e7df",
+      "pdf_bytes": 1017795
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2024/c_2411.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2411.pdf (2024), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2024/c_2411.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 6353,
+      "sha256": "d34fdd3c2812ffea1027e6a720a7267ac49dcb2a5577749dc0a175bc592aa05a",
+      "pdf_sha256": "bb6721ac9749c9d796629d808086358e8d3f565b88dd31b534d95daa8827af20",
+      "pdf_bytes": 1203755
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2024/c_2420.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2420.pdf (2024), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2024/c_2420.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4005,
+      "sha256": "8865ff09db91cfd7d757182558f0bab5d77e05b94963e47ae99a87303c94b252",
+      "pdf_sha256": "8f97ef4ec6dd00f20ebb30a018acbd511737c8ae0a2cf7576fe4896fcfd5f573",
+      "pdf_bytes": 831888
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2024/c_2422.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2422.pdf (2024), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2024/c_2422.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4497,
+      "sha256": "06397a0165495a06dd28b50c51ec8dc3928722fb83320e29d560bdaed8477e09",
+      "pdf_sha256": "bc968e9c23770480e47623c983a21c42bf5c3f41b3dfd2fc56aea5690da2d971",
+      "pdf_bytes": 2241831
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2024/c_2423.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2423.pdf (2024), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2024/c_2423.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4275,
+      "sha256": "03db7e1534a55e34c7859f742941f76c72ddcb9badc1586200f190a49ac30e07",
+      "pdf_sha256": "386f497da6a3e162bbd6ecc43497b835a6b66eb38527fdba8d43bcf5fedb931c",
+      "pdf_bytes": 1462250
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2024/c_2424.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2424.pdf (2024), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2024/c_2424.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5444,
+      "sha256": "0e848214d4386190c97397393c95e5df90884f5a7716d8d3f89b2657f1bb2088",
+      "pdf_sha256": "f8187e2719e2c33db15f0c94e4654836fdc33fb233390d656af9ccfa0ff07d78",
+      "pdf_bytes": 1514134
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2501.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2501.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2501.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5339,
+      "sha256": "3a62ce86f2cc5e43af01e56c19b961da2abbd0a04301e64afe4a72bca8870d85",
+      "pdf_sha256": "56625866bbc8395b079460e574eaf9f8d259a96d54aedbc94d390c55c0142332",
+      "pdf_bytes": 1656642
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2502nameless.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2502nameless.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2502nameless.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 3815,
+      "sha256": "f3c55e5cddebaaa8230b1eeeb0ab32d412ab65098c1fbae479f91e299341d65c",
+      "pdf_sha256": "aca726cf1d577d122ed24dfda4afc6ab0a4650a9fdf0cec537dea9b3bfb5e1a6",
+      "pdf_bytes": 1409597
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2504.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2504.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2504.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4451,
+      "sha256": "7521ad7827c76aff35ac91f409a4f776f9e0b6d73f8ff0d10c9af36ee708aa92",
+      "pdf_sha256": "914aa83fba97da8538d6ae4d0a97a674682c208f5782844073facd29df86bbc8",
+      "pdf_bytes": 1441638
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2506.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2506.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2506.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 6993,
+      "sha256": "92af5a0302b1231e9e3ca3ac88424a95ef415e44b8e414e9ef83da5ebac83ac2",
+      "pdf_sha256": "83aa61d610ae02346cdcf591b2f706b1479190f280748749ea77e0ae264de864",
+      "pdf_bytes": 1639624
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2511.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2511.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2511.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4637,
+      "sha256": "c59acee94b9af7107e3073d6e6ba5f7873736c6312057da473c32a20c407bca0",
+      "pdf_sha256": "43fc8f84bc7dfde0ad15b6959acf813e448273e0a96642638b38bd60469f7f95",
+      "pdf_bytes": 1550209
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2512nameless.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2512nameless.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2512nameless.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4173,
+      "sha256": "a477aefb7888bf1172b5ef69709ece7347f6148497e423bf816b26cb8ddc4ba1",
+      "pdf_sha256": "ec58739b15946d669d4aba6a0b48438e9ae3b024f71c62452d3e396fae06f2cd",
+      "pdf_bytes": 1093699
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2513.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2513.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2513.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4150,
+      "sha256": "87c991c960965cbc14e8b6b28d7d276b800d2d9974151a87b29a093c2ce6ac23",
+      "pdf_sha256": "dd758d5b2e81d94b1a053d2ff0b7579c33766896ab836cfecb8f324e84e1d5a7",
+      "pdf_bytes": 885441
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2514.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2514.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2514.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 3806,
+      "sha256": "ce9f6e856b22dfbbf002af222a3311875cdf2e5c6df7bd43162ea1413ec80915",
+      "pdf_sha256": "36e29d93a5b2cb2a6c3424d60f819deeb21e0e4e2ac7c365d4e08d285780167b",
+      "pdf_bytes": 1167119
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2516.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2516.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2516.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 6430,
+      "sha256": "33637d7dfb234e852342db09af04e6b1acbabd7f95a801f7d36dbcb3b2dcdebf",
+      "pdf_sha256": "765984833be89671163f3c03bbd816450421ace3fd807ecaa7874e75628495d5",
+      "pdf_bytes": 1377048
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2517.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2517.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2517.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4270,
+      "sha256": "5bfb3e6cd17ee4ff6a18fc51dbc5f9689b65faf96adb5ee7a94d200b03cce17c",
+      "pdf_sha256": "dcafc50db2f8b8217a5f821d2f351aa58ffb61cb360d57cf38bed835d41cef69",
+      "pdf_bytes": 1201194
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2518.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2518.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2518.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 7787,
+      "sha256": "4d327deb19d5b45f480fd60d5d417688737eb5de146c8f8647b42be5a1ae61db",
+      "pdf_sha256": "00397fd569fad05ddfdb0cf06c361c5f4f19297a1cfef00b6eb60028ac833782",
+      "pdf_bytes": 1427117
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2521.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2521.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2521.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 6468,
+      "sha256": "0f6af697ba54080285ebd353cbf21770af79c9bf4d225170ea02e3ac9d9dbddf",
+      "pdf_sha256": "8cfcedd8eca58e27eb5451f0e1b10cb7708c3177da1fa7a8039cff244dab72a0",
+      "pdf_bytes": 1379403
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2524.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2524.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2524.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5001,
+      "sha256": "fccb42a8646b324b1e6f07062bd62e1b7ecb4b7a5534f5d41081af9a654dee85",
+      "pdf_sha256": "64ab64716a1856cff385f4e8f7f152f418f297ce120a451f5bf3ea5afa5977b1",
+      "pdf_bytes": 1138014
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2025/c_2526.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2526.pdf (2025), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2025/c_2526.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4387,
+      "sha256": "d07ce0481b3c5a34c0ef4fcc9219d405ae7d161ce42b52d288e5d2fbcfae4a45",
+      "pdf_sha256": "3654bf4d0bbcdca81d9cd352c6cb0681203e94dfca1c9a3f55e018b00d3cb7d6",
+      "pdf_bytes": 1190902
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2026/c_2610.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2610.pdf (2026), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2026/c_2610.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 5227,
+      "sha256": "942539380cfdf718fc79d2421989c1503fd9515beb9857254b5194045254612c",
+      "pdf_sha256": "6d6fee224ef5d08d32a67ae87de87f9be0930e18a047d0849c9424db24015087",
+      "pdf_bytes": 1127811
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2026/c_2612.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2612.pdf (2026), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2026/c_2612.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4743,
+      "sha256": "7715ff8d97b71534e09c1ac940904a18860a29e57afdd28137480109b675c675",
+      "pdf_sha256": "9bc2b8e4959592252256579d49c4f2f0e7c0170ac733be5c2459fa80c2e5576c",
+      "pdf_bytes": 972416
+    },
+    "data/raw/smg_tropical_cyclone/report_text/2026/c_2618.txt": {
+      "source": "SMG",
+      "description": "Tropical cyclone report c_2618.pdf (2026), text extracted with pypdf",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/2026/c_2618.pdf",
+      "downloaded_at_utc8": "2026-11-21T12:30:01+08:00",
+      "bytes": 4241,
+      "sha256": "089fbae630585ed137693eb610580296003e964f8b7a59fd5879c1ee65891e20",
+      "pdf_sha256": "64ec8c93ec9cd73139d1ffef2531ab13e9396f2e0afcb9f8e8ecb05ebd2789bf",
+      "pdf_bytes": 1013412
+    },
+    "data/raw/smg_tropical_cyclone/typhoon_report_mapping.json": {
+      "source": "SMG",
+      "description": "Report code to name",
+      "url": "https://cms.smg.gov.mo/uploads/sync/pdf/tc/typhoon_report_mapping.json",
+      "downloaded_at_utc8": "2026-11-21T12:27:03+08:00",
+      "bytes": 16170,
+      "sha256": "f899506df08dde3cef137ad008fa54152892880c4b0c4a6d2a08a4432c99e2ad"
+    }
+  }
+}
