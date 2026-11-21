@@ -86,7 +86,7 @@ Phase B is not estimated in this draft.
 | P_EQ | 0.002 | outputs/tables/regression_secondary.csv | equal slopes p |
 | DF_CHOW | 5 | outputs/tables/regression_secondary.csv | chow df |
 | CHI_CHOW | 36.4 | outputs/tables/regression_secondary.csv | chow chi2 |
-| P_CHOW | < 0.001 | outputs/tables/regression_secondary.csv | chow p |
+| P_CHOW | <0.001 | outputs/tables/regression_secondary.csv | chow p |
 | S5_HOLM | 0.060 | outputs/tables/regression_sensitivity.csv | S5 H1 holm |
 | S4_EST | 0.39 | outputs/tables/regression_sensitivity.csv | S4 H2 estimate |
 | S4_HOLM | 0.020 | outputs/tables/regression_sensitivity.csv | S4 H2 holm |

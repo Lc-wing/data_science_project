@@ -51,6 +51,9 @@ def test_draft_covers_the_five_sections_and_audits_clean() -> None:
     for section in SECTIONS:
         assert section in text
     assert "H3 is not supported" in text
+    draft = (REPORT_DIR / "phase_a_draft.tex").read_text(encoding="utf-8")
+    assert r"p<0.001" in draft
+    assert "p=<" not in draft
     assert "Figure 1." in text and "Table 1." in text and "Figure 2." in text
     assert "Chronos" not in text and "Qwen" not in text
     audit = (REPORT_DIR / "phase_a_audit.md").read_text(encoding="utf-8")

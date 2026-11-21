@@ -44,7 +44,7 @@ class Claim:
     def matches_source(self) -> bool:
         if self.source_value is None or self.tolerance is None:
             return True
-        parsed = float(self.reported.replace(",", "").replace("< ", ""))
+        parsed = float(self.reported.replace(",", "").lstrip("=").replace("< ", ""))
         return abs(parsed - self.source_value) <= self.tolerance + 1e-12
 
 
@@ -69,8 +69,14 @@ class Claims:
         self._claims[token] = Claim(token, reported, source, locator, float(value), tolerance)
         return reported
 
-    def p_value(self, token: str, value: float, source: str, locator: str) -> str:
+    def p_value(
+        self, token: str, value: float, source: str, locator: str, *, inline: bool = False
+    ) -> str:
         reported, tolerance = format_p(value)
+        if inline and reported.startswith("<"):
+            reported = "<0.001"
+        elif inline:
+            reported = "=" + reported
         numeric = None if reported.startswith("<") else float(value)
         tol = None if numeric is None else tolerance
         self._claims[token] = Claim(token, reported, source, locator, numeric, tol)
@@ -447,7 +453,7 @@ def build_claims() -> Claims:
     c.p_value("P_EQ", eq["p_value"], sec_file, "equal slopes p")
     c.number("DF_CHOW", chow["df"], 0, sec_file, "chow df")
     c.number("CHI_CHOW", chow["chi2"], 1, sec_file, "chow chi2")
-    c.p_value("P_CHOW", chow["p_value"], sec_file, "chow p")
+    c.p_value("P_CHOW", chow["p_value"], sec_file, "chow p", inline=True)
     c.p_value(
         "S5_HOLM", sensitivity.loc["S5_fully_interacted", "H1_p_holm"], sens_file, "S5 H1 holm"
     )
@@ -627,7 +633,9 @@ def compile_pdf(tex_path: Path) -> Path:
 
 
 def _compact(text: str) -> str:
-    return re.sub(r"\s+", " ", text.replace("−", "-").replace("–", "-"))
+    text = text.replace("−", "-").replace("–", "-")
+    text = re.sub(r"\s*<\s*", "<", text)
+    return re.sub(r"\s+", " ", text)
 
 
 def pdf_text(pdf_path: Path) -> str:
