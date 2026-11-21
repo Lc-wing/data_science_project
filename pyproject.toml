@@ -33,6 +33,8 @@ dependencies = [
     "pypdf>=5.0",
     "torch>=2.5",
     "torch-geometric>=2.6",
+    "xgboost>=3.2.0",
+    "lightgbm>=4.7.0",
 ]
 
 [tool.uv.sources]
