@@ -72,10 +72,13 @@ def gaussian_2sfca(
 
 
 def composite_accessibility(access_by_type: dict[str, np.ndarray]) -> np.ndarray:
-    """Min-max average of park, health centre, library, and bus access.
+    """Log-scaled min-max average of park, health centre, library, and bus access.
 
-    A facility type with no variation contributes zeros, so the index stays on
-    [0, 1] and does not invent spread. EV access is not included.
+    Each traditional facility series is transformed via ``log1p(v / s)`` where
+    ``s`` is the median of positive accessibility values (preventing sparse
+    sliver-cell right tails from squashing urban values near zero), then
+    min-max normalized to ``[0, 1]``. A constant series contributes zeros. EV
+    access is excluded.
     """
     scaled: list[np.ndarray] = []
     n_obs: int | None = None
@@ -85,11 +88,14 @@ def composite_accessibility(access_by_type: dict[str, np.ndarray]) -> np.ndarray
             n_obs = values.size
         elif values.size != n_obs:
             raise ValueError("accessibility series differ in length")
-        span = float(values.max() - values.min()) if values.size else 0.0
+        positive = values[values > 0.0]
+        scale = float(np.median(positive)) if positive.size else 1.0
+        transformed = np.log1p(np.maximum(values, 0.0) / max(scale, 1e-15))
+        span = float(transformed.max() - transformed.min()) if transformed.size else 0.0
         if span <= 1e-15:
-            scaled.append(np.zeros(values.size, dtype=float))
+            scaled.append(np.zeros(transformed.size, dtype=float))
         else:
-            scaled.append((values - float(values.min())) / span)
+            scaled.append((transformed - float(transformed.min())) / span)
     if not scaled or n_obs is None:
         raise ValueError("composite_accessibility received no facility series")
     return np.mean(np.vstack(scaled), axis=0)

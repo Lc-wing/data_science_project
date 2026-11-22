@@ -55,8 +55,8 @@
       "fold": 0,
       "protocol": "inductive",
       "n_train_edges": 818,
-      "n_eval_edges": 840,
-      "n_loss": 160,
+      "n_eval_edges": 966,
+      "n_loss": 226,
       "n_test": 29,
       "train_edges_touch_test": false
     },
@@ -65,7 +65,7 @@
       "protocol": "transductive",
       "n_train_edges": 988,
       "n_eval_edges": 988,
-      "n_loss": 160,
+      "n_loss": 226,
       "n_test": 29,
       "train_edges_touch_test": true
     },
@@ -73,8 +73,8 @@
       "fold": 1,
       "protocol": "inductive",
       "n_train_edges": 828,
-      "n_eval_edges": 857,
-      "n_loss": 160,
+      "n_eval_edges": 959,
+      "n_loss": 226,
       "n_test": 29,
       "train_edges_touch_test": false
     },
@@ -83,7 +83,7 @@
       "protocol": "transductive",
       "n_train_edges": 988,
       "n_eval_edges": 988,
-      "n_loss": 160,
+      "n_loss": 226,
       "n_test": 29,
       "train_edges_touch_test": true
     },
@@ -91,8 +91,8 @@
       "fold": 2,
       "protocol": "inductive",
       "n_train_edges": 812,
-      "n_eval_edges": 829,
-      "n_loss": 157,
+      "n_eval_edges": 971,
+      "n_loss": 226,
       "n_test": 32,
       "train_edges_touch_test": false
     },
@@ -101,7 +101,7 @@
       "protocol": "transductive",
       "n_train_edges": 988,
       "n_eval_edges": 988,
-      "n_loss": 157,
+      "n_loss": 226,
       "n_test": 32,
       "train_edges_touch_test": true
     },
@@ -109,8 +109,8 @@
       "fold": 3,
       "protocol": "inductive",
       "n_train_edges": 652,
-      "n_eval_edges": 664,
-      "n_loss": 90,
+      "n_eval_edges": 976,
+      "n_loss": 156,
       "n_test": 99,
       "train_edges_touch_test": false
     },
@@ -119,7 +119,7 @@
       "protocol": "transductive",
       "n_train_edges": 988,
       "n_eval_edges": 988,
-      "n_loss": 90,
+      "n_loss": 156,
       "n_test": 99,
       "train_edges_touch_test": true
     },
@@ -127,8 +127,8 @@
       "fold": 4,
       "protocol": "inductive",
       "n_train_edges": 750,
-      "n_eval_edges": 762,
-      "n_loss": 90,
+      "n_eval_edges": 976,
+      "n_loss": 157,
       "n_test": 98,
       "train_edges_touch_test": false
     },
@@ -137,7 +137,7 @@
       "protocol": "transductive",
       "n_train_edges": 988,
       "n_eval_edges": 988,
-      "n_loss": 90,
+      "n_loss": 157,
       "n_test": 98,
       "train_edges_touch_test": true
     }

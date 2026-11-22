@@ -365,11 +365,14 @@ def test_bridge_queen_removes_islands_by_linking_components() -> None:
 
 
 def test_ols_hc3_matches_independent_sandwich_and_vif() -> None:
+    import spreg
+
     rng = np.random.default_rng(RANDOM_SEED)
     elderly = rng.uniform(0.05, 0.30, size=23)
     log_density = rng.normal(8.0, 0.4, size=23)
     y = 0.4 - 0.8 * elderly + 0.15 * log_density + rng.normal(0.0, 0.02, size=23)
-    fit = ols_hc3(y, np.column_stack([elderly, log_density]), ["elderly_share", "log_pop_density"])
+    x = np.column_stack([elderly, log_density])
+    fit = ols_hc3(y, x, ["elderly_share", "log_pop_density"])
     ref = _reference_hc3(y, [elderly, log_density], ["elderly_share", "log_pop_density"])
     for term in ("const", "elderly_share", "log_pop_density"):
         assert fit["coefs"][term] == pytest.approx(ref["coefs"][term], abs=1e-8)
@@ -378,9 +381,14 @@ def test_ols_hc3_matches_independent_sandwich_and_vif() -> None:
     assert fit["vif"]["elderly_share"] >= 1.0
     assert fit["vif"]["log_pop_density"] >= 1.0
     assert 0.0 <= fit["r2"] <= 1.0
+    spreg_ols = spreg.OLS(y[:, None], x, name_y="y", name_x=["elderly_share", "log_pop_density"])
+    assert fit["aic"] == pytest.approx(float(spreg_ols.aic), abs=1e-10)
+    assert fit["df_resid"] == 20
 
 
 def test_h3_reports_three_models_side_by_side_without_pretest_switching() -> None:
+    import spreg
+
     rng = np.random.default_rng(7)
     coords = rng.normal(size=(30, 2))
     frame = gpd.GeoDataFrame(
@@ -394,9 +402,10 @@ def test_h3_reports_three_models_side_by_side_without_pretest_switching() -> Non
     # Spatially smooth outcome so a Lagrange-multiplier test would prefer a spatial model.
     y = 1.0 + elderly - 0.2 * log_density
     y = y + 0.3 * y[np.array([weights.neighbors[i][0] for i in range(30)])]
+    x = np.column_stack([elderly, log_density])
     rows = fit_prespecified_models(
         y,
-        np.column_stack([elderly, log_density]),
+        x,
         ["elderly_share", "log_pop_density"],
         weights,
         permutations=199,
@@ -418,6 +427,17 @@ def test_h3_reports_three_models_side_by_side_without_pretest_switching() -> Non
         assert "elderly_share" in terms and "log_pop_density" in terms
     assert any("lambda" in term for term in by_model["SEM_ML"])
     assert any(term == "rho" for term in by_model["SLM_ML"])
+
+    # SEM_ML residual Moran's I must use spatially filtered residuals e_filtered, not raw u.
+    sem_ref = spreg.ML_Error(y[:, None], x, w=weights)
+    expected_i, _ = global_moran(
+        sem_ref.e_filtered.ravel(),
+        weights,
+        permutations=199,
+        seed=RANDOM_SEED,
+    )
+    sem_row = next(row for row in rows if row["model_type"] == "SEM_ML")
+    assert sem_row["resid_moran_i"] == pytest.approx(expected_i, abs=1e-10)
 
 
 def test_lisa_fdr_labels_respect_quadrants_and_q_values() -> None:
@@ -446,6 +466,11 @@ def test_lisa_fdr_labels_respect_quadrants_and_q_values() -> None:
             assert local_i >= -1e-9
         elif cluster in {"HL", "LH"}:
             assert local_i <= 1e-9
+
+    # Two-sided permutation p-values on noise must exceed 0.5 (never capped at one-sided 0.5).
+    noise = np.random.default_rng(123).normal(size=len(coords))
+    noise_lisa = lisa_fdr(noise, weights, permutations=199, seed=RANDOM_SEED)
+    assert float(np.max(noise_lisa["p"])) > 0.55
 
 
 def test_lorenz_curve_area_matches_gini_and_maup_table_copies_both_scales() -> None:

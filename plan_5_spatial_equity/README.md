@@ -20,7 +20,7 @@ Quoted Gini, Theil, regression, and cross-validation numbers are copied from `ou
 
 ## Phase B
 
-Route A (from-scratch GATv2, TransformerConv, and the ~5k GraphSAGE ablation, 10 seeds, inductive and transductive) runs on CPU:
+Route A (from-scratch edge-weighted `GATv2Conv`, `TransformerConv`, and unweighted ~5k `GraphSAGE` ablation; 10 seeds `42..51`, inductive and transductive on frozen 10-minute walk edges) runs on CPU:
 
 ```bash
 export MPLBACKEND=Agg
@@ -28,4 +28,18 @@ uv run python scripts/run_phase_b_route_a.py
 uv run pytest tests/test_phase_b.py
 ```
 
-Route B (`BAAI/bge-m3` and `Qwen/Qwen3-Embedding-4B` QLoRA `r=8`) is the Colab L4/A100 path in `notebooks/phase_b_colab.ipynb`. The CPU entry refuses to download those weights. See `PHASE_B.md`.
+Route B (`BAAI/bge-m3` and `Qwen/Qwen3-Embedding-4B` frozen + QLoRA `r=8` fit strictly on `loss_mask`) is the Colab L4/A100 path in `notebooks/phase_b_colab.ipynb` (`scripts/colab_phase_b.py --allow-weight-download`, writing `*_run3.*` and `outputs/colab_runs/run3/` while preserving `outputs/colab_runs/run1/` and `outputs/colab_runs/run2/`). The CPU entry refuses to download large encoder weights. See `PHASE_B.md`.
+
+Exploratory gradient-boosted tree baselines (XGBoost, LightGBM, HistGradientBoosting, outside the pre-specified plan) are stored in `outputs/metrics/phase_b_exploratory_trees.json` and `outputs/tables/phase_b_exploratory_trees.md`.
+
+## Final CS482 report & verification
+
+- Phase A draft (auto-generated and numerically audited): `report/CS482_GroupX_MacaoSpatialEquity_PhaseA_Draft.pdf` and `report/go_nogo_audit.md`.
+- Final integrated CS482 report (Phase A + Phase B + exploratory trees): `report/CS482_GroupX_MacaoSpatialEquity.tex` / `report/CS482_GroupX_MacaoSpatialEquity.pdf` (fill in real group number, member names, and student IDs on the title page before Moodle submission).
+- Full lint and test suite (unit tests + E2E Tiers 1–5):
+
+```bash
+export MPLBACKEND=Agg
+uv run ruff check .
+uv run pytest -v
+```

@@ -24,8 +24,8 @@
     "acc15_composite"
   ],
   "vif": {
-    "elderly_share": 1.1584826265057688,
-    "log_pop_density": 1.1584826265057684
+    "elderly_share": 1.1584826265057686,
+    "log_pop_density": 1.1584826265057686
   },
   "weights": {
     "knn4": {

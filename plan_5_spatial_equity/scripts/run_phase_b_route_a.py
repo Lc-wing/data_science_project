@@ -40,6 +40,7 @@ def _assembly(bundle) -> dict:
                 bundle.dst,
                 fold=fold,
                 protocol=protocol,
+                edge_weight=bundle.edge_weight,
             )
             fold_edges.append(
                 {

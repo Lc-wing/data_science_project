@@ -14,20 +14,20 @@ Copied from `h1_inequality_lisa.csv`, `h3_spatial_regression.csv`, and `phase_a_
 | H1_Gini_Theil_15min_res9 | bus_stop | theil_total | 0.5972 | 0.4553 | 0.7677 | gini | 0.3876 |
 | H1_Gini_Theil_15min_res9 | ev_charger | gini | 0.4984 | 0.4315 | 0.5566 | theil_total | 0.6706 |
 | H1_Gini_Theil_15min_res9 | ev_charger | theil_total | 0.6706 | 0.4408 | 0.9414 | gini | 0.4984 |
-| H1_Gini_Theil_15min_res9 | composite | gini | 0.3203 | 0.2484 | 0.3937 | theil_total | 0.2883 |
-| H1_Gini_Theil_15min_res9 | composite | theil_total | 0.2883 | 0.1293 | 0.4828 | gini | 0.3203 |
-| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|OLS_HC3|elderly_share | coef | 3.0492 | -22.2117 | 28.3102 | p_value | 0.8130 |
-| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|OLS_HC3|log_pop_density | coef | -0.4191 | -1.1053 | 0.2670 | p_value | 0.2312 |
-| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|SEM_ML|elderly_share | coef | 5.7831 | -10.6765 | 22.2427 | p_value | 0.4910 |
-| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|SEM_ML|log_pop_density | coef | -0.4911 | -0.9136 | -0.0686 | p_value | 0.0227 |
-| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|SLM_ML|elderly_share | coef | 1.9436 | -15.3779 | 19.2652 | p_value | 0.8259 |
-| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|SLM_ML|log_pop_density | coef | -0.5196 | -0.9965 | -0.0427 | p_value | 0.0327 |
-| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|OLS_HC3|elderly_share | coef | -0.2375 | -2.2232 | 1.7482 | p_value | 0.8146 |
-| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|OLS_HC3|log_pop_density | coef | -0.0140 | -0.0746 | 0.0466 | p_value | 0.6508 |
-| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|SEM_ML|elderly_share | coef | -0.1463 | -1.6411 | 1.3485 | p_value | 0.8478 |
-| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|SEM_ML|log_pop_density | coef | -0.0198 | -0.0580 | 0.0183 | p_value | 0.3085 |
-| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|SLM_ML|elderly_share | coef | -0.3498 | -1.9324 | 1.2329 | p_value | 0.6649 |
-| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|SLM_ML|log_pop_density | coef | -0.0210 | -0.0645 | 0.0225 | p_value | 0.3443 |
+| H1_Gini_Theil_15min_res9 | composite | gini | 0.1882 | 0.1563 | 0.2202 | theil_total | 0.0673 |
+| H1_Gini_Theil_15min_res9 | composite | theil_total | 0.0673 | 0.0479 | 0.0910 | gini | 0.1882 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|OLS_HC3|elderly_share | coef | 3.3187 | -20.4267 | 27.0641 | p_value | 0.7736 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|OLS_HC3|log_pop_density | coef | -0.8733 | -1.6363 | -0.1103 | p_value | 0.0269 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|SEM_ML|elderly_share | coef | 2.0076 | -13.3137 | 17.3288 | p_value | 0.7973 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|SEM_ML|log_pop_density | coef | -0.8801 | -1.3103 | -0.4500 | p_value | 0.0001 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|SLM_ML|elderly_share | coef | 3.2136 | -12.3661 | 18.7934 | p_value | 0.6860 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_park|SLM_ML|log_pop_density | coef | -0.8933 | -1.3387 | -0.4479 | p_value | 0.0001 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|OLS_HC3|elderly_share | coef | 1.9488 | -0.6967 | 4.5943 | p_value | 0.1400 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|OLS_HC3|log_pop_density | coef | -0.0580 | -0.1185 | 0.0025 | p_value | 0.0595 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|SEM_ML|elderly_share | coef | 1.9366 | 0.4098 | 3.4634 | p_value | 0.0129 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|SEM_ML|log_pop_density | coef | -0.0560 | -0.0989 | -0.0131 | p_value | 0.0106 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|SLM_ML|elderly_share | coef | 1.9635 | 0.4482 | 3.4789 | p_value | 0.0111 |
+| H3_OLS_SEM_SLM_N23_knn4 | acc15_composite|SLM_ML|log_pop_density | coef | -0.0562 | -0.0976 | -0.0148 | p_value | 0.0078 |
 | ML_SpatialBlock_CV | naive_prior | oof_roc_auc | 0.2171 |  |  | oof_pr_auc | 0.1359 |
 | ML_SpatialBlock_CV | naive_prior | oof_brier | 0.1756 |  |  | oof_top20_hit_rate | 0.1071 |
 | ML_SpatialBlock_CV | logistic_regression | oof_roc_auc | 0.8527 |  |  | oof_pr_auc | 0.5320 |

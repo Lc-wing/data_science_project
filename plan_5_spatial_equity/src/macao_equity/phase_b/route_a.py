@@ -65,9 +65,10 @@ def _summary_rows(fold_frame: pd.DataFrame) -> list[dict[str, Any]]:
                     "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds"
                 ),
                 "note": (
-                    "From-scratch Route A. Inductive training drops test nodes and "
-                    "cross edges. Transductive training keeps those edges and still "
-                    "masks test labels."
+                    "From-scratch Route A with walk-time edge weights. Inductive training "
+                    "drops test nodes and edges touching them; inductive eval keeps "
+                    "train->train, train->test, and test->test while dropping test->train. "
+                    "Transductive training keeps cross-block edges and still masks test labels."
                 ),
             }
             for metric in PRIMARY_METRICS:
@@ -121,6 +122,7 @@ def run_route_a(
                         seed=int(seed),
                         budget=budget,
                         capture_attention=capture,
+                        edge_weight=bundle.edge_weight,
                     )
                     done += 1
                     print(

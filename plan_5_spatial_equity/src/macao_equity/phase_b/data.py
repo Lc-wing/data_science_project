@@ -50,6 +50,7 @@ class PhaseBBundle:
     blocks: np.ndarray
     src: np.ndarray
     dst: np.ndarray
+    edge_weight: np.ndarray
     poi_text: np.ndarray
     acc15_ev: np.ndarray
     crs_epsg: int
@@ -169,6 +170,11 @@ def load_phase_b_bundle(
     dst_arr = dst.to_numpy(dtype=np.int64)
     if np.any(src_arr == dst_arr):
         raise ValueError("graph_edges.csv contains a self-loop")
+    if "weight" not in edges.columns:
+        raise ValueError("graph_edges.csv is missing required weight column")
+    weight_arr = edges["weight"].to_numpy(dtype=np.float64)
+    if not np.isfinite(weight_arr).all() or np.any(weight_arr <= 0.0):
+        raise ValueError("graph_edges.csv weight column must be finite and strictly positive")
     acc = cells[CANDIDATE_ACCESS_COLUMN].to_numpy(dtype=np.float64)
     if not np.isfinite(acc).all():
         raise ValueError(f"{CANDIDATE_ACCESS_COLUMN} contains NaN or Inf")
@@ -182,6 +188,7 @@ def load_phase_b_bundle(
         blocks=mapped,
         src=src_arr,
         dst=dst_arr,
+        edge_weight=weight_arr,
         poi_text=texts.astype(str),
         acc15_ev=acc,
         crs_epsg=epsg,

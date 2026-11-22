@@ -129,6 +129,22 @@ def _xy(frame: gpd.GeoDataFrame) -> np.ndarray:
     return np.column_stack([centroids.x, centroids.y])
 
 
+def _zone_pop_weighted_xy(zones: gpd.GeoDataFrame, cells_r9: gpd.GeoDataFrame) -> np.ndarray:
+    """Population-weighted centroid per zone from populated H3 r9 cells (fallback: geometry)."""
+    fallback = _xy(zones)
+    coords: list[list[float]] = []
+    for idx, zid in enumerate(zones["zone_id"].astype(str).tolist()):
+        sub = cells_r9[cells_r9["zone_id"].astype(str) == zid]
+        weights = sub["pop_total"].to_numpy(dtype=float) if len(sub) else np.array([], dtype=float)
+        if weights.size > 0 and float(weights.sum()) > 0.0:
+            cx = float(np.average(sub["centroid_x"].to_numpy(dtype=float), weights=weights))
+            cy = float(np.average(sub["centroid_y"].to_numpy(dtype=float), weights=weights))
+            coords.append([cx, cy])
+        else:
+            coords.append([float(fallback[idx, 0]), float(fallback[idx, 1])])
+    return np.asarray(coords, dtype=float)
+
+
 def _attach_accessibility(
     frame: gpd.GeoDataFrame,
     minutes: np.ndarray,
@@ -201,7 +217,6 @@ def _h1_rows(
                 values, weights, permutations=permutations, seed=seed
             )
             clusters = frame[f"lisa_cluster_{column}"].astype(str)
-            ordered = np.sort(values)
             rows.append(
                 {
                     "resolution": resolution,
@@ -221,7 +236,7 @@ def _h1_rows(
                     "n_ll_fdr": int((clusters == "LL").sum()),
                     "n_hh_fdr": int((clusters == "HH").sum()),
                     "mean_acc": float(values.mean()),
-                    "median_acc": float(ordered[ordered.size // 2]),
+                    "median_acc": float(np.median(values)),
                     "zero_acc_pct": float(100.0 * np.mean(values <= 1e-12)),
                 }
             )
@@ -342,7 +357,7 @@ def _eda_rows(frame: gpd.GeoDataFrame) -> list[dict[str, object]]:
                 "variable": name,
                 "n_cells": int(values.size),
                 "min": float(values[0]),
-                "median": float(values[values.size // 2]),
+                "median": float(np.median(values)),
                 "mean": float(values.mean()),
                 "max": float(values[-1]),
                 "std": float(values.std(ddof=0)),
@@ -377,7 +392,8 @@ def run(n_boot: int, permutations: int, seed: int) -> None:
     enriched: dict[str, gpd.GeoDataFrame] = {}
     for label, frame in (("r9", cells_r9), ("r8", cells_r8), ("zones", zones)):
         print(f"2SFCA {label}: {len(frame)} demand units", flush=True)
-        minutes = network.minutes(_xy(frame), supply_xy, max_minutes=15.0)
+        demand_xy = _zone_pop_weighted_xy(frame, cells_r9) if label == "zones" else _xy(frame)
+        minutes = network.minutes(demand_xy, supply_xy, max_minutes=15.0)
         enriched[label] = _attach_accessibility(frame, minutes, facilities)
 
     for label in ("r9", "r8", "zones"):

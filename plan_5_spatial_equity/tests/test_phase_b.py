@@ -21,8 +21,9 @@ from macao_equity.ml.baselines import top20_hit_rate
 from macao_equity.phase_b.comparison import ROUTE_B_BLOCKER, build_comparison_rows, comparison_frame
 from macao_equity.phase_b.data import load_phase_b_bundle
 from macao_equity.phase_b.metrics import score_binary
-from macao_equity.phase_b.models import build_model, parameter_count
+from macao_equity.phase_b.models import build_model, effective_parameter_count, parameter_count
 from macao_equity.phase_b.route_b import (
+    _refuse_protected_run3,
     cls_pool,
     ensure_route_b_runtime,
     fuse_features,
@@ -32,6 +33,7 @@ from macao_equity.phase_b.route_b import (
     project_text,
     qwen_prompt,
     run2_output_paths,
+    run3_output_paths,
 )
 from macao_equity.phase_b.spec import (
     PARAM_BUDGET_MAX,
@@ -49,7 +51,7 @@ from macao_equity.phase_b.spec import (
     TOTAL_PARAM_LIMIT,
     EpochBudget,
 )
-from macao_equity.phase_b.splits import make_fold_split, training_block_mask
+from macao_equity.phase_b.splits import inner_val_block, loss_block_mask, make_fold_split
 from macao_equity.phase_b.train import train_one_fold
 
 
@@ -173,8 +175,17 @@ def test_poi_text_has_no_ev_token(bundle) -> None:
 
 
 def test_inductive_edges_drop_test_nodes_and_keep_other_cross_edges(bundle) -> None:
-    split = make_fold_split(bundle.blocks, bundle.src, bundle.dst, fold=0, protocol="inductive")
+    split = make_fold_split(
+        bundle.blocks,
+        bundle.src,
+        bundle.dst,
+        fold=0,
+        protocol="inductive",
+        edge_weight=bundle.edge_weight,
+    )
     assert split.train_src.size > 0
+    assert split.train_weight.shape == split.train_src.shape
+    assert split.eval_weight.shape == split.eval_src.shape
     assert not split.test_mask[split.train_src].any()
     assert not split.test_mask[split.train_dst].any()
     train_blocks = bundle.blocks[~split.test_mask]
@@ -183,9 +194,11 @@ def test_inductive_edges_drop_test_nodes_and_keep_other_cross_edges(bundle) -> N
     assert bool(np.any(cross))
     eval_src_test = split.test_mask[split.eval_src]
     eval_dst_test = split.test_mask[split.eval_dst]
-    assert not np.any(eval_src_test & eval_dst_test)
-    assert not np.any(eval_src_test)
-    assert np.any(eval_dst_test)
+    # test->train is strictly forbidden so test features never flow into train nodes
+    assert not np.any(eval_src_test & ~eval_dst_test)
+    # test->test and train->test are both preserved so held-out blocks remain connected
+    assert np.any(eval_src_test & eval_dst_test)
+    assert np.any(~eval_src_test & eval_dst_test)
 
 
 def test_transductive_keeps_cross_edges_and_masks_test_labels(bundle) -> None:
@@ -313,33 +326,93 @@ def test_cls_pool_does_not_read_a_left_pad_position() -> None:
     assert torch.equal(pooled[1], hidden[1, 0])
 
 
-def test_lora_fit_mask_keeps_the_inner_validation_block() -> None:
+def test_lora_fit_mask_excludes_test_and_val_and_keeps_both_landmasses(bundle) -> None:
+    for fold in range(5):
+        mask = loss_block_mask(bundle.blocks, fold)
+        split = make_fold_split(
+            bundle.blocks,
+            bundle.src,
+            bundle.dst,
+            fold=fold,
+            protocol="inductive",
+            edge_weight=bundle.edge_weight,
+        )
+        assert np.array_equal(mask, split.loss_mask)
+        # Neither outer test nor inner validation block may enter QLoRA fit
+        assert not bool(np.any(mask & split.val_mask))
+        assert not bool(np.any(mask & split.test_mask))
+        assert inner_val_block(fold) in {1, 2}
+        # Every fold retains both Peninsula (blocks 0..2) and Island (blocks 3..4) nodes
+        assert bool(np.any(mask & (bundle.blocks < 3)))
+        assert bool(np.any(mask & (bundle.blocks >= 3)))
+
+
+def test_edge_weights_and_effective_4bit_parameter_count(bundle) -> None:
+    assert bundle.edge_weight.shape == bundle.src.shape
+    assert np.isfinite(bundle.edge_weight).all() and np.all(bundle.edge_weight > 0.0)
     graph = _synthetic_graph()
-    mask = training_block_mask(graph["blocks"], 0)
-    split = make_fold_split(
-        graph["blocks"],
-        graph["src"],
-        graph["dst"],
-        fold=0,
-        protocol="inductive",
-    )
-    assert np.array_equal(mask, graph["blocks"] != 0)
-    assert bool(np.any(mask & split.val_mask))
-    assert not bool(np.any(mask & split.test_mask))
+    x = torch.tensor(graph["x"], dtype=torch.float32)
+    ei = torch.tensor(np.vstack([graph["src"], graph["dst"]]), dtype=torch.long)
+    w_unit = torch.ones((ei.shape[1], 1), dtype=torch.float32)
+    w_varied = torch.linspace(0.2, 3.0, ei.shape[1], dtype=torch.float32).unsqueeze(-1)
+    for name in ("gatv2", "graph_transformer"):
+        torch.manual_seed(42)
+        model = build_model(name, 11)
+        model.eval()
+        with torch.no_grad():
+            out_unit = model(x, ei, edge_attr=w_unit)
+            out_varied = model(x, ei, edge_attr=w_varied)
+        assert not torch.allclose(out_unit, out_varied)
+
+    # Verify effective_parameter_count unpacks 4-bit packed weights via quant_state.shape
+    class _FakeQuantState:
+        shape = (1024, 2048)
+
+    class _Fake4BitModule(torch.nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            packed = torch.nn.Parameter(
+                torch.zeros((1024 * 1024, 1), dtype=torch.uint8),
+                requires_grad=False,
+            )
+            packed.quant_state = _FakeQuantState()  # type: ignore[attr-defined]
+            self.weight = packed
+            self.bias = torch.nn.Parameter(torch.zeros(1024))
+
+    fake = _Fake4BitModule()
+    assert parameter_count(fake) == 1024 * 1024 + 1024
+    assert effective_parameter_count(fake) == 1024 * 2048 + 1024
 
 
-def test_route_b_run2_keeps_transformer_and_leaves_run1() -> None:
+def test_route_b_run2_and_run3_paths_protect_prior_runs() -> None:
     assert "graph_transformer" in ROUTE_B_HEADS
     assert "gatv2" in ROUTE_B_HEADS
     assert "bge_m3_graph_transformer" in ROUTE_B_ARMS
     assert "qwen3_embedding_4b_lora_gatv2" in ROUTE_B_ARMS
-    root = Path("/tmp/phase-b-run2-paths")
-    paths = run2_output_paths(root)
-    assert paths["metrics"].name == "phase_b_route_b_run2.json"
-    assert paths["comparison_csv"].name == "phase_b_comparison_run2.csv"
-    assert paths["archive"].name == "run2"
-    assert "run1" not in paths["metrics"].parts
-    assert paths["comparison_md"].name != "phase_b_comparison.md"
+    root = Path("/tmp/phase-b-run-paths")
+    paths2 = run2_output_paths(root)
+    assert paths2["metrics"].name == "phase_b_route_b_run2.json"
+    assert paths2["comparison_csv"].name == "phase_b_comparison_run2.csv"
+    assert paths2["archive"].name == "run2"
+    assert "run1" not in paths2["metrics"].parts
+    assert paths2["comparison_md"].name != "phase_b_comparison.md"
+
+    paths3 = run3_output_paths(root)
+    assert paths3["metrics"].name == "phase_b_route_b_run3.json"
+    assert paths3["folds"].name == "phase_b_route_b_folds_run3.csv"
+    assert paths3["comparison_csv"].name == "phase_b_comparison_run3.csv"
+    assert paths3["comparison_md"].name == "phase_b_comparison_run3.md"
+    assert paths3["archive"].name == "run3"
+    for forbidden in (
+        root / "outputs/metrics/phase_b_route_b.json",
+        root / "outputs/metrics/phase_b_route_b_run2.json",
+        root / "outputs/tables/phase_b_comparison.csv",
+        root / "outputs/tables/phase_b_comparison_run2.csv",
+        root / "outputs/colab_runs/run1/phase_b_route_b.json",
+        root / "outputs/colab_runs/run2/phase_b_route_b_run2.json",
+    ):
+        with pytest.raises(RuntimeError, match="refusing to overwrite"):
+            _refuse_protected_run3(forbidden)
 
 
 def test_last_token_pool_respects_padding() -> None:

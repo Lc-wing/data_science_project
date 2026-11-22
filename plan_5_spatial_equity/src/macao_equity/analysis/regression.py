@@ -19,15 +19,17 @@ from scipy import stats
 from macao_equity.analysis.spatial_stats import global_moran
 from macao_equity.config import RANDOM_SEED
 
-Z95 = 1.96
+Z95 = float(stats.norm.ppf(0.975))
 _TERM_ALIASES = {"CONSTANT": "const", "W_y": "rho"}
 
 
 def ols_hc3(y: np.ndarray, x: np.ndarray, names: list[str]) -> dict[str, object]:
-    """OLS coefficients, HC3 standard errors, R², AIC, VIF, and residuals.
+    """OLS coefficients, HC3 standard errors, R², full Gaussian AIC, VIF, and residuals.
 
     HC3 uses the MacKinnon–White form e_i² / (1 - h_ii)² with no extra n/(n-k)
-    factor, so the standard errors match a direct sandwich calculation.
+    factor, so the standard errors match a direct sandwich calculation. Inference
+    uses Student's t with df = n - k, and AIC includes the Gaussian constant
+    n * (1 + ln(2*pi)) so it is directly comparable with spreg ML_Error / ML_Lag.
     """
     outcome = np.asarray(y, dtype=float).ravel()
     predictors = np.asarray(x, dtype=float)
@@ -35,8 +37,10 @@ def ols_hc3(y: np.ndarray, x: np.ndarray, names: list[str]) -> dict[str, object]
         predictors = predictors.reshape(-1, 1)
     if predictors.shape[0] != outcome.size or predictors.shape[1] != len(names):
         raise ValueError("x columns must align with names and y")
-    n_obs, n_pred = predictors.shape
+    n_obs, _n_pred = predictors.shape
     design = np.column_stack([np.ones(n_obs), predictors])
+    k_params = int(design.shape[1])
+    df_resid = max(n_obs - k_params, 1)
     xtx_inv = np.linalg.inv(design.T @ design)
     beta = xtx_inv @ (design.T @ outcome)
     residuals = outcome - design @ beta
@@ -45,18 +49,23 @@ def ols_hc3(y: np.ndarray, x: np.ndarray, names: list[str]) -> dict[str, object]
     meat = (design * scale[:, None]).T @ design
     covariance = xtx_inv @ meat @ xtx_inv
     se = np.sqrt(np.clip(np.diag(covariance), 0.0, None))
-    z_stat = beta / np.maximum(se, 1e-18)
-    pvals = 2.0 * stats.norm.sf(np.abs(z_stat))
+    t_stat = beta / np.maximum(se, 1e-18)
+    pvals = 2.0 * stats.t.sf(np.abs(t_stat), df=df_resid)
     sst = float(np.sum((outcome - outcome.mean()) ** 2))
     sse = float(np.sum(residuals**2))
     r2 = (1.0 - sse / sst) if sst > 1e-15 else 0.0
-    aic = float(n_obs * np.log(sse / n_obs) + 2.0 * design.shape[1]) if sse > 0.0 else math.nan
+    aic = (
+        float(n_obs * (np.log(sse / n_obs) + 1.0 + np.log(2.0 * np.pi)) + 2.0 * k_params)
+        if sse > 0.0
+        else math.nan
+    )
     vif = _variance_inflation(predictors, names)
     keys = ["const", *names]
     return {
         "coefs": {key: float(value) for key, value in zip(keys, beta, strict=True)},
         "se": {key: float(value) for key, value in zip(keys, se, strict=True)},
         "p": {key: float(value) for key, value in zip(keys, pvals, strict=True)},
+        "df_resid": df_resid,
         "r2": float(r2),
         "aic": aic,
         "vif": vif,
@@ -74,9 +83,11 @@ def fit_prespecified_models(
 ) -> list[dict[str, object]]:
     """Fit OLS_HC3, SEM_ML, and SLM_ML on the same rows and the same weights.
 
-    The returned rows always contain all three ``model_type`` values. Spatial
-    ML standard errors and p-values come from spreg's asymptotic z tests.
-    Residual Moran's I uses the same weights and the same permutation count.
+    The returned rows always contain all three ``model_type`` values. OLS_HC3
+    uses Student-t intervals (df = n - k), while spatial ML standard errors and
+    p-values come from spreg's asymptotic z tests. Residual Moran's I uses the
+    spatially filtered innovations ``e_filtered`` for SEM_ML and ``u`` for
+    OLS_HC3 / SLM_ML.
     """
     outcome = np.asarray(y, dtype=float).ravel()
     predictors = np.asarray(x, dtype=float)
@@ -84,6 +95,7 @@ def fit_prespecified_models(
         predictors = predictors.reshape(-1, 1)
     n_obs = int(outcome.size)
     ols = ols_hc3(outcome, predictors, names)
+    t_crit = float(stats.t.ppf(0.975, df=int(ols["df_resid"])))  # type: ignore[arg-type]
     rows = _pack_terms(
         "OLS_HC3",
         list(ols["coefs"]),
@@ -97,6 +109,7 @@ def fit_prespecified_models(
         permutations,
         seed,
         n_obs,
+        crit=t_crit,
     )
     y_col = outcome.reshape(-1, 1)
     with contextlib.redirect_stdout(io.StringIO()), warnings.catch_warnings():
@@ -134,6 +147,11 @@ def _pack_spreg(
         for name, pair in zip(raw_names, model.z_stat, strict=True)  # type: ignore[attr-defined]
     }
     pseudo_r2 = float(np.clip(float(model.pr2), -1.0, 1.0))  # type: ignore[attr-defined]
+    raw_resid = (
+        model.e_filtered  # type: ignore[attr-defined]
+        if model_type == "SEM_ML" and hasattr(model, "e_filtered")
+        else model.u  # type: ignore[attr-defined]
+    )
     return _pack_terms(
         model_type,
         raw_names,
@@ -142,11 +160,12 @@ def _pack_spreg(
         pvals,
         pseudo_r2,
         float(model.aic),  # type: ignore[attr-defined]
-        np.asarray(model.u).ravel(),  # type: ignore[attr-defined]
+        np.asarray(raw_resid).ravel(),
         weights,
         permutations,
         seed,
         n_obs,
+        crit=Z95,
     )
 
 
@@ -163,6 +182,8 @@ def _pack_terms(
     permutations: int,
     seed: int,
     n_obs: int,
+    *,
+    crit: float = Z95,
 ) -> list[dict[str, object]]:
     moran_i, moran_p = global_moran(residuals, weights, permutations=permutations, seed=seed)
     if not (0.0 < moran_p <= 1.0):
@@ -179,8 +200,8 @@ def _pack_terms(
                 "term": term,
                 "coef": coef,
                 "se": se,
-                "ci_low": coef - Z95 * se,
-                "ci_high": coef + Z95 * se,
+                "ci_low": coef - crit * se,
+                "ci_high": coef + crit * se,
                 "p_value": float(np.clip(pvals[term], 0.0, 1.0)),
                 "r2_or_pseudo_r2": float(r2),
                 "aic": float(aic),

@@ -5,8 +5,8 @@ Typical Colab L4/A100 use, from the ``plan_5_spatial_equity`` folder:
 
     python scripts/colab_phase_b.py --allow-weight-download
 
-The weight path writes run 2 only. It does not replace ``outputs/colab_runs/run1``
-or the first comparison table.
+The weight path writes run 3 only. It does not replace ``outputs/colab_runs/run1``,
+``outputs/colab_runs/run2``, or earlier comparison tables.
 
 Without that flag, or without a CUDA device, the process exits before any call
 to the Hugging Face hub. ``--assemble-only`` checks the frozen bundle and
@@ -27,7 +27,7 @@ if str(SRC_DIR) not in sys.path:
 
 from macao_equity.config import DATA_FROZEN_DIR, OUTPUTS_METRICS_DIR  # noqa: E402
 from macao_equity.phase_b.data import load_phase_b_bundle  # noqa: E402
-from macao_equity.phase_b.route_b import REFUSAL, run_route_b, write_route_b_run2  # noqa: E402
+from macao_equity.phase_b.route_b import REFUSAL, run_route_b, write_route_b_run3  # noqa: E402
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -74,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
     result = run_route_b(bundle, allow_weight_download=True)
-    paths = write_route_b_run2(
+    paths = write_route_b_run3(
         result,
         project_root=PROJECT_ROOT,
         phase_a_metrics=args.phase_a_metrics,

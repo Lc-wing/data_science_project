@@ -1,8 +1,8 @@
 """One spatial-block fit.
 
-The scaler and the loss see the loss mask only. The outer test block is not a
-stopping set. Early stopping reads the pre-specified inner block, which is the
-largest block id that is not the test block.
+The scaler, edge-weight normalization, and loss see the loss mask only. The
+outer test block is not a stopping set. Early stopping reads the pre-specified
+deterministic peninsula inner block (block 2, or block 1 when fold == 2).
 """
 
 from __future__ import annotations
@@ -66,10 +66,11 @@ def drop_undirected_edges(
     edge_index: torch.Tensor,
     drop_p: float,
     generator: torch.Generator,
-) -> torch.Tensor:
+    edge_weight: torch.Tensor | None = None,
+) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
     """Drop both directions of an undirected pair with probability ``drop_p``."""
     if drop_p <= 0.0 or edge_index.numel() == 0:
-        return edge_index
+        return (edge_index, edge_weight) if edge_weight is not None else edge_index
     src = edge_index[0].tolist()
     dst = edge_index[1].tolist()
     groups: dict[tuple[int, int], list[int]] = {}
@@ -84,7 +85,10 @@ def drop_undirected_edges(
             keep.extend(groups[key])
     if not keep:
         keep = list(groups[keys[0]])
-    return edge_index[:, sorted(keep)]
+    kept = sorted(keep)
+    if edge_weight is not None:
+        return edge_index[:, kept], edge_weight[kept]
+    return edge_index[:, kept]
 
 
 def _adamw_groups(model: nn.Module) -> list[dict[str, object]]:
@@ -108,7 +112,8 @@ def _subgraph(
     y: torch.Tensor,
     edge_index: torch.Tensor,
     node_mask: np.ndarray,
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    edge_weight: torch.Tensor | None = None,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """Keep ``node_mask`` nodes and reindex edges. Used by inductive training."""
     keep = torch.from_numpy(np.asarray(node_mask, dtype=bool))
     nodes = torch.where(keep)[0]
@@ -119,7 +124,11 @@ def _subgraph(
     valid = (src >= 0) & (dst >= 0)
     if not bool(valid.all()):
         raise RuntimeError("inductive train edges touch a removed node")
-    return x[nodes], y[nodes], torch.stack([src, dst], dim=0), nodes
+    if edge_weight is None:
+        weights_out = torch.ones((edge_index.shape[1],), dtype=torch.float32)
+    else:
+        weights_out = edge_weight
+    return x[nodes], y[nodes], torch.stack([src, dst], dim=0), weights_out, nodes
 
 
 def _restore(model: nn.Module, state: dict[str, torch.Tensor]) -> None:
@@ -139,9 +148,17 @@ def train_one_fold(
     seed: int,
     budget: EpochBudget = SPEC_BUDGET,
     capture_attention: bool = False,
+    edge_weight: np.ndarray | None = None,
 ) -> FoldFit:
     """Fit one outer fold. Test labels are not in the loss or the stopping rule."""
-    split: FoldSplit = make_fold_split(blocks, src, dst, fold=fold, protocol=protocol)
+    split: FoldSplit = make_fold_split(
+        blocks,
+        src,
+        dst,
+        fold=fold,
+        protocol=protocol,
+        edge_weight=edge_weight,
+    )
     y_np = np.asarray(y, dtype=np.int64)
     loss_y = y_np[split.loss_mask]
     if int(loss_y.min()) == int(loss_y.max()):
@@ -161,14 +178,29 @@ def train_one_fold(
     y_all = torch.tensor(y_np, dtype=torch.float32)
     train_edges = _edge_tensor(split.train_src, split.train_dst)
     eval_edges = _edge_tensor(split.eval_src, split.eval_dst)
+    # Normalize walk-time inverse weights strictly on training edges so test
+    # edges never influence scaling and self-loop fill_value=1.0 sits at mean.
+    weight_scale = (
+        float(np.mean(split.train_weight))
+        if split.train_weight.size > 0 and float(np.mean(split.train_weight)) > 0.0
+        else 1.0
+    )
+    train_weights = torch.tensor(split.train_weight / weight_scale, dtype=torch.float32)
+    eval_weights = torch.tensor(split.eval_weight / weight_scale, dtype=torch.float32)
 
     if protocol == "inductive":
         train_nodes = ~split.test_mask
-        x_fit, y_fit, edges_fit, _node_index = _subgraph(x_all, y_all, train_edges, train_nodes)
+        x_fit, y_fit, edges_fit, weights_fit, _node_index = _subgraph(
+            x_all,
+            y_all,
+            train_edges,
+            train_nodes,
+            edge_weight=train_weights,
+        )
         loss_fit = torch.from_numpy(split.loss_mask[train_nodes])
         val_fit = torch.from_numpy(split.val_mask[train_nodes])
     else:
-        x_fit, y_fit, edges_fit = x_all, y_all, train_edges
+        x_fit, y_fit, edges_fit, weights_fit = x_all, y_all, train_edges, train_weights
         loss_fit = torch.from_numpy(split.loss_mask)
         val_fit = torch.from_numpy(split.val_mask)
 
@@ -192,8 +224,15 @@ def train_one_fold(
         optimizer.zero_grad(set_to_none=True)
         generator = torch.Generator()
         generator.manual_seed(int(seed) + 10007 * (int(fold) + 1) + epoch)
-        dropped = drop_undirected_edges(edges_fit, DROPEDGE_P, generator)
-        logits = model(x_fit, dropped)
+        dropped_pair = drop_undirected_edges(
+            edges_fit,
+            DROPEDGE_P,
+            generator,
+            edge_weight=weights_fit,
+        )
+        assert isinstance(dropped_pair, tuple)
+        dropped_edges, dropped_weights = dropped_pair
+        logits = model(x_fit, dropped_edges, edge_attr=dropped_weights.unsqueeze(-1))
         loss = criterion(logits[loss_fit], y_fit[loss_fit])
         if not torch.isfinite(loss):
             raise RuntimeError("non-finite training loss")
@@ -203,7 +242,7 @@ def train_one_fold(
 
         model.eval()
         with torch.no_grad():
-            val_logits = model(x_fit, edges_fit)
+            val_logits = model(x_fit, edges_fit, edge_attr=weights_fit.unsqueeze(-1))
             val_prob = torch.sigmoid(val_logits[val_fit]).detach().cpu().numpy()
         val_auc = float(roc_auc_score(val_y, val_prob))
         if val_auc > best_val:
@@ -224,14 +263,19 @@ def train_one_fold(
     attention_weights = None
     with torch.no_grad():
         if capture_attention and model_name == "gatv2":
-            full_logits, att_edge, alpha = model(x_all, eval_edges, return_attention=True)
+            full_logits, att_edge, alpha = model(
+                x_all,
+                eval_edges,
+                edge_attr=eval_weights.unsqueeze(-1),
+                return_attention=True,
+            )
             attention_edges = att_edge.detach().cpu().numpy().astype(np.int64)
             weights = alpha.detach().cpu().numpy()
             if weights.ndim == 1:
                 weights = weights[:, None]
             attention_weights = weights.mean(axis=1).astype(np.float64)
         else:
-            full_logits = model(x_all, eval_edges)
+            full_logits = model(x_all, eval_edges, edge_attr=eval_weights.unsqueeze(-1))
         test_prob = torch.sigmoid(full_logits).detach().cpu().numpy()
 
     probabilities = np.full(y_np.shape[0], np.nan, dtype=np.float64)

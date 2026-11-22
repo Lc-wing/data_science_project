@@ -64,17 +64,27 @@ def write_fig1_accessibility_lisa(
     cluster_col = "lisa_cluster_acc15_composite"
     value_col = "acc15_composite"
     fig, axes = plt.subplots(1, 2, figsize=(12.0, 5.6))
+    vals = cells[value_col].to_numpy(dtype=float)
+    vmax = float(vals.max()) if vals.size else 1.0
+    p98 = float(pd.Series(vals).quantile(0.98)) if vals.size else 1.0
+    use_cap = p98 > 0.0 and p98 < vmax * 0.99
     cells.plot(
         column=value_col,
         cmap="YlGnBu",
+        vmin=0.0,
+        vmax=p98 if use_cap else vmax,
         linewidth=0.15,
         edgecolor="#f7f7f7",
         legend=True,
-        legend_kwds={"label": "15-min composite 2SFCA", "shrink": 0.72},
+        legend_kwds={
+            "label": "15-min log-scaled composite 2SFCA",
+            "shrink": 0.72,
+            "extend": "max" if use_cap else "neither",
+        },
         ax=axes[0],
     )
     parishes.boundary.plot(ax=axes[0], color="#222222", linewidth=0.45)
-    axes[0].set_title("Composite accessibility")
+    axes[0].set_title("Composite accessibility (capped at 98th pct)")
     _prepare_axes(axes[0])
 
     for label in LISA_DRAW_ORDER:

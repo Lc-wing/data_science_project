@@ -9,6 +9,7 @@ needed to connect components.
 
 from __future__ import annotations
 
+import inspect
 import math
 import warnings
 
@@ -20,6 +21,20 @@ from macao_equity.analysis.inequality import bh_fdr
 from macao_equity.config import RANDOM_SEED
 
 _QUADRANTS = {1: "HH", 2: "LH", 3: "LL", 4: "HL"}
+_MORAN_LOCAL_SUPPORTS_ALTERNATIVE = (
+    "alternative" in inspect.signature(Moran_Local.__init__).parameters
+)
+
+
+def _two_sided_from_one_sided_sim(
+    p_one_sided: np.ndarray | float,
+    permutations: int,
+) -> np.ndarray | float:
+    """Convert esda one-sided pseudo-p to two-sided ``(2*larger + 1)/(M + 1)``."""
+    floor = 1.0 / (float(permutations) + 1.0)
+    if isinstance(p_one_sided, np.ndarray):
+        return np.clip(2.0 * p_one_sided - floor, floor, 1.0)
+    return float(min(1.0, max(floor, 2.0 * float(p_one_sided) - floor)))
 
 
 def knn_weights(frame: object, k: int = 4) -> W:
@@ -115,17 +130,20 @@ def global_moran(
 ) -> tuple[float, float]:
     """Global Moran's I and a two-sided permutation p-value.
 
-    With 999 permutations the smallest p-value is 0.001. A constant map is
-    reported as I = 0 and p = 1 because the statistic is undefined.
+    esda's ``Moran.p_sim`` is one-sided ``(larger + 1)/(M + 1) <= 0.5`` even
+    when ``two_tailed=True``; convert to two-sided ``(2*larger + 1)/(M + 1)``
+    bounded in ``[1/(M + 1), 1.0]``. A constant map returns I = 0 and p = 1.
     """
     y = np.asarray(values, dtype=float).ravel()
     if y.size < 3 or float(np.std(y)) <= 1e-15:
         return 0.0, 1.0
     np.random.seed(seed)
     stat = Moran(y, weights, transformation="r", permutations=permutations, two_tailed=True)
-    p_value = float(stat.p_sim)
-    if not np.isfinite(p_value):
+    raw_p = float(stat.p_sim)
+    if not np.isfinite(raw_p):
         p_value = 1.0
+    else:
+        p_value = float(_two_sided_from_one_sided_sim(raw_p, permutations))
     return float(stat.I), float(min(1.0, max(p_value, 0.0)))
 
 
@@ -136,10 +154,11 @@ def lisa_fdr(
     seed: int = RANDOM_SEED,
     alpha: float = 0.05,
 ) -> dict[str, np.ndarray]:
-    """Local Moran's I, permutation p-values, BH q-values, and cluster labels.
+    """Local Moran's I, two-sided permutation p-values, BH q-values, and cluster labels.
 
     Labels are HH, LL, LH, HL when the Benjamini–Hochberg q-value is at most
     ``alpha``, and NS otherwise. Quadrants follow esda (1 HH, 2 LH, 3 LL, 4 HL).
+    Compatible with both esda 2.9 (Python 3.11) and esda >= 2.10 (Python 3.12+).
     """
     y = np.asarray(values, dtype=float).ravel()
     n = y.size
@@ -150,17 +169,22 @@ def lisa_fdr(
             "q_fdr": np.ones(n, dtype=float),
             "cluster": np.array(["NS"] * n, dtype=object),
         }
+    kwargs: dict[str, object] = {
+        "transformation": "r",
+        "permutations": permutations,
+        "seed": seed,
+    }
+    if _MORAN_LOCAL_SUPPORTS_ALTERNATIVE:
+        kwargs["alternative"] = "two-sided"
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
-        local = Moran_Local(
-            y,
-            weights,
-            transformation="r",
-            permutations=permutations,
-            seed=seed,
-            alternative="two-sided",
-        )
-    pvals = np.clip(np.asarray(local.p_sim, dtype=float), 0.0, 1.0)
+        warnings.simplefilter("ignore", DeprecationWarning)
+        local = Moran_Local(y, weights, **kwargs)
+    raw_p = np.asarray(local.p_sim, dtype=float)
+    if _MORAN_LOCAL_SUPPORTS_ALTERNATIVE:
+        pvals = np.clip(raw_p, 0.0, 1.0)
+    else:
+        pvals = np.asarray(_two_sided_from_one_sided_sim(raw_p, permutations), dtype=float)
     qvals = np.asarray(bh_fdr(pvals), dtype=float)
     clusters = np.empty(n, dtype=object)
     for i, (q_value, quadrant) in enumerate(zip(qvals, local.q, strict=True)):

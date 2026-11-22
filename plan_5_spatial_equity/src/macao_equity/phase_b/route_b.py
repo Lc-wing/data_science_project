@@ -25,7 +25,12 @@ from macao_equity.phase_b.comparison import (
 )
 from macao_equity.phase_b.data import PhaseBBundle
 from macao_equity.phase_b.metrics import mean_std
-from macao_equity.phase_b.models import build_model, parameter_count, trainable_parameter_count
+from macao_equity.phase_b.models import (
+    build_model,
+    effective_parameter_count,
+    parameter_count,
+    trainable_parameter_count,
+)
 from macao_equity.phase_b.spec import (
     BGE_MODEL_ID,
     PARAM_BUDGET_MAX,
@@ -36,8 +41,10 @@ from macao_equity.phase_b.spec import (
     QWEN_LORA_ALPHA,
     QWEN_LORA_BATCH_SIZE,
     QWEN_LORA_DROPOUT,
+    QWEN_LORA_EPOCHS,
+    QWEN_LORA_GRAD_CLIP,
+    QWEN_LORA_HEAD_LR,
     QWEN_LORA_LR,
-    QWEN_LORA_MAX_STEPS,
     QWEN_LORA_R,
     QWEN_LORA_TARGET_MODULES,
     QWEN_MODEL_ID,
@@ -55,7 +62,7 @@ from macao_equity.phase_b.spec import (
     WEIGHT_DECAY,
     EpochBudget,
 )
-from macao_equity.phase_b.splits import make_fold_split, training_block_mask
+from macao_equity.phase_b.splits import loss_block_mask, make_fold_split
 from macao_equity.phase_b.train import train_one_fold
 
 REFUSAL = (
@@ -157,18 +164,21 @@ def _lora_config_dict() -> dict[str, Any]:
         "lora_dropout": QWEN_LORA_DROPOUT,
         "target_modules": list(QWEN_LORA_TARGET_MODULES),
         "task_type": "FEATURE_EXTRACTION",
-        "max_steps": QWEN_LORA_MAX_STEPS,
+        "epochs": QWEN_LORA_EPOCHS,
         "learning_rate": QWEN_LORA_LR,
+        "head_learning_rate": QWEN_LORA_HEAD_LR,
+        "grad_clip": QWEN_LORA_GRAD_CLIP,
         "batch_size": QWEN_LORA_BATCH_SIZE,
         "seeds": list(ROUTE_B_LORA_SEEDS),
         "mrl_dim": TEXT_DIM,
+        "fit_rows": "loss_mask_only",
     }
 
 
 def _assert_param_cap(model: torch.nn.Module, label: str) -> int:
-    total = parameter_count(model)
+    total = effective_parameter_count(model)
     if total > TOTAL_PARAM_LIMIT:
-        raise RuntimeError(f"{label} has {total} parameters, above 5B")
+        raise RuntimeError(f"{label} has {total} logical parameters, above 5B")
     return total
 
 
@@ -306,11 +316,16 @@ def finetune_qwen_lora(
     allow_weight_download: bool,
     seed: int,
 ) -> tuple[np.ndarray, dict[str, Any]]:
-    """QLoRA on attention projections. ``fit_mask`` is every training-block row."""
+    """QLoRA on attention projections. ``fit_mask`` is strictly ``loss_mask``."""
     ensure_route_b_runtime(allow_weight_download)
     if int(seed) not in ROUTE_B_LORA_SEEDS:
         raise ValueError("LoRA seed is not in the pre-specified list")
     from peft import LoraConfig, TaskType, get_peft_model
+
+    np.random.seed(int(seed))
+    torch.manual_seed(int(seed))
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(int(seed))
 
     prompted = [qwen_prompt(text) for text in texts]
     model, tokenizer, revision = _load_encoder(
@@ -328,6 +343,7 @@ def finetune_qwen_lora(
     )
     model = get_peft_model(model, lora)
     total = _assert_param_cap(model, "Qwen3-Embedding-4B LoRA")
+    packed = parameter_count(model)
     trainable = trainable_parameter_count(model)
     device = next(model.parameters()).device
     head = torch.nn.Linear(TEXT_DIM, 1).to(device=device, dtype=torch.float32)
@@ -341,54 +357,81 @@ def finetune_qwen_lora(
     criterion = torch.nn.BCEWithLogitsLoss(
         pos_weight=torch.tensor([n_neg / n_pos], dtype=torch.float32, device=device)
     )
+    lora_params = [param for param in model.parameters() if param.requires_grad]
+    head_params = list(head.parameters())
+    trainable_all = [*lora_params, *head_params]
     optimizer = torch.optim.AdamW(
-        list(model.parameters()) + list(head.parameters()),
-        lr=QWEN_LORA_LR,
-        weight_decay=WEIGHT_DECAY,
+        [
+            {"params": lora_params, "lr": QWEN_LORA_LR, "weight_decay": WEIGHT_DECAY},
+            {"params": head_params, "lr": QWEN_LORA_HEAD_LR, "weight_decay": WEIGHT_DECAY},
+        ]
+    )
+    steps_per_epoch = int(np.ceil(fit_index.size / float(QWEN_LORA_BATCH_SIZE)))
+    total_steps = max(1, steps_per_epoch * int(QWEN_LORA_EPOCHS))
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer,
+        T_max=total_steps,
+        eta_min=QWEN_LORA_LR * 0.1,
     )
     generator = torch.Generator()
     generator.manual_seed(int(seed))
     model.train()
     losses: list[float] = []
-    while len(losses) < QWEN_LORA_MAX_STEPS:
-        draw = torch.randint(0, fit_index.size, (QWEN_LORA_BATCH_SIZE,), generator=generator)
-        batch_ids = fit_index[draw.numpy()]
-        batch_text = [prompted[int(index)] for index in batch_ids]
-        tokens = tokenizer(
-            batch_text,
-            padding=True,
-            truncation=True,
-            max_length=TEXT_MAX_LENGTH,
-            return_tensors="pt",
-        )
-        tokens = {key: value.to(device) for key, value in tokens.items()}
-        hidden = model(**tokens).last_hidden_state
-        pooled = last_token_pool(hidden, tokens["attention_mask"]).float()
-        truncated = pooled[:, :TEXT_DIM]
-        truncated = torch.nn.functional.normalize(truncated, dim=-1)
-        logits = head(truncated).view(-1)
-        target = torch.tensor(labels[batch_ids], dtype=torch.float32, device=device)
-        loss = criterion(logits, target)
-        if not torch.isfinite(loss):
-            raise RuntimeError("non-finite LoRA loss")
-        optimizer.zero_grad(set_to_none=True)
-        loss.backward()
-        optimizer.step()
-        losses.append(float(loss.detach().cpu()))
+    epoch_losses: list[float] = []
+    for _epoch in range(int(QWEN_LORA_EPOCHS)):
+        perm = torch.randperm(fit_index.size, generator=generator).numpy()
+        shuffled = fit_index[perm]
+        epoch_batch_losses: list[float] = []
+        for start in range(0, shuffled.size, QWEN_LORA_BATCH_SIZE):
+            batch_ids = shuffled[start : start + QWEN_LORA_BATCH_SIZE]
+            batch_text = [prompted[int(index)] for index in batch_ids]
+            tokens = tokenizer(
+                batch_text,
+                padding=True,
+                truncation=True,
+                max_length=TEXT_MAX_LENGTH,
+                return_tensors="pt",
+            )
+            tokens = {key: value.to(device) for key, value in tokens.items()}
+            hidden = model(**tokens).last_hidden_state
+            pooled = last_token_pool(hidden, tokens["attention_mask"]).float()
+            truncated = pooled[:, :TEXT_DIM]
+            truncated = torch.nn.functional.normalize(truncated, dim=-1)
+            logits = head(truncated).view(-1)
+            target = torch.tensor(labels[batch_ids], dtype=torch.float32, device=device)
+            loss = criterion(logits, target)
+            if not torch.isfinite(loss):
+                raise RuntimeError("non-finite LoRA loss")
+            optimizer.zero_grad(set_to_none=True)
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(trainable_all, max_norm=QWEN_LORA_GRAD_CLIP)
+            optimizer.step()
+            scheduler.step()
+            loss_val = float(loss.detach().cpu())
+            losses.append(loss_val)
+            epoch_batch_losses.append(loss_val)
+        epoch_losses.append(float(np.mean(epoch_batch_losses)))
     first_loss = float(losses[0])
     last_loss = float(losses[-1])
+    epoch_first = float(epoch_losses[0])
+    epoch_last = float(epoch_losses[-1])
     embeddings = mrl_truncate(_encode_hidden(model, tokenizer, prompted, "last"), TEXT_DIM)
     meta = {
         **_lora_config_dict(),
         "revision": revision,
         "total_parameters": total,
+        "packed_parameters": int(packed),
         "trainable_parameters": int(trainable),
         "seed": int(seed),
         "n_fit": int(mask.sum()),
-        "fit_rows": "training_blocks",
+        "n_steps": len(losses),
+        "n_epochs": int(QWEN_LORA_EPOCHS),
+        "fit_rows": "loss_mask_only",
         "loss_first": float(np.round(first_loss, 8)),
         "loss_last": float(np.round(last_loss, 8)),
-        "loss_fell": bool(last_loss < first_loss),
+        "epoch_loss_first": float(np.round(epoch_first, 8)),
+        "epoch_loss_last": float(np.round(epoch_last, 8)),
+        "loss_fell": bool(epoch_last < epoch_first),
     }
     del model
     return embeddings, meta
@@ -408,8 +451,9 @@ def _summary_from_folds(fold_frame: pd.DataFrame) -> list[dict[str, Any]]:
                     "mean and ddof=1 std across GNN seeds of the ddof=0 mean across 5 folds"
                 ),
                 "note": (
-                    "LoRA is fit on every training-block row. "
-                    "The ten seeds belong to the GATv2 or TransformerConv head."
+                    "LoRA is fit strictly on loss_mask rows (both outer test and inner "
+                    "validation blocks excluded). The ten seeds belong to the GATv2 or "
+                    "TransformerConv head with walk-time edge weights."
                 ),
             }
             for metric in PRIMARY_METRICS:
@@ -454,6 +498,7 @@ def run_fused_heads(
                             bundle.dst,
                             fold=fold,
                             protocol=protocol,
+                            edge_weight=bundle.edge_weight,
                         )
                         text = stored[fold] if isinstance(stored, dict) else stored
                         projected = project_text(
@@ -475,6 +520,7 @@ def run_fused_heads(
                             fold=fold,
                             seed=int(seed),
                             budget=budget,
+                            edge_weight=bundle.edge_weight,
                         )
                         fold_rows.append(
                             {
@@ -506,7 +552,7 @@ def run_route_b(
     allow_weight_download: bool,
     budget: EpochBudget = SPEC_BUDGET,
 ) -> dict[str, Any]:
-    """Download, encode, LoRA-fit on training blocks, then train both graph heads."""
+    """Download, encode, LoRA-fit strictly on loss_mask, then train both graph heads."""
     ensure_route_b_runtime(allow_weight_download)
     texts = bundle.poi_text.tolist()
     bge, bge_meta = encode_bge_m3(texts, allow_weight_download=True)
@@ -517,7 +563,7 @@ def run_route_b(
     for fold in range(5):
         encoded, meta = finetune_qwen_lora(
             texts,
-            training_block_mask(bundle.blocks, fold),
+            loss_block_mask(bundle.blocks, fold),
             bundle.y,
             allow_weight_download=True,
             seed=lora_seed,
@@ -566,6 +612,15 @@ RUN1_LIVE_NAMES = frozenset(
     }
 )
 
+RUN2_LIVE_NAMES = frozenset(
+    {
+        "phase_b_route_b_run2.json",
+        "phase_b_route_b_folds_run2.csv",
+        "phase_b_comparison_run2.csv",
+        "phase_b_comparison_run2.md",
+    }
+)
+
 
 def run2_output_paths(project_root: Path) -> dict[str, Path]:
     """Paths for the second Colab run. Run 1's files are not in this map."""
@@ -583,6 +638,25 @@ def run2_output_paths(project_root: Path) -> dict[str, Path]:
     return paths
 
 
+def run3_output_paths(project_root: Path) -> dict[str, Path]:
+    """Paths for the third (leak-free QLoRA + edge-weighted) Colab run.
+
+    Run 1 and Run 2 live and archived files are strictly protected.
+    """
+    root = Path(project_root)
+    tables = root / "outputs" / "tables"
+    paths = {
+        "metrics": root / "outputs" / "metrics" / "phase_b_route_b_run3.json",
+        "folds": tables / "phase_b_route_b_folds_run3.csv",
+        "comparison_csv": tables / "phase_b_comparison_run3.csv",
+        "comparison_md": tables / "phase_b_comparison_run3.md",
+        "archive": root / "outputs" / "colab_runs" / "run3",
+    }
+    for path in paths.values():
+        _refuse_protected_run3(path)
+    return paths
+
+
 def _refuse_protected(path: Path) -> None:
     if path.name in RUN1_LIVE_NAMES:
         raise RuntimeError(f"refusing to overwrite the first Colab outputs: {path}")
@@ -590,15 +664,22 @@ def _refuse_protected(path: Path) -> None:
         raise RuntimeError(f"refusing to overwrite archived run 1: {path}")
 
 
-def write_route_b_run2(
+def _refuse_protected_run3(path: Path) -> None:
+    _refuse_protected(path)
+    if path.name in RUN2_LIVE_NAMES:
+        raise RuntimeError(f"refusing to overwrite the second Colab outputs: {path}")
+    if "colab_runs" in path.parts and "run2" in path.parts:
+        raise RuntimeError(f"refusing to overwrite archived run 2: {path}")
+
+
+def _write_run_artifacts(
     result: dict[str, Any],
     *,
-    project_root: Path,
+    paths: dict[str, Path],
     phase_a_metrics: Path,
     route_a_metrics: Path,
+    guard_fn: Any,
 ) -> dict[str, Path]:
-    """Write run 2 beside the archived first Colab comparison."""
-    paths = run2_output_paths(project_root)
     paths["metrics"].parent.mkdir(parents=True, exist_ok=True)
     paths["folds"].parent.mkdir(parents=True, exist_ok=True)
     paths["archive"].mkdir(parents=True, exist_ok=True)
@@ -617,6 +698,42 @@ def write_route_b_run2(
     result["fold_frame"].to_csv(paths["folds"], index=False)
     for key in ("metrics", "folds", "comparison_csv", "comparison_md"):
         archived = paths["archive"] / paths[key].name
-        _refuse_protected(archived)
+        guard_fn(archived)
         shutil.copyfile(paths[key], archived)
     return paths
+
+
+def write_route_b_run2(
+    result: dict[str, Any],
+    *,
+    project_root: Path,
+    phase_a_metrics: Path,
+    route_a_metrics: Path,
+) -> dict[str, Path]:
+    """Write run 2 beside the archived first Colab comparison."""
+    paths = run2_output_paths(project_root)
+    return _write_run_artifacts(
+        result,
+        paths=paths,
+        phase_a_metrics=phase_a_metrics,
+        route_a_metrics=route_a_metrics,
+        guard_fn=_refuse_protected,
+    )
+
+
+def write_route_b_run3(
+    result: dict[str, Any],
+    *,
+    project_root: Path,
+    phase_a_metrics: Path,
+    route_a_metrics: Path,
+) -> dict[str, Path]:
+    """Write run 3 beside archived run 1 and run 2 comparisons."""
+    paths = run3_output_paths(project_root)
+    return _write_run_artifacts(
+        result,
+        paths=paths,
+        phase_a_metrics=phase_a_metrics,
+        route_a_metrics=route_a_metrics,
+        guard_fn=_refuse_protected_run3,
+    )

@@ -148,6 +148,33 @@ def build_prose_claims(root: Path) -> list[Claim]:
     )
     push(
         _extra_claim(
+            "ev_moran_p_15",
+            ev15["moran_p"],
+            "outputs/tables/h1_inequality_lisa.csv",
+            "res9,15,ev_charger,moran_p",
+            4,
+        )
+    )
+    push(
+        _extra_claim(
+            "ev_n_ll",
+            ev15["n_ll_fdr"],
+            "outputs/tables/h1_inequality_lisa.csv",
+            "res9,15,ev_charger,n_ll_fdr",
+            0,
+        )
+    )
+    push(
+        _extra_claim(
+            "ev_n_hh",
+            ev15["n_hh_fdr"],
+            "outputs/tables/h1_inequality_lisa.csv",
+            "res9,15,ev_charger,n_hh_fdr",
+            0,
+        )
+    )
+    push(
+        _extra_claim(
             "ev_zero_15",
             ev15["zero_acc_pct"],
             "outputs/tables/h1_inequality_lisa.csv",
@@ -291,6 +318,7 @@ def build_prose_claims(root: Path) -> list[Claim]:
     )
 
     cells = gpd.read_file(root / "data" / "frozen" / "cells_base_res9.gpkg")
+    cells_full = gpd.read_file(root / "data" / "frozen" / "cells.gpkg")
     cells8 = gpd.read_file(root / "data" / "frozen" / "cells_base_res8.gpkg")
     facilities = gpd.read_file(root / "data" / "frozen" / "facilities_clean.gpkg")
     pop = float(cells["pop_total"].sum())
@@ -299,6 +327,21 @@ def build_prose_claims(root: Path) -> list[Claim]:
         raise ValueError(f"Cell population sum {pop} drifted from the census control")
     if abs(pop65 - DSEC_TERRESTRIAL_POP_65PLUS) / DSEC_TERRESTRIAL_POP_65PLUS > 0.001:
         raise ValueError(f"Cell age-65 sum {pop65} drifted from the census control")
+    zero_ev_mask = cells_full["acc15_ev_charger"].astype(float) <= 0.0
+    ev_zero_pop_pct = (
+        100.0
+        * float(cells_full.loc[zero_ev_mask, "pop_total"].sum())
+        / float(cells_full["pop_total"].sum())
+    )
+    push(
+        _extra_claim(
+            "ev_zero_pop_15",
+            ev_zero_pop_pct,
+            "data/frozen/cells.gpkg",
+            "pop_pct(acc15_ev_charger==0)",
+            2,
+        )
+    )
     push(
         make_claim(
             "pop_total",
@@ -559,7 +602,11 @@ def substitution_map(
         "COMP_N_LL": got("comp_n_ll"),
         "COMP_N_HH": got("comp_n_hh"),
         "EV_MORAN_15": got("ev_moran_15"),
+        "EV_MORAN_P_15": got("ev_moran_p_15"),
+        "EV_N_LL": got("ev_n_ll"),
+        "EV_N_HH": got("ev_n_hh"),
         "EV_ZERO_15": got("ev_zero_15"),
+        "EV_ZERO_POP_15": got("ev_zero_pop_15"),
         "EV_GINI_10": got("ev_gini_10"),
         "PARK_GINI_10": got("park_gini_10"),
         "H2_PARK_DIFF": got("h2_park_diff"),
