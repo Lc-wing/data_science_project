@@ -58,7 +58,7 @@
 - **目标变量（5 维多标签，可共存）：** `NORM`、`MI`、`STTC`、`CD`、`HYP`（严格按照官方 `scp_statements.csv` 映射，仅保留诊断置信度 `likelihood >= 50` 或采用官方基准全部映射并明确披露）。
 - **输入特征：**
   - *阶段 A（表格）：* 患者年龄、性别 + PTB-XL+ `ECGDeli` 客观电生理形态特征（529 列经训练折内缺失率过滤与中位数插补）；**严禁使用 `report` 文本与商业软件自动诊断结论 `12SL` 语句（防目标泄漏！）**。
-  - *阶段 B（波形与客观参数）：* 原始 100 Hz 12 导联波形张量 $(12 \times 1000)$（`wfdb` 加载，仅用训练折统计量做逐导联 Z-score 标准化）；客观电生理参数摘要（用于 4B LLM 路线 B）。
+  - *阶段 B（波形与客观参数）：* 原始 100 Hz 12 导联波形张量 `(12 × 1000)`（`wfdb` 加载，仅用训练折统计量做逐导联 Z-score 标准化）；客观电生理参数摘要（用于 4B LLM 路线 B）。
 
 ### 2.3 清洗与预处理
 1. **强制防泄漏检查：** 从特征表彻底删除 `report`、`scp_codes`、`infarction_stadium*` 及 PTB-XL+ 中商业自动诊断语句列；仅保留客观波形测量值与人口统计学特征。
@@ -115,7 +115,7 @@
 **输入：** 阶段 A **冻结** 的官方患者级 `strat_fold`（1–8 训练，9 验证/校准，10 测试）、100 Hz 原始 12 导联波形及非诊断客观 `ECGDeli` 测量值。
 
 ### 路线 A（推荐，从零训练 12 导联端到端波形深度模型，约 8M–20M 参数）
-- **模型：** **`1D-ResNet-SE`（如 `xresnet1d101` 风格通道注意力残差网）** 与 **`ECG-PatchTransformer`**（`d_model=256–384, n_heads=8, n_layers=6`，约 **8M–20M** 参数），直接输入 100 Hz 12 导联波形 $(12 \times 1000)$，输出 5 超类多标签概率（BCEWithLogitsLoss + Cosine LR + Mixup/随机导联遮蔽数据增强 + 折 9 Early Stopping 与 **Temperature Scaling** 校准，跑 5 个随机种子；并做 1M vs 15M 容量消融）。
+- **模型：** **`1D-ResNet-SE`（如 `xresnet1d101` 风格通道注意力残差网）** 与 **`ECG-PatchTransformer`**（`d_model=256–384, n_heads=8, n_layers=6`，约 **8M–20M** 参数），直接输入 100 Hz 12 导联波形 `(12 × 1000)`，输出 5 超类多标签概率（BCEWithLogitsLoss + Cosine LR + Mixup/随机导联遮蔽数据增强 + 折 9 Early Stopping 与 **Temperature Scaling** 校准，跑 5 个随机种子；并做 1M vs 15M 容量消融）。
 - **核心验证：** 重点检验端到端波形深度学习在 `HYP`（心室肥大）与高龄亚组上是否显著缩小了与简单类别的差距（回答 H3）。
 
 ### 路线 B（预训练大模型微调，≤ 5B —— 严禁使用诊断文本 `report`！）
@@ -125,7 +125,7 @@
 
 ### 对比表（报告里放 1 张小表）
 
-| 模型（参数量，均 ≤ 5B） | 折 10 Macro-AUROC | `HYP` AUROC | ≥70 岁亚组 AUROC | Macro-ECE（校准后） | DeLong $p$ vs LightGBM（Holm） |
+| 模型（参数量，均 ≤ 5B） | 折 10 Macro-AUROC | `HYP` AUROC | ≥70 岁亚组 AUROC | Macro-ECE（校准后） | DeLong p vs LightGBM（Holm） |
 | --- | --- | --- | --- | --- | --- |
 | 正则化 Logistic / LightGBM（阶段 A，客观特征） | | | | | — |
 | `1D-ResNet-SE` (~10M，12 导联波形，5 种子) | | | | | |
