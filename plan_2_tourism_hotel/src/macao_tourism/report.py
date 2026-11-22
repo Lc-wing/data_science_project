@@ -122,15 +122,27 @@ def change_point_sentence(found: dict[str, list[str]]) -> str:
     return f"Change points that remain at every reported penalty are {body}."
 
 
+def _tex_p(value: str) -> str:
+    return rf"\({value}\)" if value.startswith("<") else value
+
+
 def table_one(c: Claims) -> str:
     """One table: the confirmatory contrasts and the pooled forecast scores."""
 
     def row(cells: list[str]) -> str:
         return " & ".join(cells) + r" \\"
 
+    m = c.mapping()
     return "\n".join(
         [
             r"\begin{center}",
+            r"\begin{minipage}{\textwidth}",
+            r"\centering",
+            r"{\small Table 1. Confirmatory regression contrasts (top, in percentage points of "
+            r"occupancy; Driscoll--Kraay SEs and Holm-adjusted \(p\)-values over H1 and H2) and "
+            r"pooled test forecast accuracy (bottom; MAE and RMSE in percentage points, MASE "
+            r"dimensionless, HLN-DM Holm-adjusted \(p\)-values vs.\ LightGBM over the 10-test "
+            r"family; predictive comparison only).}\\[4pt]",
             r"{\small",
             r"\begin{tabular}{lrrrr}",
             r"\toprule",
@@ -139,76 +151,57 @@ def table_one(c: Claims) -> str:
             row(
                 [
                     "H1, post slope, 5-star minus 3-star",
-                    c.mapping()["H1_EST"],
-                    c.mapping()["H1_SE"],
-                    f"{c.mapping()['H1_LO']} to {c.mapping()['H1_HI']}",
-                    c.mapping()["H1_HOLM"],
+                    m["H1_EST"],
+                    m["H1_SE"],
+                    f"{m['H1_LO']} to {m['H1_HI']}",
+                    _tex_p(m["H1_HOLM"]),
                 ]
             ),
             row(
                 [
                     "H2, change in the same-day slope",
-                    c.mapping()["H2_EST"],
-                    c.mapping()["H2_SE"],
-                    f"{c.mapping()['H2_LO']} to {c.mapping()['H2_HI']}",
-                    c.mapping()["H2_HOLM"],
+                    m["H2_EST"],
+                    m["H2_SE"],
+                    f"{m['H2_LO']} to {m['H2_HI']}",
+                    _tex_p(m["H2_HOLM"]),
                 ]
             ),
             row(
                 [
                     "5-star post slope on log overnight visitors",
-                    c.mapping()["B5_POST"],
+                    m["B5_POST"],
                     "",
-                    f"{c.mapping()['B5_LO']} to {c.mapping()['B5_HI']}",
+                    f"{m['B5_LO']} to {m['B5_HI']}",
                     "",
                 ]
             ),
             row(
                 [
                     "3-star post slope on log overnight visitors",
-                    c.mapping()["B3_POST"],
+                    m["B3_POST"],
                     "",
-                    f"{c.mapping()['B3_LO']} to {c.mapping()['B3_HI']}",
+                    f"{m['B3_LO']} to {m['B3_HI']}",
                     "",
                 ]
             ),
             r"\midrule",
-            r"Model (pooled test) & MAE & RMSE & MASE & \\",
+            r"Model (pooled test) & MAE & RMSE & MASE & Holm \(p\) \\",
             r"\midrule",
-            row(
-                [
-                    "LightGBM",
-                    c.mapping()["MAE_LGB"],
-                    c.mapping()["RMSE_LGB"],
-                    c.mapping()["MASE_LGB"],
-                    "",
-                ]
-            ),
-            row(
-                [
-                    "SARIMAX",
-                    c.mapping()["MAE_SAR"],
-                    c.mapping()["RMSE_SAR"],
-                    c.mapping()["MASE_SAR"],
-                    "",
-                ]
-            ),
+            row(["LightGBM", m["MAE_LGB"], m["RMSE_LGB"], m["MASE_LGB"], "--"]),
+            row(["SARIMAX", m["MAE_SAR"], m["RMSE_SAR"], m["MASE_SAR"], _tex_p(m["DM_S_HOLM"])]),
             row(
                 [
                     "Seasonal naive",
-                    c.mapping()["MAE_NAIVE"],
-                    c.mapping()["RMSE_NAIVE"],
-                    c.mapping()["MASE_NAIVE"],
-                    "",
+                    m["MAE_NAIVE"],
+                    m["RMSE_NAIVE"],
+                    m["MASE_NAIVE"],
+                    _tex_p(m["DM_N_HOLM"]),
                 ]
             ),
             r"\bottomrule",
             r"\end{tabular}",
-            r"}\\[2pt]",
-            r"{\small Table 1. Confirmatory contrasts, in points of occupancy, and pooled "
-            r"test accuracy. H1 and H2 use Driscoll--Kraay standard errors and Holm "
-            r"adjustment over the two tests. MAE, RMSE, and MASE are in percentage "
-            r"points. The forecast rows are not a causal comparison.}",
+            r"}",
+            r"\end{minipage}",
             r"\end{center}",
         ]
     )
@@ -450,15 +443,21 @@ def build_claims() -> Claims:
     )
     c.number("DF_EQ", eq["df"], 0, sec_file, "equal slopes df")
     c.number("CHI_EQ", eq["chi2"], 1, sec_file, "equal slopes chi2")
-    c.p_value("P_EQ", eq["p_value"], sec_file, "equal slopes p")
+    c.p_value("P_EQ", eq["p_value"], sec_file, "equal slopes p", inline=True)
     c.number("DF_CHOW", chow["df"], 0, sec_file, "chow df")
     c.number("CHI_CHOW", chow["chi2"], 1, sec_file, "chow chi2")
     c.p_value("P_CHOW", chow["p_value"], sec_file, "chow p", inline=True)
     c.p_value(
-        "S5_HOLM", sensitivity.loc["S5_fully_interacted", "H1_p_holm"], sens_file, "S5 H1 holm"
+        "S5_HOLM",
+        sensitivity.loc["S5_fully_interacted", "H1_p_holm"],
+        sens_file,
+        "S5 H1 holm",
+        inline=True,
     )
     c.number("S4_EST", sensitivity.loc["S4_trends", "H2_estimate"], 2, sens_file, "S4 H2 estimate")
-    c.p_value("S4_HOLM", sensitivity.loc["S4_trends", "H2_p_holm"], sens_file, "S4 H2 holm")
+    c.p_value(
+        "S4_HOLM", sensitivity.loc["S4_trends", "H2_p_holm"], sens_file, "S4 H2 holm", inline=True
+    )
     diagnostics = regression["diagnostics_count"]
     c.number(
         "LB_LOW",
@@ -479,6 +478,7 @@ def build_claims() -> Claims:
         diagnostics["breusch_pagan_p"],
         "outputs/metrics/regression_summary.json",
         "breusch_pagan_p",
+        inline=True,
     )
 
     def pooled(run: str, model: str, column: str, token: str, digits: int = 2) -> None:
@@ -536,6 +536,56 @@ def build_claims() -> Claims:
         2,
         fc_file,
         "F2 mean forecast minus actual",
+    )
+    sel_file = "outputs/metrics/forecast_selection.json"
+    selection_main = _json("forecast_selection.json")["selection"]["main"]
+    sar_5 = selection_main["sarimax"]["5star"]
+    other_tiers = ("4star", "3star", "2star")
+    other_pairs = {
+        (
+            tuple(selection_main["sarimax"][t]["order"]),
+            tuple(selection_main["sarimax"][t]["seasonal_order"]),
+        )
+        for t in other_tiers
+    }
+    if len(other_pairs) != 1:
+        raise ValueError("Expected 4star, 3star, and 2star main SARIMAX orders to match")
+    sar_other = selection_main["sarimax"]["4star"]
+    c.text(
+        "SAR_5_ORDER",
+        f"({', '.join(str(x) for x in sar_5['order'])})",
+        sel_file,
+        "selection.main.sarimax.5star.order",
+    )
+    c.text(
+        "SAR_5_SEAS",
+        f"({', '.join(str(x) for x in sar_5['seasonal_order'])})",
+        sel_file,
+        "selection.main.sarimax.5star.seasonal_order",
+    )
+    c.text(
+        "SAR_OTHER_ORDER",
+        f"({', '.join(str(x) for x in sar_other['order'])})",
+        sel_file,
+        "selection.main.sarimax.4star_3star_2star.order",
+    )
+    c.text(
+        "SAR_OTHER_SEAS",
+        f"({', '.join(str(x) for x in sar_other['seasonal_order'])})",
+        sel_file,
+        "selection.main.sarimax.4star_3star_2star.seasonal_order",
+    )
+    lgb_sel = selection_main["lightgbm"]
+    c.number("LGB_LEAVES", lgb_sel["num_leaves"], 0, sel_file, "selection.main.lightgbm.num_leaves")
+    c.number(
+        "LGB_MIN_LEAF",
+        lgb_sel["min_data_in_leaf"],
+        0,
+        sel_file,
+        "selection.main.lightgbm.min_data_in_leaf",
+    )
+    c.number(
+        "LGB_TREES", lgb_sel["n_estimators"], 0, sel_file, "selection.main.lightgbm.n_estimators"
     )
     c.number("N_FITS", len(forecasts), 0, fc_file, "all test fits")
     if not bool(forecasts["sarimax_converged"].all()):
@@ -634,7 +684,7 @@ def compile_pdf(tex_path: Path) -> Path:
 
 def _compact(text: str) -> str:
     text = text.replace("−", "-").replace("–", "-")
-    text = re.sub(r"\s*<\s*", "<", text)
+    text = re.sub(r"\s*([<=])\s*", r"\1", text)
     return re.sub(r"\s+", " ", text)
 
 
@@ -664,18 +714,34 @@ def forbidden_words(tex: str) -> list[str]:
     return [word for word in CAUSAL_WORDS if re.search(rf"\b{word}\b", body, re.IGNORECASE)]
 
 
+def uncited_bibitems(tex: str) -> list[str]:
+    bib_keys = re.findall(r"\\bibitem\{([^}]+)\}", tex)
+    cited: set[str] = set()
+    for match in re.findall(r"\\cite\{([^}]+)\}", tex):
+        cited.update(key.strip() for key in match.split(","))
+    return [key for key in bib_keys if key not in cited]
+
+
 def write_report(root: Path = PROJECT_ROOT) -> dict[str, object]:
     claims = build_claims()
     tex = render_tex(claims)
     bad_words = forbidden_words(tex)
     if bad_words:
         raise ValueError("Causal wording in the main text: " + ", ".join(bad_words))
+    uncited = uncited_bibitems(tex)
+    if uncited:
+        raise ValueError("Uncited bibliography entries: " + ", ".join(uncited))
     report_dir = root / "report"
     report_dir.mkdir(parents=True, exist_ok=True)
     tex_path = report_dir / TEX_NAME
     tex_path.write_text(tex, encoding="utf-8")
     pdf_path = compile_pdf(tex_path)
     text = pdf_text(pdf_path)
+    for bad_glyph in ("¡", "¿"):
+        if bad_glyph in text:
+            raise ValueError(f"Unexpected LaTeX encoding glyph {bad_glyph!r} in PDF")
+    if "[?]" in text or "??" in text:
+        raise ValueError("Unresolved citation or cross-reference found in PDF")
     compact_text = _compact(text)
     missing = [
         claim.reported for claim in claims.items() if _compact(claim.reported) not in compact_text

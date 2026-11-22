@@ -64,8 +64,8 @@ def _shade_pandemic(ax: Axes) -> None:
     ax.axvspan(pd.Timestamp(first + "-01"), end, color="#bdc3c7", alpha=0.35, linewidth=0)
 
 
-def _year_axis(ax: Axes) -> None:
-    ax.xaxis.set_major_locator(mdates.YearLocator(2))
+def _year_axis(ax: Axes, step: int = 2) -> None:
+    ax.xaxis.set_major_locator(mdates.YearLocator(step))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
     ax.margins(x=0.01)
 
@@ -76,27 +76,22 @@ def save(fig: Figure, directory: Path, stem: str) -> list[Path]:
     for suffix in FORMATS:
         path = directory / f"{stem}.{suffix}"
         metadata = {"CreationDate": None} if suffix == "pdf" else {"Software": None}
-        fig.savefig(path, dpi=200, bbox_inches="tight", metadata=metadata)
+        fig.savefig(path, dpi=300, bbox_inches="tight", metadata=metadata)
         written.append(path)
     plt.close(fig)
     return written
 
 
 def figure_1(months: pd.DataFrame, panel: pd.DataFrame, segments: pd.DataFrame) -> Figure:
-    """Visitor-mix timeline with PELT change points, above occupancy by star class."""
+    """Visitor-mix timeline with PELT change points, alongside occupancy by star class."""
     series = list(SHARE_LABELS)
-    fig, axes = plt.subplots(
-        len(series) + 1,
-        1,
-        figsize=(7.2, 7.4),
-        sharex=True,
-        gridspec_kw={"height_ratios": [1, 1, 1, 1.7], "hspace": 0.3},
-    )
+    fig, axes = plt.subplots(2, 2, figsize=(7.2, 4.1), sharex=True)
+    flat = axes.ravel()
     ordered = months.sort_values("period")
     dates = month_start(ordered["period"])
-    for ax, name in zip(axes, series, strict=False):
+    for ax, name in zip(flat[:3], series, strict=True):
         _shade_pandemic(ax)
-        ax.plot(dates, ordered[name], color=SHARE_COLOR, linewidth=0.9)
+        ax.plot(dates, ordered[name], color=SHARE_COLOR, linewidth=0.95)
         parts = segments[segments["series"] == name]
         for part in parts.itertuples():
             start = pd.Timestamp(part.first_month + "-01")
@@ -105,9 +100,9 @@ def figure_1(months: pd.DataFrame, panel: pd.DataFrame, segments: pd.DataFrame) 
             if part.segment > 1:
                 ax.axvline(start, color=SEGMENT_COLOR, linewidth=0.8, linestyle="--")
         ax.set_ylabel("% of visitors")
-        ax.set_title(SHARE_LABELS[name], loc="left", fontsize=8, pad=2)
-        _year_axis(ax)
-    occupancy = axes[-1]
+        ax.set_title(SHARE_LABELS[name], loc="left", fontsize=8.5, pad=3)
+        _year_axis(ax, step=4)
+    occupancy = flat[3]
     _shade_pandemic(occupancy)
     for tier in TIERS:
         rows = panel[panel["tier"] == tier].sort_values("period")
@@ -115,14 +110,15 @@ def figure_1(months: pd.DataFrame, panel: pd.DataFrame, segments: pd.DataFrame) 
             month_start(rows["period"]),
             rows["occupancy_pct"],
             color=TIER_COLORS[tier],
-            linewidth=0.9,
+            linewidth=0.95,
             label=TIER_LABELS[tier],
         )
     occupancy.set_ylabel("Occupancy rate (%)")
-    occupancy.set_title("Hotel occupancy by star class", loc="left", fontsize=8, pad=2)
+    occupancy.set_title("Hotel occupancy by star class", loc="left", fontsize=8.5, pad=3)
     occupancy.set_ylim(0, 100)
-    occupancy.legend(ncols=4, loc="lower left", fontsize=7)
-    _year_axis(occupancy)
+    occupancy.legend(ncols=2, loc="lower left", fontsize=7, columnspacing=0.9, handlelength=1.4)
+    _year_axis(occupancy, step=4)
+    fig.subplots_adjust(hspace=0.26, wspace=0.22)
     return fig
 
 

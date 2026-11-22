@@ -83,16 +83,16 @@ Phase B is not estimated in this draft.
 | TEN_3 | 0.28 | outputs/tables/regression_slopes.csv | 3star post times ln(1.1) |
 | DF_EQ | 3 | outputs/tables/regression_secondary.csv | equal slopes df |
 | CHI_EQ | 15.3 | outputs/tables/regression_secondary.csv | equal slopes chi2 |
-| P_EQ | 0.002 | outputs/tables/regression_secondary.csv | equal slopes p |
+| P_EQ | =0.002 | outputs/tables/regression_secondary.csv | equal slopes p |
 | DF_CHOW | 5 | outputs/tables/regression_secondary.csv | chow df |
 | CHI_CHOW | 36.4 | outputs/tables/regression_secondary.csv | chow chi2 |
 | P_CHOW | <0.001 | outputs/tables/regression_secondary.csv | chow p |
-| S5_HOLM | 0.060 | outputs/tables/regression_sensitivity.csv | S5 H1 holm |
+| S5_HOLM | =0.060 | outputs/tables/regression_sensitivity.csv | S5 H1 holm |
 | S4_EST | 0.39 | outputs/tables/regression_sensitivity.csv | S4 H2 estimate |
-| S4_HOLM | 0.020 | outputs/tables/regression_sensitivity.csv | S4 H2 holm |
+| S4_HOLM | =0.020 | outputs/tables/regression_sensitivity.csv | S4 H2 holm |
 | LB_LOW | 14 | outputs/metrics/regression_summary.json | ljung_box_below_0.05 |
 | LB_N | 16 | outputs/metrics/regression_summary.json | ljung_box_cells |
-| BP_P | < 0.001 | outputs/metrics/regression_summary.json | breusch_pagan_p |
+| BP_P | <0.001 | outputs/metrics/regression_summary.json | breusch_pagan_p |
 | MAE_LGB | 2.06 | outputs/tables/forecast_test_metrics.csv | main.lightgbm.mae |
 | MAE_SAR | 2.36 | outputs/tables/forecast_test_metrics.csv | main.sarimax.mae |
 | MAE_NAIVE | 3.26 | outputs/tables/forecast_test_metrics.csv | main.seasonal_naive.mae |
@@ -120,6 +120,13 @@ Phase B is not estimated in this draft.
 | F2_SAR | 2.85 | outputs/tables/forecast_test_metrics.csv | F2_pandemic_included.sarimax.mae |
 | F2_NAIVE | 3.26 | outputs/tables/forecast_test_metrics.csv | F2_pandemic_included.seasonal_naive.mae |
 | F2_BIAS | -3.00 | outputs/tables/forecast_test_forecasts.csv | F2 mean forecast minus actual |
+| SAR_5_ORDER | (1, 0, 1) | outputs/metrics/forecast_selection.json | selection.main.sarimax.5star.order |
+| SAR_5_SEAS | (0, 1, 1, 12) | outputs/metrics/forecast_selection.json | selection.main.sarimax.5star.seasonal_order |
+| SAR_OTHER_ORDER | (1, 1, 1) | outputs/metrics/forecast_selection.json | selection.main.sarimax.4star_3star_2star.order |
+| SAR_OTHER_SEAS | (0, 1, 1, 12) | outputs/metrics/forecast_selection.json | selection.main.sarimax.4star_3star_2star.seasonal_order |
+| LGB_LEAVES | 8 | outputs/metrics/forecast_selection.json | selection.main.lightgbm.num_leaves |
+| LGB_MIN_LEAF | 10 | outputs/metrics/forecast_selection.json | selection.main.lightgbm.min_data_in_leaf |
+| LGB_TREES | 400 | outputs/metrics/forecast_selection.json | selection.main.lightgbm.n_estimators |
 | N_FITS | 312 | outputs/tables/forecast_test_forecasts.csv | all test fits |
 | SHAP1 | 1.82 | outputs/tables/forecast_shap_importance.csv | row 0 all_classes |
 | SHAP2 | 1.23 | outputs/tables/forecast_shap_importance.csv | row 1 all_classes |
