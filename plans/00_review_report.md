@@ -145,15 +145,15 @@ flowchart LR
 
 ---
 
-## 6. 跨领域扩展计划总览（Plan 6–9，2026-11-22 新增，均遵循同标准与 ≤ 5B 上限）
+## 6. 跨领域扩展计划总览（Plan 6–9，2026-11-22 新增；Plan 6 升级为 2019–2025 与单卡 A100 27B–64B QLoRA）
 
-> **说明：** 以下 4 份扩展计划同样严格满足 CS482 自主选题条款、两阶段架构（阶段 A 最低要求 → 12/03 检查点 → 阶段 B ≤ 5B）及对应领域科研技能把关（金融防未来泄漏、游戏首发前特征边界、低空经济按架次防泄漏、医药健康 `clinical-decision-support` 硬安全边界）；成功率为基于 22 天工期（11/22–12/14）的主观规划区间估计。
+> **说明：** 以下 4 份扩展计划同样严格满足 CS482 自主选题条款、两阶段架构（阶段 A 最低要求 → 12/03 检查点 → 阶段 B 深度学习附加模块）及对应领域科研技能把关（金融防未来泄漏、游戏首发前特征边界、低空经济按架次防泄漏、医药健康 `clinical-decision-support` 硬安全边界）；成功率为基于 22 天工期（11/22–12/14）的主观规划区间估计。
 
-| 推荐序 | 计划与领域 | 阶段 B 旗舰模型（严格 ≤ 5B） | 数据获取难度 | 全阶段实现难度 | 最低要求成功率 | 最终目标成功率 | 核心防线与亮点 |
+| 推荐序 | 计划与领域 | 阶段 B 旗舰模型 | 数据获取难度 | 全阶段实现难度 | 最低要求成功率 | 最终目标成功率 | 核心防线与亮点 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | **1** | **Plan 7 游戏（Steam）** | `FT-Transformer+BiGRU` (5M–15M) + **`Qwen3-Embedding-4B` / `Qwen3-4B-Instruct-2507` (4.0B LoRA)** | ★☆☆☆☆ 很低 (1/5) | ★★☆☆☆ 中低 (2.5/5) | **92%–97%** | **85%–92%** | 14.8 万公开游戏数据一键获取；严守首发前特征边界、暴露时长控制与经验贝叶斯平滑 |
 | **2** | **Plan 9 医药健康（ECG）** | `1D-ResNet-SE / ECG-PatchTransformer` (8M–20M) + **`Qwen3-4B-Instruct-2507` (4.0B 客观参数 QLoRA)** | ★☆☆☆☆ 很低 (1/5) | ★★★☆☆ 中等 (3/5) | **90%–95%** | **82%–90%** | PTB-XL/PTB-XL+ (CC-BY 4.0) 自带患者级 `strat_fold`；严禁诊断文本泄漏 + 亚组公平性/校准/DCA + 非临床硬安全声明 |
-| **3** | **Plan 6 金融（美股波动率）** | `PatchTST` (5M–15M) + `Chronos-T5-Large` (710M) + **`Qwen3-4B-Instruct-2507` (4.0B 财经新闻 QLoRA)** | ★★☆☆☆ 中低 (2/5) | ★★★☆☆ 中等 (3/5) | **88%–94%** | **80%–88%** | 聚焦可预测的 5 日波动率与尾部风险（避开随机游走股价陷阱）；FNSPID 收盘前截断 + Purged 5 日隔离期 |
-| **4** | **Plan 8 低空经济（无人机）** | 物理残差 `CNN-Transformer / PatchTST` (3M–12M) + `Chronos-T5-Large` (710M) + **`Qwen3-4B` (4.0B QLoRA)** | ★★☆☆☆ 中低 (2/5) | ★★★☆☆ 中等 (3/5) | **88%–94%** | **80%–88%** | CMU *Nature Scientific Data* 209 架次 5 Hz 实测数据；按 `flight_id` 分组 + 留一工况外推 + 95% 安全电量边界 |
+| **3** | **Plan 8 低空经济（无人机）** | 物理残差 `CNN-Transformer / PatchTST` (3M–12M) + `Chronos-T5-Large` (710M) + **`Qwen3-4B` (4.0B QLoRA)** | ★★☆☆☆ 中低 (2/5) | ★★★☆☆ 中等 (3/5) | **88%–94%** | **80%–88%** | CMU *Nature Scientific Data* 209 架次 5 Hz 实测数据；按 `flight_id` 分组 + 留一工况外推 + 95% 安全电量边界 |
+| **4** | **Plan 6 金融（美股波动率 2019–2025）** | `PatchTST` (8M–20M) + `Chronos-T5-Large` (710M) + **单卡 A100 4-bit QLoRA：`gemma-4-31B` (31B) / `Muse-Glimmer-30B` (30B) / `Qwen3.8-27B` (27B–64B)** | ★★☆☆☆ 中低 (2.5/5) | ★★★☆☆ 中偏高 (3.5/5) | **88%–94%** | **78%–86%** | 扩展至 **2019–2025**（FNSPID + `financial-news-multisource` / SEC 8-K 双源衔接）；事件锚定日 4-bit QLoRA 单张 A100 可跑 |
 
 > **工具引用说明：** 本次评审用到了 K-Dense Scientific Agent Skills。如果最终报告的方法设计实质上采纳了这些建议，可以在 References 或 AI 声明中引用：Kassis, T., Agarwal, V., He, Y., Patel, D., & Brueckner, A. M. (2026). *Scientific Agent Skills: A Library of Procedural Knowledge for Research Agents.* arXiv:2609.00065. https://doi.org/10.48550/arXiv.2609.00065
