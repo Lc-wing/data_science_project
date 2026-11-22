@@ -1,0 +1,48 @@
+# Python / Virtualenv
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Environment / OS
+.env
+.env.*
+.DS_Store
+Thumbs.db
+
+# Multi-agent orchestration state
+.agents/
+
+# Local download, Hugging Face & ML/LLM caches (keep compact snapshots + data_provenance.json in git)
+.cache/
+hf_cache/
+checkpoints/
+mlruns/
+wandb/
+catboost_info/
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.gguf
+
+# Raw multi-GB archives (never commit raw bulk dumps)
+data/raw/*.zip
+data/raw/*.tar.gz
+data/raw/*.tgz
+
+# LaTeX build intermediates (keep .tex, .bib, compiled .pdf, and audit .md)
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+*.toc
+*.synctex.gz

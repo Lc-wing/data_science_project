@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "stock-volatility"
+version = "0.1.0"
+description = "Plan 6: US equity realized volatility and downside tail-risk forecasting (2019-2025)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.2,<3.0",
+    "numpy>=2.0",
+    "scipy>=1.14",
+    "statsmodels>=0.14",
+    "scikit-learn>=1.5",
+    "lightgbm>=4.5",
+    "arch>=7.0",
+    "shap>=0.46",
+    "yfinance>=0.2.50",
+    "pyarrow>=18.0",
+    "requests>=2.31",
+    "matplotlib>=3.9",
+    "seaborn>=0.13",
+    "pypdf>=5.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.7",
+]
+
+[tool.uv]
+# Prevent universal resolver on Python 3.11 from falling back to source-only numba 0.53 / llvmlite 0.36
+constraint-dependencies = ["numba>=0.60"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/stock_volatility"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["stock_volatility"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

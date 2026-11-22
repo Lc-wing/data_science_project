@@ -27,3 +27,13 @@ Thumbs.db
 *.bbl
 *.blg
 *.toc
+
+# Local download & ML/LLM model caches (keep compact snapshots + data_provenance.json in git)
+.cache/
+hf_cache/
+checkpoints/
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.gguf
