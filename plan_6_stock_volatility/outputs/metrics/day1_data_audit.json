@@ -1,0 +1,294 @@
+{
+  "schema_version": "1.0",
+  "project": "plan_6_stock_volatility",
+  "milestone": "M1",
+  "generated_at_utc": "2026-11-22T14:04:28+00:00",
+  "universe": {
+    "total_tickers": 60,
+    "sectors_count": 5,
+    "tickers_per_sector": {
+      "Technology": 12,
+      "Financials": 12,
+      "Healthcare": 12,
+      "Consumer": 12,
+      "Energy": 12
+    },
+    "ticker_replacements": []
+  },
+  "news_source_decision": {
+    "selected_backbone": "sec_edgar",
+    "plan_reference": "Plan 6 §2.1 Pre-Registered 100% Deterministic Zero-Gap Fallback",
+    "primary_candidate_probe": {
+      "dataset": "Brianferrell787/financial-news-multisource",
+      "http_status": 401,
+      "finding": "Hugging Face dataset is gated (HTTP 401 Unauthorized without HF_TOKEN), and its ungated mirror lacks continuous 2024 ticker-tagged intraday coverage."
+    },
+    "secondary_candidate_probe": {
+      "dataset": "FNSPID (Financial News and Stock Price Integration Dataset)",
+      "finding": "Dataset ends in 2023 (0 coverage for 2024 Val and 2025 Test), requires 5.73-23.23 GB bulk download, and exhibits severe 00:00:00 UTC timestamp leakage."
+    },
+    "activated_fallback": {
+      "source": "SEC EDGAR Submissions API (Form 8-K, 8-K/A, 10-Q, 10-K)",
+      "endpoints": [
+        "https://www.sec.gov/files/company_tickers.json",
+        "https://data.sec.gov/submissions/CIK{cik:010d}.json",
+        "https://data.sec.gov/submissions/CIK{cik:010d}-submissions-{NNN}.json"
+      ],
+      "advantages": "100% public, zero authentication gate, exact second-precision UTC acceptanceDateTime for strict 16:00 America/New_York cutoff, and 60/60 ticker continuity across both 2019-2023 and 2024-2025."
+    }
+  },
+  "ohlcv": {
+    "total_rows": 105600,
+    "n_tickers": 60,
+    "trading_days_per_ticker_min": 1760,
+    "trading_days_per_ticker_max": 1760,
+    "first_date": "2019-01-02",
+    "last_date": "2025-12-31",
+    "calendar_mismatch_tickers": 0,
+    "nan_cell_count": 0,
+    "zero_volume_row_count": 0,
+    "negative_volume_row_count": 0,
+    "volume_min": 126400.0,
+    "volume_max": 2511528000.0,
+    "non_positive_price_row_count": 0,
+    "high_lt_low_row_count": 0,
+    "stock_split_event_count": 9,
+    "stock_split_tickers_count": 8,
+    "stock_split_events": [
+      {
+        "date": "2020-08-31",
+        "ticker": "AAPL",
+        "split_ratio": 4.0,
+        "close": 129.04,
+        "adj_close": 124.9626
+      },
+      {
+        "date": "2020-11-17",
+        "ticker": "PFE",
+        "split_ratio": 1.054,
+        "close": 36.04,
+        "adj_close": 26.4671
+      },
+      {
+        "date": "2021-06-03",
+        "ticker": "MRK",
+        "split_ratio": 1.048,
+        "close": 73.91,
+        "adj_close": 62.3289
+      },
+      {
+        "date": "2021-07-20",
+        "ticker": "NVDA",
+        "split_ratio": 4.0,
+        "close": 18.612,
+        "adj_close": 18.5271
+      },
+      {
+        "date": "2021-11-04",
+        "ticker": "IBM",
+        "split_ratio": 1.046,
+        "close": 120.85,
+        "adj_close": 99.1209
+      },
+      {
+        "date": "2022-06-06",
+        "ticker": "AMZN",
+        "split_ratio": 20.0,
+        "close": 124.79,
+        "adj_close": 124.79
+      },
+      {
+        "date": "2024-02-26",
+        "ticker": "WMT",
+        "split_ratio": 3.0,
+        "close": 59.6,
+        "adj_close": 57.9666
+      },
+      {
+        "date": "2024-06-10",
+        "ticker": "NVDA",
+        "split_ratio": 10.0,
+        "close": 121.79,
+        "adj_close": 121.4437
+      },
+      {
+        "date": "2024-07-15",
+        "ticker": "AVGO",
+        "split_ratio": 10.0,
+        "close": 171.42,
+        "adj_close": 167.9498
+      }
+    ],
+    "dividend_event_count": 1608,
+    "dividend_paying_tickers_count": 58,
+    "non_dividend_tickers": [
+      "ADBE",
+      "AMZN"
+    ],
+    "extreme_daily_return_gt_20pct_count": 33,
+    "min_daily_return": -0.520138,
+    "max_daily_return": 0.359488
+  },
+  "macro": {
+    "total_rows": 1760,
+    "first_date": "2019-01-02",
+    "last_date": "2025-12-31",
+    "spy_ret_1d_nan_count": 1,
+    "vix_close_nan_count": 0,
+    "vix_fred_nan_count": 0,
+    "t10y2y_nan_count": 0,
+    "t10y2y_ffilled_count": 13,
+    "t10y2y_ffilled_share": 0.007386,
+    "t10y2y_ffilled_dates": [
+      "2019-10-14",
+      "2019-11-11",
+      "2020-10-12",
+      "2020-11-11",
+      "2021-10-11",
+      "2021-11-11",
+      "2022-10-10",
+      "2022-11-11",
+      "2023-10-09",
+      "2024-10-14",
+      "2024-11-11",
+      "2025-10-13",
+      "2025-11-11"
+    ],
+    "vix_close_min": 11.54,
+    "vix_close_max": 82.69,
+    "t10y2y_min": -1.08,
+    "t10y2y_max": 1.59,
+    "vix_close_vs_fred_pearson_r": 0.9999999289,
+    "vix_close_vs_fred_mean_abs_diff": 9.135e-05,
+    "vix_close_vs_fred_max_abs_diff": 0.11,
+    "vix_close_vs_fred_max_abs_diff_date": "2021-08-11"
+  },
+  "sec_edgar": {
+    "total_unique_filings": 7703,
+    "filings_2019_2023": 5665,
+    "filings_2024_2025": 2038,
+    "filings_per_year_2019_2023": 1133.0,
+    "filings_per_year_2024_2025": 1019.0,
+    "annual_rate_ratio_2425_vs_1923": 0.8994,
+    "active_tickers_2019_2023": 60,
+    "active_tickers_2024_2025": 60,
+    "missing_acceptance_datetime_count": 0,
+    "empty_headline_text_count": 0,
+    "form_counts": {
+      "8-K": 5928,
+      "8-K/A": 94,
+      "10-Q": 1261,
+      "10-K": 420
+    },
+    "earnings_8k_item_202_total": 1767,
+    "earnings_8k_item_202_2019_2023": 1266,
+    "earnings_8k_item_202_2024_2025": 501,
+    "cybersecurity_8k_item_105_total": 6,
+    "total_ciks_queried": 62,
+    "primary_ciks": 60,
+    "predecessor_ciks": 2,
+    "total_archives_listed": 351,
+    "overlapping_archives_fetched": 195,
+    "total_http_requests": 258,
+    "filings_from_recent": 5557,
+    "filings_from_archives": 2146,
+    "cik_predecessor_linkages": {
+      "BLK": {
+        "ticker": "BLK",
+        "primary_cik": "0002012383",
+        "primary_entity_name": "BlackRock, Inc.",
+        "predecessor_ciks": [
+          "0001364742"
+        ],
+        "predecessor_entity_names": [
+          "BlackRock Finance, Inc."
+        ],
+        "reorganization_note": "BlackRock completed its Global Infrastructure Partners (GIP) holding-company reorganization in 2024; 2019-2023 and early-2024 filings live under predecessor CIK 0001364742 while post-2024-02-20 filings live under CIK 0002012383."
+      },
+      "XOM": {
+        "ticker": "XOM",
+        "primary_cik": "0002115436",
+        "primary_entity_name": "ExxonMobil Holdings Corp",
+        "predecessor_ciks": [
+          "0000034088"
+        ],
+        "predecessor_entity_names": [
+          "EXXON MOBIL CORP"
+        ],
+        "reorganization_note": "ExxonMobil registered holding-company CIK 0002115436 in July 2026; 100% of 2019-2025 filings live under predecessor CIK 0000034088."
+      }
+    },
+    "sector_coverage_rollups": [
+      {
+        "sector": "Technology",
+        "n_tickers": 12,
+        "active_2019_2023": 12,
+        "active_2024_2025": 12,
+        "filings_2019_2023": 972,
+        "filings_2024_2025": 357,
+        "total_filings": 1329,
+        "filings_per_year_2019_2023": 194.4,
+        "filings_per_year_2024_2025": 178.5,
+        "annual_rate_ratio_2425_vs_1923": 0.9182,
+        "earnings_8k_202_2019_2023": 247,
+        "earnings_8k_202_2024_2025": 96
+      },
+      {
+        "sector": "Financials",
+        "n_tickers": 12,
+        "active_2019_2023": 12,
+        "active_2024_2025": 12,
+        "filings_2019_2023": 1535,
+        "filings_2024_2025": 519,
+        "total_filings": 2054,
+        "filings_per_year_2019_2023": 307.0,
+        "filings_per_year_2024_2025": 259.5,
+        "annual_rate_ratio_2425_vs_1923": 0.8453,
+        "earnings_8k_202_2019_2023": 263,
+        "earnings_8k_202_2024_2025": 100
+      },
+      {
+        "sector": "Healthcare",
+        "n_tickers": 12,
+        "active_2019_2023": 12,
+        "active_2024_2025": 12,
+        "filings_2019_2023": 1098,
+        "filings_2024_2025": 363,
+        "total_filings": 1461,
+        "filings_per_year_2019_2023": 219.6,
+        "filings_per_year_2024_2025": 181.5,
+        "annual_rate_ratio_2425_vs_1923": 0.8265,
+        "earnings_8k_202_2019_2023": 259,
+        "earnings_8k_202_2024_2025": 100
+      },
+      {
+        "sector": "Consumer",
+        "n_tickers": 12,
+        "active_2019_2023": 12,
+        "active_2024_2025": 12,
+        "filings_2019_2023": 1008,
+        "filings_2024_2025": 383,
+        "total_filings": 1391,
+        "filings_per_year_2019_2023": 201.6,
+        "filings_per_year_2024_2025": 191.5,
+        "annual_rate_ratio_2425_vs_1923": 0.9499,
+        "earnings_8k_202_2019_2023": 244,
+        "earnings_8k_202_2024_2025": 97
+      },
+      {
+        "sector": "Energy",
+        "n_tickers": 12,
+        "active_2019_2023": 12,
+        "active_2024_2025": 12,
+        "filings_2019_2023": 1052,
+        "filings_2024_2025": 416,
+        "total_filings": 1468,
+        "filings_per_year_2019_2023": 210.4,
+        "filings_per_year_2024_2025": 208.0,
+        "annual_rate_ratio_2425_vs_1923": 0.9886,
+        "earnings_8k_202_2019_2023": 253,
+        "earnings_8k_202_2024_2025": 108
+      }
+    ]
+  }
+}

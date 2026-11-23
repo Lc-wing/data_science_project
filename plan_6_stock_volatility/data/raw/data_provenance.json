@@ -1,0 +1,217 @@
+{
+  "schema_version": "1.0",
+  "project": "plan_6_stock_volatility",
+  "milestone": "M1",
+  "generated_at_utc": "2026-11-22T14:04:28+00:00",
+  "random_seed": 42,
+  "date_window": {
+    "start_date": "2019-01-02",
+    "end_date": "2025-12-31",
+    "n_trading_days": 1760
+  },
+  "news_source_decision": {
+    "selected_backbone": "sec_edgar",
+    "plan_reference": "Plan 6 §2.1 Pre-Registered 100% Deterministic Zero-Gap Fallback",
+    "primary_candidate_probe": {
+      "dataset": "Brianferrell787/financial-news-multisource",
+      "http_status": 401,
+      "finding": "Hugging Face dataset is gated (HTTP 401 Unauthorized without HF_TOKEN), and its ungated mirror lacks continuous 2024 ticker-tagged intraday coverage."
+    },
+    "secondary_candidate_probe": {
+      "dataset": "FNSPID (Financial News and Stock Price Integration Dataset)",
+      "finding": "Dataset ends in 2023 (0 coverage for 2024 Val and 2025 Test), requires 5.73-23.23 GB bulk download, and exhibits severe 00:00:00 UTC timestamp leakage."
+    },
+    "activated_fallback": {
+      "source": "SEC EDGAR Submissions API (Form 8-K, 8-K/A, 10-Q, 10-K)",
+      "endpoints": [
+        "https://www.sec.gov/files/company_tickers.json",
+        "https://data.sec.gov/submissions/CIK{cik:010d}.json",
+        "https://data.sec.gov/submissions/CIK{cik:010d}-submissions-{NNN}.json"
+      ],
+      "advantages": "100% public, zero authentication gate, exact second-precision UTC acceptanceDateTime for strict 16:00 America/New_York cutoff, and 60/60 ticker continuity across both 2019-2023 and 2024-2025."
+    }
+  },
+  "ticker_replacements": [],
+  "cik_predecessor_linkages": {
+    "BLK": {
+      "ticker": "BLK",
+      "primary_cik": "0002012383",
+      "primary_entity_name": "BlackRock, Inc.",
+      "predecessor_ciks": [
+        "0001364742"
+      ],
+      "predecessor_entity_names": [
+        "BlackRock Finance, Inc."
+      ],
+      "reorganization_note": "BlackRock completed its Global Infrastructure Partners (GIP) holding-company reorganization in 2024; 2019-2023 and early-2024 filings live under predecessor CIK 0001364742 while post-2024-02-20 filings live under CIK 0002012383."
+    },
+    "XOM": {
+      "ticker": "XOM",
+      "primary_cik": "0002115436",
+      "primary_entity_name": "ExxonMobil Holdings Corp",
+      "predecessor_ciks": [
+        "0000034088"
+      ],
+      "predecessor_entity_names": [
+        "EXXON MOBIL CORP"
+      ],
+      "reorganization_note": "ExxonMobil registered holding-company CIK 0002115436 in July 2026; 100% of 2019-2025 filings live under predecessor CIK 0000034088."
+    }
+  },
+  "sec_pagination_summary": {
+    "schema_version": "1.0",
+    "window_start": "2018-12-25",
+    "window_end": "2026-01-05",
+    "filing_start_date": "2019-01-01",
+    "filing_end_date": "2025-12-31",
+    "target_forms": [
+      "8-K",
+      "8-K/A",
+      "10-Q",
+      "10-K"
+    ],
+    "max_requests_per_sec_limit": 8.0,
+    "effective_rate_limit_per_sec": 7.5,
+    "total_ciks_queried": 62,
+    "primary_ciks": 60,
+    "predecessor_ciks": 2,
+    "total_archives_listed": 351,
+    "overlapping_archives_fetched": 195,
+    "total_http_requests": 258,
+    "raw_target_filings_before_dedup": 7703,
+    "duplicate_accession_rows_dropped": 0,
+    "total_unique_target_filings_2019_2025": 7703,
+    "filings_from_recent": 5557,
+    "filings_from_archives": 2146,
+    "filings_2019_2023": 5665,
+    "filings_2024_2025": 2038
+  },
+  "anomaly_counts": {
+    "ohlcv_missing_rows": 0,
+    "ohlcv_nan_cells": 0,
+    "ohlcv_zero_volume_rows": 0,
+    "ohlcv_negative_or_zero_price_rows": 0,
+    "ohlcv_high_lt_low_rows": 0,
+    "ohlcv_stock_split_events": 9,
+    "ohlcv_dividend_events": 1608,
+    "ohlcv_extreme_daily_return_gt_20pct_rows": 33,
+    "macro_t10y2y_ffilled_days": 13,
+    "macro_vix_fred_ffilled_days": 0,
+    "macro_vix_close_ffilled_days": 0,
+    "macro_spy_ret_1d_warmup_nan_rows": 1,
+    "sec_missing_acceptance_datetime_rows": 0,
+    "sec_duplicate_accession_rows_dropped": 0,
+    "sec_inactive_tickers_2019_2023": 0,
+    "sec_inactive_tickers_2024_2025": 0
+  },
+  "files": {
+    "data/raw/macro/fred_t10y2y.csv": {
+      "path": "data/raw/macro/fred_t10y2y.csv",
+      "source": "fred_http_csv",
+      "source_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y",
+      "fetched_at_utc": "2026-11-22T14:03:48+00:00",
+      "http_status": 200,
+      "byte_size": 210561,
+      "sha256": "00aeefcd36ff7fe6cc989644a4fdacf45318485cffae61c4a30a009d48d61102",
+      "row_count": 13169,
+      "description": "Full FRED T10Y2Y 10-Year minus 2-Year Treasury yield spread CSV"
+    },
+    "data/raw/macro/fred_vixcls.csv": {
+      "path": "data/raw/macro/fred_vixcls.csv",
+      "source": "fred_http_csv",
+      "source_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
+      "fetched_at_utc": "2026-11-22T14:03:48+00:00",
+      "http_status": 200,
+      "byte_size": 162037,
+      "sha256": "5fdb14015c8fee857f1aae7ea54d799fe8e2eebc1b4dcab047cc7ac70e3a78a0",
+      "row_count": 9623,
+      "description": "Full FRED VIXCLS CBOE Volatility Index CSV"
+    },
+    "data/raw/macro/spy_daily.parquet": {
+      "path": "data/raw/macro/spy_daily.parquet",
+      "source": "yahoo_finance_yfinance",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/SPY?interval=1d",
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/SPY?interval=1d",
+      "fetched_at_utc": "2026-11-22T14:03:48+00:00",
+      "http_status": 200,
+      "byte_size": 90038,
+      "sha256": "87f56d6fcd3d3d2e2c91ae22fbe70f5e49ea0c3a40c860343b210c3c7bd1e888",
+      "row_count": 1760,
+      "description": "Daily SPY OHLCV & canonical 1,760-day NYSE trading calendar (2019-2025)"
+    },
+    "data/raw/macro/vix_daily.parquet": {
+      "path": "data/raw/macro/vix_daily.parquet",
+      "source": "yahoo_finance_yfinance_with_retries_5",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d",
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d",
+      "fetched_at_utc": "2026-11-22T14:03:48+00:00",
+      "http_status": 200,
+      "byte_size": 59615,
+      "sha256": "a9a1fd7866f2097634adbd5b4c28c2f32b9687019601e4bc06aa331f7d1673ee",
+      "row_count": 1760,
+      "description": "Daily Yahoo Finance ^VIX implied volatility index (2019-2025)"
+    },
+    "data/raw/prices/ohlcv_daily.parquet": {
+      "path": "data/raw/prices/ohlcv_daily.parquet",
+      "source": "yahoo_finance_yfinance",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d",
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d",
+      "fetched_at_utc": "2026-11-22T14:03:48+00:00",
+      "http_status": 200,
+      "byte_size": 3290902,
+      "sha256": "4487aee24a340ce97a0d126a48e24e951fd2c575f03671f25abc6763bd1e21d1",
+      "row_count": 105600,
+      "description": "Daily OHLCV, adjusted close, dividends, and stock splits for 60 universe equities (2019-2025)"
+    },
+    "data/raw/sec_edgar/company_tickers_60.json": {
+      "path": "data/raw/sec_edgar/company_tickers_60.json",
+      "source": "sec_edgar_company_tickers",
+      "source_url": "https://www.sec.gov/files/company_tickers.json",
+      "url": "https://www.sec.gov/files/company_tickers.json",
+      "fetched_at_utc": "2026-11-22T14:04:28+00:00",
+      "http_status": 200,
+      "byte_size": 17137,
+      "sha256": "1a2c7500d5640e67efd9c824f24648b95211330885242928772800551b4929bc",
+      "row_count": 60,
+      "description": "Compact 60-ticker SEC CIK mapping snapshot including BLK & XOM predecessor CIKs"
+    },
+    "data/raw/sec_edgar/edgar_filings_2019_2025.parquet": {
+      "path": "data/raw/sec_edgar/edgar_filings_2019_2025.parquet",
+      "source": "sec_edgar_submissions_api",
+      "source_url": "https://data.sec.gov/submissions/",
+      "url": "https://data.sec.gov/submissions/",
+      "fetched_at_utc": "2026-11-22T14:04:28+00:00",
+      "http_status": 200,
+      "byte_size": 395905,
+      "sha256": "5704ae35330b14a5278dfba3f222d2f30541523f1f98b1a32ce3c65c3646d5e7",
+      "row_count": 7703,
+      "description": "Deduplicated 2019-2025 target-form (8-K, 8-K/A, 10-Q, 10-K) SEC EDGAR filings snapshot"
+    },
+    "data/raw/sec_edgar/pagination_manifest.json": {
+      "path": "data/raw/sec_edgar/pagination_manifest.json",
+      "source": "sec_edgar_submissions_api",
+      "source_url": "https://data.sec.gov/submissions/",
+      "url": "https://data.sec.gov/submissions/",
+      "fetched_at_utc": "2026-11-22T14:04:28+00:00",
+      "http_status": 200,
+      "byte_size": 134295,
+      "sha256": "f25669f626a2ebdedb26eb08c500f0f4526e979789003e08713778a6c589d227",
+      "row_count": 258,
+      "description": "Cryptographic pagination manifest of all 258 SEC EDGAR HTTP JSON requests"
+    },
+    "data/raw/universe_60.csv": {
+      "path": "data/raw/universe_60.csv",
+      "source": "yahoo_finance_and_sec_company_tickers",
+      "source_url": "https://www.sec.gov/files/company_tickers.json",
+      "url": "https://www.sec.gov/files/company_tickers.json",
+      "fetched_at_utc": "2026-11-22T14:04:28+00:00",
+      "http_status": 200,
+      "byte_size": 5418,
+      "sha256": "ecf785b00a2f060dd986451d56d72eea804bd8ff4e0fc0da316f7def042a742a",
+      "row_count": 60,
+      "description": "Deterministic 60-stock cross-sector universe with 10-digit SEC CIKs"
+    }
+  }
+}

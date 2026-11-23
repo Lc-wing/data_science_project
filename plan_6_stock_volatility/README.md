@@ -14,15 +14,17 @@ This folder is a self-contained `uv` project (`stock-volatility` / `src/stock_vo
 
 Phase A is strictly CPU-reproducible and freezes the aligned panel, splits, and corporate-event text dataset for downstream Phase B (single-A100 27B–64B QLoRA, out of scope for Phase A).
 
-| Milestone | Scope | Status |
-| --- | --- | --- |
-| M0 | Repository hygiene, TeX Live + Poppler toolchain, isolated `uv` scaffold, `config.py`, smoke tests | done |
-| M1 | 60-stock OHLCV, macro (`^VIX`, FRED `VIXCLS`/`T10Y2Y`, `SPY`), paginated SEC EDGAR `8-K/10-Q/10-K`, Day-1 & coverage audit | planned |
-| M2 | Strict `16:00 America/New_York` cutoff, deduplication & `<= 5`/day cap, features/targets, Purged+Embargoed splits, SHA-256 freeze | planned |
-| M3 | Cross-cycle EDA & H1 Stock-FE Extended Panel HAR-RV with Driscoll–Kraay SE & Holm-adjusted CIs | planned |
-| M4 | H2 Out-of-sample baselines (Persistence, GJR-GARCH, HAR-RV), Global LightGBM, 2024 Val calibration, 2025 Holdout Test, `h=5` HLN-DM/Holm & Train-background TreeSHAP | planned |
-| M5 | 300-DPI Figure 1 & Figure 2, Table 1, audited CS482 Phase A Draft PDF (3.5–3.8 A4 pp), and one-command replay CLI | planned |
-| M6 | Opaque-box E2E Tiers 1–4 verification & Tier 5 adversarial hardening | planned |
+| Milestone | Scope | Status | Delivery & AI Execution Doc |
+| --- | --- | --- | --- |
+| M0 | Repository hygiene, TeX Live + Poppler toolchain, isolated `uv` scaffold, `config.py`, smoke tests | done (`124fc67`) | [`docs/milestones/M0_repo_cleanup_and_scaffold.md`](docs/milestones/M0_repo_cleanup_and_scaffold.md) |
+| M1 | 60-stock OHLCV, macro (`^VIX`, FRED `VIXCLS`/`T10Y2Y`, `SPY`), paginated SEC EDGAR `8-K/10-Q/10-K`, Day-1 & coverage audit, milestone delivery docs | done | [`docs/milestones/M1_data_ingest_and_day1_audit.md`](docs/milestones/M1_data_ingest_and_day1_audit.md) |
+| M2 | Strict `16:00 America/New_York` cutoff, deduplication & `<= 5`/day cap, features/targets, Purged+Embargoed splits, SHA-256 freeze | planned | `docs/milestones/M2_panel_splits_and_freeze.md` *(template in [`docs/milestones/README.md`](docs/milestones/README.md))* |
+| M3 | Cross-cycle EDA & H1 Stock-FE Extended Panel HAR-RV with Driscoll–Kraay SE & Holm-adjusted CIs | planned | `docs/milestones/M3_eda_and_h1_panel_har_rv.md` |
+| M4 | H2 Out-of-sample baselines (Persistence, GJR-GARCH, HAR-RV), Global LightGBM, 2024 Val calibration, 2025 Holdout Test, `h=5` HLN-DM/Holm & Train-background TreeSHAP | planned | `docs/milestones/M4_h2_forecasting_calibration_and_shap.md` |
+| M5 | 300-DPI Figure 1 & Figure 2, Table 1, audited CS482 Phase A Draft PDF (3.5–3.8 A4 pp), and one-command replay CLI | planned | `docs/milestones/M5_figures_table1_and_cs482_report.md` |
+| M6 | Opaque-box E2E Tiers 1–4 verification & Tier 5 adversarial hardening | planned | `docs/milestones/M6_e2e_and_adversarial_hardening.md` |
+
+See [`docs/milestones/README.md`](docs/milestones/README.md) for the master milestone delivery ledger, the mandatory per-milestone AI execution recording policy, and the standard template for Milestones M0–M6.
 
 ## Prerequisites & Setup
 
@@ -53,6 +55,14 @@ uv run pytest -v
 uv run ruff check .
 ```
 
+### M1 Data Ingest & Day-1 Audit CLI
+
+Rebuild interim macro/event tables and Day-1 & cross-period coverage audits deterministically offline from committed `data/raw/` snapshots (zero network calls):
+
+```bash
+MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/01_download_and_audit.py --skip-download
+```
+
 ### Planned One-Command Phase A Replay CLI (M5)
 
 Once Milestones M1–M5 are complete, the entire Phase A pipeline will replay deterministically from frozen inputs via:
@@ -80,9 +90,14 @@ MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/run_phase_a.py --report-o
 ```text
 plan_6_stock_volatility/
 ├── .gitignore                          # [M0] Local cache, archive, weight, and LaTeX ignores
-├── README.md                           # [M0] Project overview, setup, and non-investment notice
+├── README.md                           # [M0/M1] Project overview, setup, and non-investment notice
 ├── pyproject.toml                      # [M0] uv + hatchling package, ruff, and pytest configuration
 ├── uv.lock                             # [M0] Locked dependency graph
+├── docs/
+│   └── milestones/                     # [M1–M6] Tracked milestone delivery & AI execution docs
+│       ├── README.md                   # [M1] Master ledger, policy, and M2–M6 template
+│       ├── M0_repo_cleanup_and_scaffold.md
+│       └── M1_data_ingest_and_day1_audit.md
 ├── src/stock_volatility/
 │   ├── __init__.py                     # [M0] Package metadata
 │   ├── config.py                       # [M0] Canonical paths, constants, UNIVERSE_60, helpers
@@ -96,10 +111,13 @@ plan_6_stock_volatility/
 │   ├── explain.py                      # [M4] Train-background TreeSHAP explainability
 │   ├── figures.py                      # [M5] 300-DPI Figure 1 & Figure 2 (PNG + PDF)
 │   └── report.py                       # [M5] Programmatic LaTeX, pdflatex build, claims audit
-├── scripts/                            # [M1–M5] CLI entry points & run_phase_a.py replay
-├── data/                               # [M1–M2] raw/, interim/, frozen/ (created on demand)
-├── outputs/                            # [M1–M5] figures/, metrics/, tables/ (created on demand)
+├── scripts/
+│   └── 01_download_and_audit.py        # [M1] Data ingest & offline --skip-download Day-1 audit CLI
+├── data/                               # [M1–M2] raw/, interim/, frozen/
+├── outputs/                            # [M1–M5] figures/, metrics/, tables/
 ├── report/                             # [M5] phase_a_draft.tex, references.bib, PDF, audit
 └── tests/
-    └── test_smoke.py                   # [M0] Scaffold, universe, split, library, TeX/Poppler checks
+    ├── conftest.py                     # [M1] MPLBACKEND=Agg, OMP_NUM_THREADS=1, block_network fixture
+    ├── test_smoke.py                   # [M0] Scaffold, universe, split, library, TeX/Poppler checks
+    └── test_ingest.py                  # [M1] Unit, offline replay, artifact & milestone doc tests
 ```
