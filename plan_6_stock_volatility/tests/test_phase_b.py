@@ -344,9 +344,12 @@ def test_post_colab_report_integration_refuses_missing_and_builds_valid_pdf_in_t
         build_and_audit_phase_b_report,
     )
 
-    # 1. Must refuse to run when real outputs/phase_b/ artifacts are absent
+    # 1. Must refuse to run when Phase B artifacts are absent
     with pytest.raises(FileNotFoundError, match="phase_b_summary.json"):
-        build_and_audit_phase_b_report(project_root=config.PROJECT_ROOT)
+        build_and_audit_phase_b_report(
+            project_root=config.PROJECT_ROOT,
+            phase_b_dir=tmp_path / "missing_phase_b",
+        )
 
     # 2. Clone project into tmp_path and inject clearly-labeled synthetic Phase B summary
     clone_root = tmp_path / "phase_b_report_clone"
@@ -489,3 +492,120 @@ def test_colab_cli_guard_notebook_and_m7_milestone_docs() -> None:
             timeout=10,
         )
         assert chk.returncode == 1 and chk.stdout.strip() == "", f"Gitignored: {rel}"
+
+
+def test_committed_m8_phase_b_outputs_final_pdf_and_milestone_doc(
+    block_network: None,
+) -> None:
+    """Verify real Colab L4 Phase B outputs, audited final CS482 PDF (<=5pp), and M8 doc."""
+    from stock_volatility.phase_b.report_integration import (
+        FINAL_REPORT_PDF_NAME,
+        collect_phase_b_claims,
+    )
+    from stock_volatility.report import audit_compiled_pdf, collect_report_claims
+
+    pb_dir = config.PROJECT_ROOT / "outputs" / "phase_b"
+    required_pb = (
+        "phase_b_summary.json",
+        "phase_b_comparison.csv",
+        "phase_b_comparison.md",
+        "phase_b_comparison.tex",
+        "llm_run_metadata.json",
+        "patchtst_1m_metrics.json",
+        "patchtst_15m_metrics.json",
+        "chronos_2_metrics.json",
+        "chronos_t5_large_metrics.json",
+        "patchtst_1m_test_predictions.parquet",
+        "patchtst_15m_test_predictions.parquet",
+        "chronos_2_test_predictions.parquet",
+        "chronos_t5_large_test_predictions.parquet",
+        "lgbm_plus_finbert_test.parquet",
+        "lgbm_plus_llm_zs_test.parquet",
+        "lgbm_plus_llm_qlora_test.parquet",
+    )
+    for fn in required_pb:
+        p = pb_dir / fn
+        assert p.is_file() and p.stat().st_size > 100, f"Missing/empty Phase B artifact: {p}"
+
+    pb_summary = json.loads((pb_dir / "phase_b_summary.json").read_text(encoding="utf-8"))
+    assert pb_summary["gpu_name"] == "NVIDIA L4"
+    assert pb_summary["llm_model_id"] == "google/gemma-4-12B-it"
+    assert pb_summary["train_event_days"] == 4929
+    assert pb_summary["val_event_days"] == 880
+    assert pb_summary["test_event_days"] == 895
+    assert pb_summary["finbert_pr_auc_event"] > 0.13
+
+    comp_df = pd.read_csv(pb_dir / "phase_b_comparison.csv")
+    assert len(comp_df) == 8
+    chronos_rows = comp_df[comp_df["arm_id"].str.startswith("chronos_")]
+    assert len(chronos_rows) == 2
+    assert chronos_rows["pr_auc_full"].isna().all()
+    tex_txt = (pb_dir / "phase_b_comparison.tex").read_text(encoding="utf-8")
+    assert "$895$" in tex_txt
+
+    # Final CS482 submission PDF must pass full A4, <=5.0pp, claims, and non-causal audit
+    pdf_path = config.REPORT_DIR / FINAL_REPORT_PDF_NAME
+    audit_md = config.REPORT_DIR / "phase_b_audit.md"
+    assert pdf_path.is_file() and pdf_path.stat().st_size > 50_000
+    assert (
+        audit_md.is_file()
+        and "Overall Audit Verdict: **PASS**" in audit_md.read_text(encoding="utf-8")
+    )
+
+    manifest = json.loads(
+        (config.DATA_FROZEN_DIR / "FREEZE_MANIFEST.json").read_text(encoding="utf-8")
+    )
+    all_claims = {
+        **collect_report_claims(config.PROJECT_ROOT),
+        **collect_phase_b_claims(pb_summary),
+    }
+    audit = audit_compiled_pdf(
+        pdf_path=pdf_path,
+        claims=all_claims,
+        generated_at_utc=str(manifest["generated_at_utc"]),
+    )
+    assert audit["verdict"] == "PASS", f"Final PDF audit failed: {audit}"
+    assert 4.0 <= audit["main_text_pages_est"] <= 5.0
+    assert audit["main_pages_occupied"] <= 5
+    assert audit["claims_verified"] == audit["claims_total"]
+
+    # M8 milestone doc tracked, non-empty, and linked from all READMEs
+    m8_doc = config.PROJECT_ROOT / "docs" / "milestones" / "M8_phase_b_l4_results_and_final_pdf.md"
+    assert m8_doc.is_file() and m8_doc.stat().st_size > 2000
+    m8_txt = m8_doc.read_text(encoding="utf-8")
+    for tok in (
+        "NVIDIA L4",
+        "google/gemma-4-12B-it",
+        "0.2251",
+        "0.1398",
+        "CS482_GroupX_StockVolatilityLLM.pdf",
+        "phase_b_audit.md",
+    ):
+        assert tok in m8_txt, f"Missing {tok!r} in M8 milestone doc"
+
+    ledger = (config.PROJECT_ROOT / "docs" / "milestones" / "README.md").read_text("utf-8")
+    plan6_readme = (config.PROJECT_ROOT / "README.md").read_text("utf-8")
+    root_readme = (config.PROJECT_ROOT.parent / "README.md").read_text("utf-8")
+    assert "M8_phase_b_l4_results_and_final_pdf.md" in ledger
+    assert "M8_phase_b_l4_results_and_final_pdf.md" in plan6_readme
+    assert "CS482_GroupX_StockVolatilityLLM.pdf" in plan6_readme
+    assert "Phase B" in root_readme
+
+    chk = subprocess.run(
+        [
+            "git",
+            "check-ignore",
+            "-v",
+            "--no-index",
+            "plan_6_stock_volatility/docs/milestones/M8_phase_b_l4_results_and_final_pdf.md",
+            "plan_6_stock_volatility/report/CS482_GroupX_StockVolatilityLLM.pdf",
+            "plan_6_stock_volatility/outputs/phase_b/phase_b_summary.json",
+        ],
+        cwd=config.PROJECT_ROOT.parent,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=10,
+    )
+    assert chk.returncode == 1 and chk.stdout.strip() == "", f"Gitignored M8 files: {chk.stdout}"
+

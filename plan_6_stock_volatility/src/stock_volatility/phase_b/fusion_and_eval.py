@@ -223,14 +223,11 @@ def evaluate_phase_b_h3_ablation(
         arm_id: str,
         label: str,
         rv_hat: np.ndarray,
-        p_hat: np.ndarray,
+        p_hat: np.ndarray | None,
         cov80: float | None = None,
     ) -> dict[str, Any]:
         rm_full = regression_metrics(rv_true, rv_hat)
         rm_ev = regression_metrics(rv_true[ev_mask], rv_hat[ev_mask])
-        cm_full = classification_metrics(y_tail, p_hat)
-        cm_ev = classification_metrics(y_tail[ev_mask], p_hat[ev_mask])
-        cm_earn = classification_metrics(y_tail[earn_mask], p_hat[earn_mask])
 
         ql_lo, ql_hi = date_block_bootstrap_ci(
             dates,
@@ -239,13 +236,25 @@ def evaluate_phase_b_h3_ablation(
             n_boot=n_boot,
             seed=seed,
         )
-        pr_lo, pr_hi = date_block_bootstrap_ci(
-            dates,
-            lambda idx, ph=p_hat: classification_metrics(y_tail[idx], ph[idx])["pr_auc"],
-            block_len=block_len,
-            n_boot=n_boot,
-            seed=seed,
-        )
+        if p_hat is not None:
+            cm_full = classification_metrics(y_tail, p_hat)
+            cm_ev = classification_metrics(y_tail[ev_mask], p_hat[ev_mask])
+            cm_earn = classification_metrics(y_tail[earn_mask], p_hat[earn_mask])
+            pr_lo, pr_hi = date_block_bootstrap_ci(
+                dates,
+                lambda idx, ph=p_hat: classification_metrics(y_tail[idx], ph[idx])["pr_auc"],
+                block_len=block_len,
+                n_boot=n_boot,
+                seed=seed,
+            )
+            pr_full = cm_full["pr_auc"]
+            pr_ev = cm_ev["pr_auc"]
+            pr_earn = cm_earn["pr_auc"]
+            brier_full = cm_full["brier"]
+            ece_val = cm_full["ece"]
+        else:
+            pr_full = pr_lo = pr_hi = pr_ev = pr_earn = brier_full = ece_val = float("nan")
+
         return {
             "arm_id": arm_id,
             "model_label": label,
@@ -254,13 +263,13 @@ def evaluate_phase_b_h3_ablation(
             "qlike_ci95_high": ql_hi,
             "qlike_event_days": rm_ev["qlike"],
             "rmse_full": rm_full["rmse"],
-            "pr_auc_full": cm_full["pr_auc"],
+            "pr_auc_full": pr_full,
             "pr_auc_ci95_low": pr_lo,
             "pr_auc_ci95_high": pr_hi,
-            "pr_auc_event_days": cm_ev["pr_auc"],
-            "pr_auc_earnings_days": cm_earn["pr_auc"],
-            "brier_full": cm_full["brier"],
-            "ece": cm_full["ece"],
+            "pr_auc_event_days": pr_ev,
+            "pr_auc_earnings_days": pr_earn,
+            "brier_full": brier_full,
+            "ece": ece_val,
             "nominal_80_coverage": cov80 if cov80 is not None else float("nan"),
         }
 
@@ -277,6 +286,7 @@ def evaluate_phase_b_h3_ablation(
     ]
 
     dm_q_raw: list[float] = []
+    dm_b_indices: list[int] = []
     dm_b_raw: list[float] = []
     arm_rows_tmp: list[dict[str, Any]] = []
 
@@ -285,36 +295,48 @@ def evaluate_phase_b_h3_ablation(
             spec["test_pred_df"], on=["ticker", "date"], how="left", validate="one_to_one"
         )
         rv_hat = merged["rv_hat"].fillna(pd.Series(base_rv)).to_numpy(dtype=float)
+        has_cls = "p_tail" in merged.columns
         p_hat = (
-            merged["p_tail"].fillna(pd.Series(base_p)).to_numpy(dtype=float)
-            if "p_tail" in merged.columns
-            else base_p
+            merged["p_tail"].fillna(pd.Series(base_p)).to_numpy(dtype=float) if has_cls else None
         )
         rec = _eval_arm(arm_id, str(spec["label"]), rv_hat, p_hat, spec.get("nominal_80_coverage"))
 
         # Multi-step h=5 HLN-DM tests against Phase A LightGBM (d_t = L(arm) - L(phase_a_lgbm))
         d_ql = pd.Series(qlike_loss_array(rv_true, rv_hat) - base_ql_arr).groupby(dates).mean()
-        d_br = pd.Series((p_hat - y_tail) ** 2 - base_br_arr).groupby(dates).mean()
         dm_q = hln_dm_test(d_ql.to_numpy(), horizon=config.HORIZON_DAYS)
-        dm_b = hln_dm_test(d_br.to_numpy(), horizon=config.HORIZON_DAYS)
-
         rec["dm_qlike_stat"] = dm_q["dm_hln_stat"]
         rec["dm_qlike_p_raw"] = dm_q["p_value"]
-        rec["dm_brier_stat"] = dm_b["dm_hln_stat"]
-        rec["dm_brier_p_raw"] = dm_b["p_value"]
         dm_q_raw.append(dm_q["p_value"])
-        dm_b_raw.append(dm_b["p_value"])
+
+        if p_hat is not None:
+            d_br = pd.Series((p_hat - y_tail) ** 2 - base_br_arr).groupby(dates).mean()
+            dm_b = hln_dm_test(d_br.to_numpy(), horizon=config.HORIZON_DAYS)
+            rec["dm_brier_stat"] = dm_b["dm_hln_stat"]
+            rec["dm_brier_p_raw"] = dm_b["p_value"]
+            dm_b_indices.append(len(arm_rows_tmp))
+            dm_b_raw.append(dm_b["p_value"])
+        else:
+            rec["dm_brier_stat"] = float("nan")
+            rec["dm_brier_p_raw"] = float("nan")
+            rec["dm_brier_p_holm"] = float("nan")
+
         arm_rows_tmp.append(rec)
 
     if arm_rows_tmp:
         q_holm = holm_bonferroni_adjust(dm_q_raw)
-        b_holm = holm_bonferroni_adjust(dm_b_raw)
-        for rec, pqh, pbh in zip(arm_rows_tmp, q_holm, b_holm, strict=True):
+        b_holm_map: dict[int, float] = {}
+        if dm_b_raw:
+            for idx_b, p_bh in zip(dm_b_indices, holm_bonferroni_adjust(dm_b_raw), strict=True):
+                b_holm_map[idx_b] = float(p_bh)
+        for i_rec, (rec, pqh) in enumerate(zip(arm_rows_tmp, q_holm, strict=True)):
             rec["dm_qlike_p_holm"] = float(pqh)
-            rec["dm_brier_p_holm"] = float(pbh)
+            if i_rec in b_holm_map:
+                rec["dm_brier_p_holm"] = b_holm_map[i_rec]
             rows.append(rec)
 
     comp_df = pd.DataFrame(rows)
+    n_full_fmt = f"{len(base):,}".replace(",", "{,}")
+    n_ev_fmt = f"{int(ev_mask.sum()):,}".replace(",", "{,}")
 
     md_lines = [
         "# Phase B Extension — 2025 Holdout Multimodal & Deep Time-Series Ablation (H3)",
@@ -326,9 +348,9 @@ def evaluate_phase_b_h3_ablation(
     tex_lines = [
         r"\begin{table}[!t]",
         r"\centering",
-        r"\caption{Phase B Extension: 2025 Single-Shot Holdout Ablation ($N=14{,}700$ full; "
-        r"$899$ pre-close event-anchored days; $h=5$ HLN-DM Holm $p$-values "
-        r"vs.\ Phase A LightGBM).}",
+        rf"\caption{{Phase B Extension: 2025 Single-Shot Holdout Ablation ($N={n_full_fmt}$ full; "
+        rf"${n_ev_fmt}$ scorable pre-close event days; $h=5$ HLN-DM Holm $p$-values "
+        r"vs.\ Phase A LightGBM; ``---'' indicates volatility-only models).}",
         r"\label{tab:phase_b_summary}",
         r"\scriptsize",
         r"\setlength{\tabcolsep}{3.5pt}",
@@ -340,20 +362,29 @@ def evaluate_phase_b_h3_ablation(
     ]
 
     for r in rows:
-        dm_txt = (
-            "Ref."
-            if r["arm_id"] == "phase_a_lgbm"
-            else f"{_fmt_p(r['dm_qlike_p_holm'])} / {_fmt_p(r['dm_brier_p_holm'])}"
-        )
-        pr_str = f"{r['pr_auc_full']:.4f} ({r['pr_auc_event_days']:.4f})"
+        if r["arm_id"] == "phase_a_lgbm":
+            dm_md = dm_tex = "Ref."
+        else:
+            pq_s = _fmt_p(r["dm_qlike_p_holm"])
+            pb_s = _fmt_p(r["dm_brier_p_holm"])
+            dm_md = f"{pq_s} / {pb_s}"
+            dm_tex = f"{pq_s} / {pb_s.replace('—', '---')}"
+
+        if np.isfinite(r["pr_auc_full"]):
+            pr_md = pr_tex = f"{r['pr_auc_full']:.4f} ({r['pr_auc_event_days']:.4f})"
+            ece_md = ece_tex = f"{r['ece']:.4f}"
+        else:
+            pr_md, pr_tex = "—", "---"
+            ece_md, ece_tex = "—", "---"
+
         md_lines.append(
             f"| {r['model_label']} | `{r['qlike_full']:.4f}` | `{r['qlike_event_days']:.4f}` | "
-            f"`{pr_str}` | `{r['ece']:.4f}` | `{dm_txt}` |"
+            f"`{pr_md}` | `{ece_md}` | `{dm_md}` |"
         )
         lbl_tex = r["model_label"].replace("_", r"\_").replace("%", r"\%")
         tex_lines.append(
             f"{lbl_tex} & {r['qlike_full']:.4f} & {r['qlike_event_days']:.4f} & "
-            f"{pr_str} & {r['ece']:.4f} & {dm_txt} \\\\"
+            f"{pr_tex} & {ece_tex} & {dm_tex} \\\\"
         )
 
     tex_lines.extend([r"\bottomrule", r"\end{tabular}", r"\end{table}"])

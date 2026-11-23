@@ -23,8 +23,8 @@ Phase A (M0–M6) is 100% CPU-reproducible and freezes the aligned panel, purged
 | M4 | H2 Out-of-sample baselines (Persistence, GJR-GARCH, HAR-RV), Global LightGBM, 2024 Val calibration, 2025 Holdout Test, `h=5` HLN-DM/Holm & Train-background TreeSHAP | done (`744df5d`) | [`docs/milestones/M4_h2_forecasting_calibration_and_shap.md`](docs/milestones/M4_h2_forecasting_calibration_and_shap.md) |
 | M5 | 300-DPI Figure 1 & Figure 2, Table 1, audited CS482 Phase A Draft PDF (`4.00` A4 main pp), and one-command replay CLI | done (`63dc8ec`) | [`docs/milestones/M5_figures_table1_and_cs482_report.md`](docs/milestones/M5_figures_table1_and_cs482_report.md) |
 | M6 | Opaque-box E2E Tiers 1–4 verification, Tier 5 white-box adversarial hardening & final Phase A sign-off | done (`547b286`) | [`docs/milestones/M6_e2e_and_adversarial_hardening.md`](docs/milestones/M6_e2e_and_adversarial_hardening.md) / [`TEST_READY.md`](TEST_READY.md) |
-| M7 | Phase B Engineering Package: PyTorch `PatchTST` (1M/15M), `FinBERT`/`Chronos`/`Qwen/Qwen3.8-27B` QLoRA Colab A100 CLI & notebook, 2024-Val OOF meta-fusion, H3 evaluator, post-Colab CS482 PDF merger (`<= 5.0` A4 pp) | done | [`docs/milestones/M7_phase_b_colab_and_dl_pipeline.md`](docs/milestones/M7_phase_b_colab_and_dl_pipeline.md) / [`PHASE_B.md`](PHASE_B.md) |
-| M8 | Colab single-A100 execution (`outputs/phase_b/`), final `CS482_GroupX_StockVolatilityLLM.pdf` integration & final audit | planned (awaiting Colab A100 run) | [`PHASE_B.md`](PHASE_B.md) / [`notebooks/phase_b_colab.ipynb`](notebooks/phase_b_colab.ipynb) |
+| M7 | Phase B Engineering Package: PyTorch `PatchTST` (1M/15M), `FinBERT`/`Chronos`/`google/gemma-4-12B-it`/`Qwen/Qwen3.8-27B` QLoRA Colab L4/A100 CLI & notebook, 2024-Val OOF meta-fusion, H3 evaluator, post-Colab CS482 PDF merger (`<= 5.0` A4 pp) | done (`1b6827f`) | [`docs/milestones/M7_phase_b_colab_and_dl_pipeline.md`](docs/milestones/M7_phase_b_colab_and_dl_pipeline.md) / [`PHASE_B.md`](PHASE_B.md) |
+| M8 | Colab single-L4 execution (`outputs/phase_b/`: `PatchTST`, `Chronos`, `FinBERT`, `google/gemma-4-12B-it` QLoRA) & final audited CS482 submission PDF (`report/CS482_GroupX_StockVolatilityLLM.pdf`) | done | [`docs/milestones/M8_phase_b_l4_results_and_final_pdf.md`](docs/milestones/M8_phase_b_l4_results_and_final_pdf.md) / [`report/CS482_GroupX_StockVolatilityLLM.pdf`](report/CS482_GroupX_StockVolatilityLLM.pdf) |
 
 See [`docs/milestones/README.md`](docs/milestones/README.md) for the master milestone delivery ledger, the mandatory per-milestone AI execution recording policy, and the standard template for Milestones M0–M8.
 
@@ -147,16 +147,16 @@ MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/07_integrate_phase_b_repo
 ```text
 plan_6_stock_volatility/
 ├── .gitignore                          # [M0] Local cache, archive, weight, and LaTeX ignores
-├── README.md                           # [M0–M7] Project overview, setup, and non-investment notice
+├── README.md                           # [M0–M8] Project overview, setup, and non-investment notice
 ├── TEST_READY.md                       # [M6] Final E2E Tiers 1–5 & adversarial sign-off guide
-├── PHASE_B.md                          # [M7] Phase B local tests, Colab A100 runner & PDF merge guide
+├── PHASE_B.md                          # [M7–M8] Phase B local tests, Colab L4/A100 runner & PDF merge guide
 ├── pyproject.toml                      # [M0,M7] uv + hatchling package (+ CPU torch), ruff, pytest
 ├── uv.lock                             # [M0,M7] Locked dependency graph
 ├── notebooks/
-│   └── phase_b_colab.ipynb             # [M7] One-click Colab single-A100 Phase B execution notebook
+│   └── phase_b_colab.ipynb             # [M7] One-click Colab L4/A100 Phase B execution notebook
 ├── docs/
-│   ├── milestones/                     # [M1–M7] Tracked milestone delivery & AI execution docs
-│   │   ├── README.md                   # [M1–M7] Master ledger, policy, and milestone template
+│   ├── milestones/                     # [M1–M8] Tracked milestone delivery & AI execution docs
+│   │   ├── README.md                   # [M1–M8] Master ledger, policy, and milestone template
 │   │   ├── M0_repo_cleanup_and_scaffold.md
 │   │   ├── M1_data_ingest_and_day1_audit.md
 │   │   ├── M2_panel_splits_and_freeze.md
@@ -164,7 +164,8 @@ plan_6_stock_volatility/
 │   │   ├── M4_h2_forecasting_calibration_and_shap.md
 │   │   ├── M5_figures_table1_and_cs482_report.md
 │   │   ├── M6_e2e_and_adversarial_hardening.md
-│   │   └── M7_phase_b_colab_and_dl_pipeline.md
+│   │   ├── M7_phase_b_colab_and_dl_pipeline.md
+│   │   └── M8_phase_b_l4_results_and_final_pdf.md
 │   └── superpowers/                    # [M7] Design specs & implementation plans
 ├── src/stock_volatility/
 │   ├── __init__.py                     # [M0] Package metadata
@@ -179,7 +180,7 @@ plan_6_stock_volatility/
 │   ├── explain.py                      # [M4] Train-background TreeSHAP explainability
 │   ├── figures.py                      # [M5] 300-DPI Figure 1 & Figure 2 (PNG + PDF)
 │   ├── report.py                       # [M5,M6] Table 1, deterministic PDF build & hardened audit
-│   └── phase_b/                        # [M7] PatchTST, FinBERT, Chronos, Qwen3.8-27B QLoRA, fusion, PDF merge
+│   └── phase_b/                        # [M7–M8] PatchTST, FinBERT, Chronos, Gemma-4/Qwen QLoRA, fusion, PDF merge
 ├── scripts/
 │   ├── 01_download_and_audit.py        # [M1] Data ingest & offline --skip-download Day-1 audit CLI
 │   ├── 02_build_panel_and_freeze.py    # [M2] Panel build, purged splits & --check/--refreeze CLI
@@ -187,12 +188,12 @@ plan_6_stock_volatility/
 │   ├── 04_panel_har_rv.py              # [M3] H1 Stock-FE Extended Panel HAR-RV CLI
 │   ├── 05_forecast_backtest.py         # [M4] H2 baselines, LightGBM, HLN-DM & TreeSHAP CLI
 │   ├── 06_write_report.py              # [M5] 300-DPI figures, Table 1, CS482 PDF & audit CLI
-│   ├── 07_integrate_phase_b_report.py  # [M7] Post-Colab final CS482 PDF merger & 60-claim audit CLI
-│   ├── colab_phase_b.py                # [M7] Single-A100 Colab Phase B orchestrator CLI
+│   ├── 07_integrate_phase_b_report.py  # [M7–M8] Post-Colab final CS482 PDF merger & audit CLI
+│   ├── colab_phase_b.py                # [M7–M8] Single-GPU Colab L4/A100 Phase B orchestrator CLI
 │   └── run_phase_a.py                  # [M5,M6] One-command offline Phase A replay CLI (--project-root)
 ├── data/                               # [M1–M2] raw/, interim/, frozen/ (FREEZE_MANIFEST.json)
-├── outputs/                            # [M1–M5] figures/, metrics/, tables/
-├── report/                             # [M5] phase_a_draft.tex, references.bib, PDF, audit
+├── outputs/                            # [M1–M5,M8] figures/, metrics/, tables/, phase_b/ (real Colab L4)
+├── report/                             # [M5,M8] phase_a_draft.tex, final_report.tex, CS482_GroupX_StockVolatilityLLM.pdf, audits
 └── tests/
     ├── conftest.py                     # [M1,M6] MPLBACKEND, OMP_NUM_THREADS, block_network, --project-root
     ├── test_smoke.py                   # [M0] Scaffold, universe, split, library, TeX/Poppler checks
@@ -203,6 +204,6 @@ plan_6_stock_volatility/
     ├── test_forecast.py                # [M4] Purged folds, GJR-GARCH, calibration & selection tests
     ├── test_evaluation_and_shap.py     # [M4] QLIKE/ECE, HLN-DM, bootstrap & TreeSHAP tests
     ├── test_figures_and_report.py      # [M5] 300-DPI figures, Table 1, A4 PDF audit & CLI tests
-    ├── test_phase_b.py                 # [M7] Offline CPU TDD suite for Phase B modules & PDF integration
+    ├── test_phase_b.py                 # [M7–M8] Offline CPU TDD suite for Phase B modules, L4 outputs & final PDF
     └── e2e/                            # [M6] 5-tier opaque-box E2E (Tiers 1–4) & Tier 5 adversarial suite
 ```

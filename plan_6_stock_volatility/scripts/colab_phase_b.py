@@ -245,10 +245,11 @@ def main(argv: list[str] | None = None) -> int:
                     f"(QLIKE={met_saved['test_metrics']['qlike']:.4f})",
                     flush=True,
                 )
+                cov80_c = float(met_saved["test_nominal_80_coverage"])
                 arms_for_ablation[slug] = {
-                    "label": f"{ch_id.split('/')[-1]} (Zero-Shot)",
+                    "label": f"{ch_id.split('/')[-1]} (Zero-Shot; 80% cov={100.0 * cov80_c:.1f}%)",
                     "test_pred_df": pred_saved,
-                    "nominal_80_coverage": float(met_saved["test_nominal_80_coverage"]),
+                    "nominal_80_coverage": cov80_c,
                 }
                 continue
 
@@ -260,10 +261,11 @@ def main(argv: list[str] | None = None) -> int:
             )
             res_ch["test_pred_df"].to_parquet(pred_p, index=False, compression="zstd")
             _write_json(met_p, {k: v for k, v in res_ch.items() if not k.endswith("_df")})
+            cov80_c = float(res_ch["test_nominal_80_coverage"])
             arms_for_ablation[slug] = {
-                "label": f"{ch_id.split('/')[-1]} (Zero-Shot)",
+                "label": f"{ch_id.split('/')[-1]} (Zero-Shot; 80% cov={100.0 * cov80_c:.1f}%)",
                 "test_pred_df": res_ch["test_pred_df"],
-                "nominal_80_coverage": res_ch["test_nominal_80_coverage"],
+                "nominal_80_coverage": cov80_c,
             }
             _free_cuda()
 

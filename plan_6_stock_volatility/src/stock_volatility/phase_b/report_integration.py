@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -35,9 +36,14 @@ def render_phase_b_section_tex(
     phase_b_summary: dict[str, Any],
     table2_latex: str,
 ) -> str:
-    """Render concise Section 6 (~0.6 A4 pp) integrating verified Colab A100 Phase B results."""
+    """Render concise Section 6 (~0.75 A4 pp) integrating verified Colab GPU Phase B results."""
     llm_id = _esc_tex(phase_b_summary["llm_model_id"])
-    rev = _esc_tex(str(phase_b_summary["llm_revision"])[:12])
+    raw_rev = str(phase_b_summary.get("llm_revision", "unknown")).strip()
+    rev_clause = (
+        f"HF rev.\\ \\texttt{{{_esc_tex(raw_rev[:12])}}}, "
+        if raw_rev and raw_rev.lower() != "unknown"
+        else ""
+    )
     gpu = _esc_tex(phase_b_summary["gpu_name"])
     vram = f"{float(phase_b_summary['peak_vram_gb']):.1f}"
     tr_ev = f"{int(phase_b_summary['train_event_days']):,}"
@@ -45,31 +51,43 @@ def render_phase_b_section_tex(
     te_ev = f"{int(phase_b_summary['test_event_days']):,}"
     pt_ql = f"{float(phase_b_summary['patchtst_15m_qlike']):.4f}"
     pt_cov = f"{100.0 * float(phase_b_summary['patchtst_15m_coverage_80']):.1f}"
+    fb_pr_ev = f"{float(phase_b_summary['finbert_pr_auc_event']):.4f}"
+    zs_pr_ev = f"{float(phase_b_summary['qwen_zs_pr_auc_event']):.4f}"
     ql_full = f"{float(phase_b_summary['qwen_qlora_qlike_full']):.4f}"
     ql_ev = f"{float(phase_b_summary['qwen_qlora_qlike_event']):.4f}"
     pr_full = f"{float(phase_b_summary['qwen_qlora_pr_auc_full']):.4f}"
     pr_ev = f"{float(phase_b_summary['qwen_qlora_pr_auc_event']):.4f}"
     ece_s = f"{float(phase_b_summary['qwen_qlora_ece']):.4f}"
-    interp = _esc_tex(phase_b_summary["h3_interpretation"])
+    dm_p = float(phase_b_summary.get("qwen_qlora_dm_p_holm", float("nan")))
+    dm_s = f"{dm_p:.3f}" if dm_p == dm_p else "N/A"
+
+    t2_here = table2_latex.replace(r"\begin{table}[!t]", r"\begin{table}[!htb]", 1)
 
     return (
         "\n\\section{Extension: Deep Time-Series and QLoRA News LLM (H3)}\n\n"
-        f"Keeping the Phase A frozen panel and purged splits strictly unchanged, we evaluate "
-        f"two deep learning extensions on single-GPU hardware ({gpu}; peak VRAM {vram}\\,GB). "
-        f"First, Route~A trains a 5-seed multivariate \\texttt{{PatchTST}} (15M parameters; "
-        f"60-day lookback, ticker/sector embeddings, Pinball quantiles) achieving 2025 holdout "
-        f"QLIKE {pt_ql} with nominal 80\\% interval empirical coverage of {pt_cov}\\%. "
-        f"Second, Route~B tests H3 by scoring strictly pre-close SEC EDGAR event-anchored days "
-        f"({tr_ev} Train / {va_ev} Val / {te_ev} Test; non-event days neutral 0) using frozen "
-        f"\\texttt{{FinBERT}} (110M) versus \\texttt{{{llm_id}}} (HF revision "
-        f"\\texttt{{{rev}}}, 4-bit NF4 QLoRA $r=16$ restricted to text-backbone layers) with "
-        f"2024-Val out-of-fold Temperature Scaling and meta-fusion onto Phase~A LightGBM "
-        f"(Table~\\ref{{tab:phase_b_summary}}).\n\n"
-        f"{table2_latex}\n"
-        f"Across the 2025 single-shot holdout, the fused \\texttt{{{llm_id}}} QLoRA arm records "
-        f"full-universe QLIKE {ql_full} (event-day QLIKE {ql_ev}), tail-risk PR-AUC {pr_full} "
-        f"(event-day PR-AUC {pr_ev}), and post-calibration ECE {ece_s}. {interp} All Phase~B "
-        f"comparisons remain strictly predictive, non-causal benchmarks for CS482 coursework.\n"
+        f"Keeping the Phase~A frozen panel and purged splits strictly unchanged, we evaluate "
+        f"two deep learning routes on a single {gpu} GPU (peak VRAM {vram}\\,GB). "
+        f"In Route~A, 5-seed multivariate \\texttt{{PatchTST}} (15M; 60-day lookback, "
+        f"ticker/sector embeddings, Pinball quantiles) scales favorably over 1M yet records "
+        f"2025 QLIKE {pt_ql} (nominal 80\\% coverage {pt_cov}\\%), while zero-shot univariate "
+        f"\\texttt{{chronos-2}} and \\texttt{{chronos-t5-large}} also trail Phase~A LightGBM "
+        f"(Table~\\ref{{tab:phase_b_summary}}). "
+        f"In Route~B (H3), we score strictly pre-close SEC EDGAR event-anchored days "
+        f"({tr_ev} Train / {va_ev} Val / {te_ev} Test; non-event days neutral~0) via frozen "
+        f"\\texttt{{FinBERT}} (110M) versus \\texttt{{{llm_id}}} ({rev_clause}4-bit NF4 QLoRA "
+        f"$r=16$ on text-backbone layers only) with 2024-Val out-of-fold meta-fusion onto "
+        f"Phase~A LightGBM.\n\n"
+        f"{t2_here}\n"
+        f"All three fused text arms reduce 2025 full-universe QLIKE to {ql_full} "
+        f"(\\texttt{{{llm_id}}} QLoRA; event-day QLIKE {ql_ev}; $h=5$ HLN-DM Holm $p={dm_s}$) "
+        f"with tight calibration (ECE {ece_s}). "
+        f"On the {te_ev} event-anchored days, domain-pretrained \\texttt{{FinBERT}} lifts "
+        f"tail-risk PR-AUC to {fb_pr_ev} (vs.\\ 0.1076 price-only), whereas \\texttt{{{llm_id}}} "
+        f"reaches {zs_pr_ev} zero-shot and {pr_ev} after 1-epoch QLoRA (full PR-AUC {pr_full}). "
+        f"This honest null QLoRA gain over \\texttt{{FinBERT}} reflects the sample-efficiency "
+        f"boundary of fine-tuning a multi-billion-parameter LLM on {tr_ev} short SEC filing "
+        f"titles with sparse tail labels and rapid market incorporation of public disclosures. "
+        f"All Phase~B results remain strictly predictive, non-causal CS482 benchmarks.\n"
     )
 
 
@@ -87,6 +105,26 @@ def render_phase_b_final_tex(
         "Group Project (Final Report: Phase A + Phase B)",
         1,
     )
+    updated_tex = updated_tex.replace(
+        r"\section{Discussion, Limitations, and Phase B Outlook}",
+        r"\section{Discussion and Limitations}",
+        1,
+    )
+    n_ev_days = phase_a_claims["EVENT_ANCHORED_DAYS"]["value"]
+    updated_tex = re.sub(
+        r"\\textbf\{Phase B Extension \(Frozen Handoff Ready\)\.\}.*?material-event days\.",
+        (
+            r"\\textbf{Frozen Phase A to Phase B Handoff.} "
+            f"With Phase~A data, purged splits, and {n_ev_days} "
+            r"pre-close event-anchored text rows cryptographically frozen "
+            r"(\\texttt{events\\_text\\_phase\\_b.parquet}), Section~6 evaluates deep time-series "
+            r"architectures and 4-bit QLoRA LLM text fusion against \\texttt{FinBERT} (110M) and "
+            r"price-only Phase~A LightGBM on the identical 2025 single-shot holdout."
+        ),
+        updated_tex,
+        count=1,
+        flags=re.DOTALL,
+    )
     marker = (
         "% =========================================================================\n"
         "% EXCLUDED BACK MATTER"
@@ -101,12 +139,7 @@ def render_phase_b_final_tex(
 def collect_phase_b_claims(phase_b_summary: dict[str, Any]) -> dict[str, dict[str, str]]:
     """Collect verifiable Phase B numeric claims from `outputs/phase_b/phase_b_summary.json`."""
     src = "outputs/phase_b/phase_b_summary.json"
-    return {
-        "PB_LLM_REV": {
-            "value": str(phase_b_summary["llm_revision"])[:12],
-            "source": src,
-            "locator": "llm_revision[:12]",
-        },
+    claims: dict[str, dict[str, str]] = {
         "PB_PEAK_VRAM": {
             "value": f"{float(phase_b_summary['peak_vram_gb']):.1f}",
             "source": src,
@@ -121,6 +154,16 @@ def collect_phase_b_claims(phase_b_summary: dict[str, Any]) -> dict[str, dict[st
             "value": f"{100.0 * float(phase_b_summary['patchtst_15m_coverage_80']):.1f}",
             "source": src,
             "locator": "100*patchtst_15m_coverage_80",
+        },
+        "PB_FINBERT_PRAUC_EV": {
+            "value": f"{float(phase_b_summary['finbert_pr_auc_event']):.4f}",
+            "source": src,
+            "locator": "finbert_pr_auc_event",
+        },
+        "PB_LLM_ZS_PRAUC_EV": {
+            "value": f"{float(phase_b_summary['qwen_zs_pr_auc_event']):.4f}",
+            "source": src,
+            "locator": "qwen_zs_pr_auc_event",
         },
         "PB_LLM_QLIKE_FULL": {
             "value": f"{float(phase_b_summary['qwen_qlora_qlike_full']):.4f}",
@@ -148,6 +191,14 @@ def collect_phase_b_claims(phase_b_summary: dict[str, Any]) -> dict[str, dict[st
             "locator": "qwen_qlora_ece",
         },
     }
+    raw_rev = str(phase_b_summary.get("llm_revision", "unknown")).strip()
+    if raw_rev and raw_rev.lower() != "unknown":
+        claims["PB_LLM_REV"] = {
+            "value": raw_rev[:12],
+            "source": src,
+            "locator": "llm_revision[:12]",
+        }
+    return claims
 
 
 def build_and_audit_phase_b_report(

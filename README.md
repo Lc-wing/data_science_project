@@ -6,7 +6,7 @@ CS482 data science project. Three plans are implemented here, each in its own fo
 | --- | --- | --- |
 | [`plan_5_spatial_equity/`](plan_5_spatial_equity/README.md) | [Plan 5](plans/plan_5_macao_facilities_ev_graph_dl.md): spatial equity of Macao public facilities and EV charging (`macao_equity`) | Phase A frozen, Phase B run, CS482 report built |
 | [`plan_2_tourism_hotel/`](plan_2_tourism_hotel/README.md) | [Plan 2](plans/plan_2_macao_tourism_hotel_multivariate_dl.md): post-pandemic visitor mix and hotel occupancy by star tier (`macao_tourism`) | Phase A frozen, backtest complete, CS482 Phase A draft built |
-| [`plan_6_stock_volatility/`](plan_6_stock_volatility/README.md) | [Plan 6](plans/plan_6_stock_volatility_news_llm.md): US equity volatility and downside tail-risk forecasting with corporate events and LLM (`stock_volatility`) | Phase A complete (`M0`–`M6`, CS482 draft + 5-tier E2E hardened) & Phase B Colab A100 package ready (`M7`: `PatchTST`, `Chronos`, `FinBERT`, `Qwen/Qwen3.8-27B` QLoRA; see [`PHASE_B.md`](plan_6_stock_volatility/PHASE_B.md) & [milestone docs](plan_6_stock_volatility/docs/milestones/README.md)) |
+| [`plan_6_stock_volatility/`](plan_6_stock_volatility/README.md) | [Plan 6](plans/plan_6_stock_volatility_news_llm.md): US equity volatility and downside tail-risk forecasting with corporate events and LLM (`stock_volatility`) | Phase A frozen (`M0`–`M6`), Phase B executed on Colab L4 (`M7`–`M8`: `PatchTST`, `Chronos`, `FinBERT`, `google/gemma-4-12B-it` QLoRA), final CS482 report built & audited ([`CS482_GroupX_StockVolatilityLLM.pdf`](plan_6_stock_volatility/report/CS482_GroupX_StockVolatilityLLM.pdf) & [milestone docs](plan_6_stock_volatility/docs/milestones/README.md)) |
 
 Shared material stays at the repository root:
 
