@@ -20,8 +20,8 @@ Phase A is strictly CPU-reproducible and freezes the aligned panel, splits, and 
 | M1 | 60-stock OHLCV, macro (`^VIX`, FRED `VIXCLS`/`T10Y2Y`, `SPY`), paginated SEC EDGAR `8-K/10-Q/10-K`, Day-1 & coverage audit, milestone delivery docs | done (`5370d18`) | [`docs/milestones/M1_data_ingest_and_day1_audit.md`](docs/milestones/M1_data_ingest_and_day1_audit.md) |
 | M2 | Strict `16:00 America/New_York` (`13:00 ET` early-close) cutoff, deduplication & `<= 5`/day cap, features/targets, Purged+Embargoed splits, SHA-256 freeze | done (`3c9bba9`) | [`docs/milestones/M2_panel_splits_and_freeze.md`](docs/milestones/M2_panel_splits_and_freeze.md) |
 | M3 | Cross-cycle EDA & H1 Stock-FE Extended Panel HAR-RV with Driscoll–Kraay SE & Holm-adjusted CIs | done (`d7a35b6`) | [`docs/milestones/M3_eda_and_h1_panel_har_rv.md`](docs/milestones/M3_eda_and_h1_panel_har_rv.md) |
-| M4 | H2 Out-of-sample baselines (Persistence, GJR-GARCH, HAR-RV), Global LightGBM, 2024 Val calibration, 2025 Holdout Test, `h=5` HLN-DM/Holm & Train-background TreeSHAP | done | [`docs/milestones/M4_h2_forecasting_calibration_and_shap.md`](docs/milestones/M4_h2_forecasting_calibration_and_shap.md) |
-| M5 | 300-DPI Figure 1 & Figure 2, Table 1, audited CS482 Phase A Draft PDF (3.5–3.8 A4 pp), and one-command replay CLI | planned | `docs/milestones/M5_figures_table1_and_cs482_report.md` |
+| M4 | H2 Out-of-sample baselines (Persistence, GJR-GARCH, HAR-RV), Global LightGBM, 2024 Val calibration, 2025 Holdout Test, `h=5` HLN-DM/Holm & Train-background TreeSHAP | done (`744df5d`) | [`docs/milestones/M4_h2_forecasting_calibration_and_shap.md`](docs/milestones/M4_h2_forecasting_calibration_and_shap.md) |
+| M5 | 300-DPI Figure 1 & Figure 2, Table 1, audited CS482 Phase A Draft PDF (`4.00` A4 main pp), and one-command replay CLI | done | [`docs/milestones/M5_figures_table1_and_cs482_report.md`](docs/milestones/M5_figures_table1_and_cs482_report.md) |
 | M6 | Opaque-box E2E Tiers 1–4 verification & Tier 5 adversarial hardening | planned | `docs/milestones/M6_e2e_and_adversarial_hardening.md` |
 
 See [`docs/milestones/README.md`](docs/milestones/README.md) for the master milestone delivery ledger, the mandatory per-milestone AI execution recording policy, and the standard template for Milestones M0–M6.
@@ -89,14 +89,16 @@ Run all 4 models (Persistence, per-stock GJR-GARCH(1,1), Predictive HAR-RV, Glob
 MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/05_forecast_backtest.py
 ```
 
-### Planned One-Command Phase A Replay CLI (M5)
+### M5 Report Build & One-Command Phase A Replay CLIs
 
-Once Milestones M1–M5 are complete, the entire Phase A pipeline will replay deterministically from frozen inputs via:
+Build the 300-DPI Figure 1 & Figure 2, unified Table 1, CS482 Phase A Draft PDF, and automated 51-claim audit—or replay the entire Phase A pipeline deterministically offline from committed snapshots:
 
 ```bash
-MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/run_phase_a.py --skip-download
-# Or rebuild only the CS482 report and numeric audit:
+# Build figures, Table 1, CS482 Phase A Draft PDF, and run automated audit:
+MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/06_write_report.py
+# Or via the unified replay CLI (report-only fast rebuild vs full offline replay):
 MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/run_phase_a.py --report-only
+MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/run_phase_a.py --skip-download
 ```
 
 ## Data Sources & Anti-Leakage Protocol Summary
@@ -116,17 +118,18 @@ MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/run_phase_a.py --report-o
 ```text
 plan_6_stock_volatility/
 ├── .gitignore                          # [M0] Local cache, archive, weight, and LaTeX ignores
-├── README.md                           # [M0–M4] Project overview, setup, and non-investment notice
+├── README.md                           # [M0–M5] Project overview, setup, and non-investment notice
 ├── pyproject.toml                      # [M0] uv + hatchling package, ruff, and pytest configuration
 ├── uv.lock                             # [M0] Locked dependency graph
 ├── docs/
 │   └── milestones/                     # [M1–M6] Tracked milestone delivery & AI execution docs
-│       ├── README.md                   # [M1–M4] Master ledger, policy, and M2–M6 template
+│       ├── README.md                   # [M1–M5] Master ledger, policy, and M2–M6 template
 │       ├── M0_repo_cleanup_and_scaffold.md
 │       ├── M1_data_ingest_and_day1_audit.md
 │       ├── M2_panel_splits_and_freeze.md
 │       ├── M3_eda_and_h1_panel_har_rv.md
-│       └── M4_h2_forecasting_calibration_and_shap.md
+│       ├── M4_h2_forecasting_calibration_and_shap.md
+│       └── M5_figures_table1_and_cs482_report.md
 ├── src/stock_volatility/
 │   ├── __init__.py                     # [M0] Package metadata
 │   ├── config.py                       # [M0] Canonical paths, constants, UNIVERSE_60, helpers
@@ -139,13 +142,15 @@ plan_6_stock_volatility/
 │   ├── evaluation.py                   # [M4] QLIKE/PR-AUC/ECE, block bootstrap, h=5 HLN-DM/Holm
 │   ├── explain.py                      # [M4] Train-background TreeSHAP explainability
 │   ├── figures.py                      # [M5] 300-DPI Figure 1 & Figure 2 (PNG + PDF)
-│   └── report.py                       # [M5] Programmatic LaTeX, pdflatex build, claims audit
+│   └── report.py                       # [M5] Programmatic Table 1, LaTeX/PDF build & 51-claim audit
 ├── scripts/
 │   ├── 01_download_and_audit.py        # [M1] Data ingest & offline --skip-download Day-1 audit CLI
 │   ├── 02_build_panel_and_freeze.py    # [M2] Panel build, purged splits & --check/--refreeze CLI
 │   ├── 03_eda.py                       # [M3] Cross-cycle EDA tables & summary CLI
 │   ├── 04_panel_har_rv.py              # [M3] H1 Stock-FE Extended Panel HAR-RV CLI
-│   └── 05_forecast_backtest.py         # [M4] H2 baselines, LightGBM, HLN-DM & TreeSHAP CLI
+│   ├── 05_forecast_backtest.py         # [M4] H2 baselines, LightGBM, HLN-DM & TreeSHAP CLI
+│   ├── 06_write_report.py              # [M5] 300-DPI figures, Table 1, CS482 PDF & audit CLI
+│   └── run_phase_a.py                  # [M5] One-command offline Phase A replay CLI
 ├── data/                               # [M1–M2] raw/, interim/, frozen/ (FREEZE_MANIFEST.json)
 ├── outputs/                            # [M1–M5] figures/, metrics/, tables/
 ├── report/                             # [M5] phase_a_draft.tex, references.bib, PDF, audit
@@ -157,5 +162,6 @@ plan_6_stock_volatility/
     ├── test_eda.py                     # [M3] Cross-cycle EDA & non-causal wording tests
     ├── test_regression.py              # [M3] Driscoll-Kraay equivalence, Holm & H1 contract tests
     ├── test_forecast.py                # [M4] Purged folds, GJR-GARCH, calibration & selection tests
-    └── test_evaluation_and_shap.py     # [M4] QLIKE/ECE, HLN-DM, bootstrap & TreeSHAP tests
+    ├── test_evaluation_and_shap.py     # [M4] QLIKE/ECE, HLN-DM, bootstrap & TreeSHAP tests
+    └── test_figures_and_report.py      # [M5] 300-DPI figures, Table 1, A4 PDF audit & CLI tests
 ```

@@ -1,0 +1,30 @@
+\begin{table}[!t]
+\centering
+\caption{Summary of H1 Stock-FE Extended Panel HAR-RV Confirmatory Tests (2019--2025, $N=104{,}040$, Bartlett Driscoll--Kraay SE with $L=7$) and H2 Single-Shot 2025 Holdout Forecasting Performance ($N=14{,}700$, 245 scorable days, 5-day date-block bootstrap $B=1{,}000$ 95\% CIs, and $h=5$ HLN-DM Holm-adjusted $p$-values vs.\ LightGBM).}
+\label{tab:main_summary}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular}{lcccccc}
+\toprule
+\multicolumn{7}{l}{\textbf{Panel A: H1 Confirmatory Associational Family (Within $R^2 = 0.4736$, Healthcare Reference)}} \\
+\midrule
+Confirmatory Hypothesis & Estimate / $\chi^2$ & 95\% CI / $F$ & Raw $p$ & Holm $p$ & Sig. & Sample \\
+\midrule
+Leverage AME (neg\_ret\_1d) & -1.4458 & [-2.0529, -0.8386] & <0.0001 & <0.0001 & Yes & 104,040 \\
+VIX AME (per +1 pt) & +0.0141 & [+0.0109, +0.0173] & <0.0001 & <0.0001 & Yes & 104,040 \\
+Tech x neg\_ret\_1d vs Health. & -0.6479 & [-1.3868, +0.0910] & 0.086 & 0.171 & No & 104,040 \\
+Tech x VIX vs Health. & +0.0009 & [-0.0011, +0.0029] & 0.380 & 0.380 & No & 104,040 \\
+Joint 5-Sector Wald (df=8) & 84.84 & F=10.60 & <0.0001 & <0.0001 & Yes & 104,040 \\
+\midrule
+\multicolumn{7}{l}{\textbf{Panel B: H2 2025 Holdout Test Performance (Base Tail Rate = 8.62\%, 300/300 GJR-GARCH Converged)}} \\
+\midrule
+Model & QLIKE [95\% CI] & RMSE & PR-AUC [95\% CI] & Brier & ECE (Pre) & DM Holm $p$ (Q/B) \\
+\midrule
+Persistence (RV\_w / Base) & 0.3144 [0.213,0.484] & 0.1196 & 0.0721 [0.051,0.104] & 0.0788 & 0.0023 & <0.0001 / 0.047 \\
+GJR-GARCH(1,1) Per-Stock & 0.3007 [0.241,0.386] & 0.1362 & 0.1271 [0.098,0.169] & 0.0796 & 0.0264 & 0.021 / 0.123 \\
+Panel HAR-RV (+ Logistic) & 0.2383 [0.158,0.380] & 0.0957 & 0.1422 [0.104,0.191] & 0.0774 & 0.0070 & 0.134 / 0.716 \\
+\textbf{Global LightGBM (Cal.)} & 0.2306 [0.154,0.372] & 0.0951 & 0.1231 [0.083,0.177] & 0.0773 & 0.0102 (0.380) & Ref. \\
+\bottomrule
+\end{tabular}
+\end{table}
