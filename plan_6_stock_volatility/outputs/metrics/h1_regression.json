@@ -1,0 +1,378 @@
+{
+  "schema_version": "1.0.0",
+  "milestone": "M3",
+  "generated_at_utc": "2026-11-22T14:04:28+00:00",
+  "reference_sector": "Healthcare",
+  "main_model": {
+    "n_obs": 104040,
+    "n_entities": 60,
+    "n_dates": 1734,
+    "k_params": 13,
+    "df_t": 1733,
+    "bartlett_bandwidth_L": 7,
+    "within_r2": 0.47362460272480844,
+    "rmse_within": 0.26639926349528364,
+    "coefficients": [
+      {
+        "row_type": "regressor",
+        "term": "log_rv_d",
+        "coef": 0.09293389137360479,
+        "se_dk": 0.0086013666075846,
+        "t_stat": 10.804549510964526,
+        "p_value": 2.221662405429274e-26,
+        "p_holm_confirmatory": null,
+        "ci95_low": 0.07606374026750916,
+        "ci95_high": 0.10980404247970042
+      },
+      {
+        "row_type": "regressor",
+        "term": "log_rv_w",
+        "coef": 0.1634093045706501,
+        "se_dk": 0.02722749060569583,
+        "t_stat": 6.0016292701048926,
+        "p_value": 2.373546766714927e-09,
+        "p_holm_confirmatory": null,
+        "ci95_low": 0.1100071067904911,
+        "ci95_high": 0.2168115023508091
+      },
+      {
+        "row_type": "regressor",
+        "term": "log_rv_m",
+        "coef": 0.2170972014327164,
+        "se_dk": 0.041361866943498166,
+        "t_stat": 5.248728296749254,
+        "p_value": 1.7200945218235456e-07,
+        "p_holm_confirmatory": null,
+        "ci95_low": 0.13597277351311818,
+        "ci95_high": 0.29822162935231467
+      },
+      {
+        "row_type": "regressor",
+        "term": "neg_ret_1d",
+        "coef": -1.0300589664463222,
+        "se_dk": 0.3980052695111769,
+        "t_stat": -2.5880535896206167,
+        "p_value": 0.009732668341655247,
+        "p_holm_confirmatory": null,
+        "ci95_low": -1.8106801565436228,
+        "ci95_high": -0.24943777634902164
+      },
+      {
+        "row_type": "regressor",
+        "term": "vix_close",
+        "coef": 0.010433778877873306,
+        "se_dk": 0.0017692106630850582,
+        "t_stat": 5.897420299106394,
+        "p_value": 4.429387116758878e-09,
+        "p_holm_confirmatory": null,
+        "ci95_low": 0.00696376619425604,
+        "ci95_high": 0.013903791561490573
+      },
+      {
+        "row_type": "regressor",
+        "term": "technology_x_neg_ret_1d",
+        "coef": -0.6478905935531645,
+        "se_dk": 0.3767337252568297,
+        "t_stat": -1.7197573514595215,
+        "p_value": 0.08565510220503099,
+        "p_holm_confirmatory": 0.17131020441006198,
+        "ci95_low": -1.3867911847965104,
+        "ci95_high": 0.09100999769018148
+      },
+      {
+        "row_type": "regressor",
+        "term": "technology_x_vix_close",
+        "coef": 0.0009022881634328211,
+        "se_dk": 0.0010268442355722191,
+        "t_stat": 0.8787001301419509,
+        "p_value": 0.37968570133404567,
+        "p_holm_confirmatory": 0.37968570133404567,
+        "ci95_low": -0.0011116961493915307,
+        "ci95_high": 0.0029162724762571727
+      },
+      {
+        "row_type": "regressor",
+        "term": "financials_x_neg_ret_1d",
+        "coef": -1.2730727725615167,
+        "se_dk": 0.5417266382724611,
+        "t_stat": -2.350028007892101,
+        "p_value": 0.01888362582476492,
+        "p_holm_confirmatory": null,
+        "ci95_low": -2.335579541868959,
+        "ci95_high": -0.21056600325407437
+      },
+      {
+        "row_type": "regressor",
+        "term": "financials_x_vix_close",
+        "coef": 0.00503928335180245,
+        "se_dk": 0.0011398162230364943,
+        "t_stat": 4.421136714809773,
+        "p_value": 1.0427635228500886e-05,
+        "p_holm_confirmatory": null,
+        "ci95_low": 0.002803723260822369,
+        "ci95_high": 0.007274843442782532
+      },
+      {
+        "row_type": "regressor",
+        "term": "consumer_x_neg_ret_1d",
+        "coef": -0.4127427172037876,
+        "se_dk": 0.35636497202120015,
+        "t_stat": -1.158202263434672,
+        "p_value": 0.24694108985580118,
+        "p_holm_confirmatory": null,
+        "ci95_low": -1.1116933841380312,
+        "ci95_high": 0.2862079497304561
+      },
+      {
+        "row_type": "regressor",
+        "term": "consumer_x_vix_close",
+        "coef": 0.003671773372933229,
+        "se_dk": 0.0009579656687407306,
+        "t_stat": 3.8328861803156946,
+        "p_value": 0.00013117136018415534,
+        "p_holm_confirmatory": null,
+        "ci95_low": 0.001792882921751036,
+        "ci95_high": 0.0055506638241154226
+      },
+      {
+        "row_type": "regressor",
+        "term": "energy_x_neg_ret_1d",
+        "coef": 0.2551430410424063,
+        "se_dk": 0.41006678961401793,
+        "t_stat": 0.6221987429963881,
+        "p_value": 0.5338930427244796,
+        "p_holm_confirmatory": null,
+        "ci95_low": -0.5491348161855236,
+        "ci95_high": 1.0594208982703361
+      },
+      {
+        "row_type": "regressor",
+        "term": "energy_x_vix_close",
+        "coef": 0.008743837874660043,
+        "se_dk": 0.0014486566560477435,
+        "t_stat": 6.035824871377854,
+        "p_value": 1.9299564733850688e-09,
+        "p_holm_confirmatory": null,
+        "ci95_low": 0.005902538601725144,
+        "ci95_high": 0.011585137147594942
+      }
+    ],
+    "sector_total_slopes": [
+      {
+        "row_type": "sector_total_slope",
+        "term": "total_slope_technology_neg_ret_1d",
+        "coef": -1.6779495599994867,
+        "se_dk": 0.34505498778842447,
+        "t_stat": -4.8628468487125485,
+        "p_value": 1.2617791347225236e-06,
+        "p_holm_confirmatory": null,
+        "ci95_low": -2.3547175725115554,
+        "ci95_high": -1.001181547487418
+      },
+      {
+        "row_type": "sector_total_slope",
+        "term": "total_slope_technology_vix_close",
+        "coef": 0.011336067041306127,
+        "se_dk": 0.00185544899889913,
+        "t_stat": 6.109608535740951,
+        "p_value": 1.2305399467846821e-09,
+        "p_holm_confirmatory": null,
+        "ci95_low": 0.007696912194275114,
+        "ci95_high": 0.01497522188833714
+      },
+      {
+        "row_type": "sector_total_slope",
+        "term": "total_slope_financials_neg_ret_1d",
+        "coef": -2.303131739007839,
+        "se_dk": 0.5304347078098874,
+        "t_stat": -4.341970284179259,
+        "p_value": 1.4937594847592783e-05,
+        "p_holm_confirmatory": null,
+        "ci95_low": -3.343491263362931,
+        "ci95_high": -1.262772214652747
+      },
+      {
+        "row_type": "sector_total_slope",
+        "term": "total_slope_financials_vix_close",
+        "coef": 0.015473062229675757,
+        "se_dk": 0.0017406875741487727,
+        "t_stat": 8.88905192377349,
+        "p_value": 1.5103970982479708e-18,
+        "p_holm_confirmatory": null,
+        "ci95_low": 0.012058992844643558,
+        "ci95_high": 0.018887131614707956
+      },
+      {
+        "row_type": "sector_total_slope",
+        "term": "total_slope_healthcare_neg_ret_1d",
+        "coef": -1.0300589664463222,
+        "se_dk": 0.3980052695111769,
+        "t_stat": -2.5880535896206167,
+        "p_value": 0.009732668341655247,
+        "p_holm_confirmatory": null,
+        "ci95_low": -1.8106801565436228,
+        "ci95_high": -0.24943777634902164
+      },
+      {
+        "row_type": "sector_total_slope",
+        "term": "total_slope_healthcare_vix_close",
+        "coef": 0.010433778877873306,
+        "se_dk": 0.0017692106630850582,
+        "t_stat": 5.897420299106394,
+        "p_value": 4.429387116758878e-09,
+        "p_holm_confirmatory": null,
+        "ci95_low": 0.00696376619425604,
+        "ci95_high": 0.013903791561490573
+      },
+      {
+        "row_type": "sector_total_slope",
+        "term": "total_slope_consumer_neg_ret_1d",
+        "coef": -1.4428016836501099,
+        "se_dk": 0.39359169845939473,
+        "t_stat": -3.665731999169586,
+        "p_value": 0.000254063862953475,
+        "p_holm_confirmatory": null,
+        "ci95_low": -2.214766387637936,
+        "ci95_high": -0.6708369796622838
+      },
+      {
+        "row_type": "sector_total_slope",
+        "term": "total_slope_consumer_vix_close",
+        "coef": 0.014105552250806536,
+        "se_dk": 0.0018936878987062874,
+        "t_stat": 7.4487207001972395,
+        "p_value": 1.478811219588069e-13,
+        "p_holm_confirmatory": null,
+        "ci95_low": 0.010391398156875762,
+        "ci95_high": 0.01781970634473731
+      },
+      {
+        "row_type": "sector_total_slope",
+        "term": "total_slope_energy_neg_ret_1d",
+        "coef": -0.774915925403916,
+        "se_dk": 0.3232758882075199,
+        "t_stat": -2.3970730687668103,
+        "p_value": 0.0166319597200395,
+        "p_holm_confirmatory": null,
+        "ci95_low": -1.4089678536415882,
+        "ci95_high": -0.14086399716624387
+      },
+      {
+        "row_type": "sector_total_slope",
+        "term": "total_slope_energy_vix_close",
+        "coef": 0.01917761675253335,
+        "se_dk": 0.001663663691501519,
+        "t_stat": 11.527339840677072,
+        "p_value": 1.1253654430386502e-29,
+        "p_holm_confirmatory": null,
+        "ci95_low": 0.015914616912414112,
+        "ci95_high": 0.022440616592652587
+      }
+    ]
+  },
+  "confirmatory_family_holm": [
+    {
+      "test_id": "neg_ret_1d",
+      "description": "Overall 5-sector average leverage association (slope on min(ret_1d, 0))",
+      "statistic_type": "t",
+      "estimate": -1.4457715749015347,
+      "se": 0.3095581402171865,
+      "t_stat": -4.670436299582299,
+      "p_value": 3.2371622517789807e-06,
+      "ci95_low": -2.052918420262237,
+      "ci95_high": -0.8386247295408324,
+      "ci95_fwer_low": -2.244019636168592,
+      "ci95_fwer_high": -0.6475235136344777,
+      "p_holm": 9.711486755336942e-06,
+      "significant_holm_05": true
+    },
+    {
+      "test_id": "vix_close",
+      "description": "Overall 5-sector average VIX association (slope per +1 VIX point)",
+      "statistic_type": "t",
+      "estimate": 0.014105215430439017,
+      "se": 0.0016491647644388248,
+      "t_stat": 8.552944941943819,
+      "p_value": 2.595228493819439e-17,
+      "ci95_low": 0.010870652826119986,
+      "ci95_high": 0.017339778034758047,
+      "ci95_fwer_low": 0.009852564942877564,
+      "ci95_fwer_high": 0.01835786591800047,
+      "p_holm": 1.2976142469097195e-16,
+      "significant_holm_05": true
+    },
+    {
+      "test_id": "tech_x_neg_ret_1d_vs_healthcare",
+      "description": "Technology vs Healthcare differential leverage slope",
+      "statistic_type": "t",
+      "estimate": -0.6478905935531645,
+      "se": 0.3767337252568297,
+      "t_stat": -1.7197573514595215,
+      "p_value": 0.08565510220503099,
+      "ci95_low": -1.3867911847965104,
+      "ci95_high": 0.09100999769018148,
+      "ci95_fwer_low": -1.6193622711811213,
+      "ci95_fwer_high": 0.32358108407479225,
+      "p_holm": 0.17131020441006198,
+      "significant_holm_05": false
+    },
+    {
+      "test_id": "tech_x_vix_close_vs_healthcare",
+      "description": "Technology vs Healthcare differential VIX slope",
+      "statistic_type": "t",
+      "estimate": 0.0009022881634328211,
+      "se": 0.0010268442355722191,
+      "t_stat": 0.8787001301419509,
+      "p_value": 0.37968570133404567,
+      "ci95_low": -0.0011116961493915307,
+      "ci95_high": 0.0029162724762571727,
+      "ci95_fwer_low": -0.0017456035046515357,
+      "ci95_fwer_high": 0.0035501798315171777,
+      "p_holm": 0.37968570133404567,
+      "significant_holm_05": false
+    },
+    {
+      "test_id": "joint_5sector_interaction_wald",
+      "description": "Joint Wald test of all 8 sector x (neg_ret_1d, vix_close) interactions",
+      "statistic_type": "wald_F",
+      "estimate": 84.83505634264903,
+      "se": null,
+      "t_stat": 10.604382042831128,
+      "p_value": 1.2338017524197524e-14,
+      "p_value_chi2": 5.174242920338642e-15,
+      "df_num": 8,
+      "df_denom": 1733,
+      "ci95_low": null,
+      "ci95_high": null,
+      "ci95_fwer_low": null,
+      "ci95_fwer_high": null,
+      "p_holm": 4.9352070096790095e-14,
+      "significant_holm_05": true
+    }
+  ],
+  "sensitivities_summary": {
+    "train_only_2019_2023": {
+      "n_obs": 73860,
+      "n_dates": 1231,
+      "bartlett_bandwidth_L": 6,
+      "within_r2": 0.5293487236616129
+    },
+    "close_to_close_rv_5d_cc_fwd": {
+      "n_obs": 104040,
+      "within_r2": 0.28076809379572176
+    },
+    "newey_west_entity_clustered_se": {
+      "n_obs": 104040,
+      "df_t": 59,
+      "within_r2": 0.47362460272480844
+    },
+    "pooled_har_rv_no_interactions": {
+      "n_obs": 104040,
+      "within_r2": 0.46941153451707407
+    },
+    "extended_with_macro_and_events": {
+      "n_obs": 104040,
+      "within_r2": 0.4747854835131422
+    }
+  }
+}
