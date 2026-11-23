@@ -23,7 +23,16 @@ dependencies = [
     "matplotlib>=3.9",
     "seaborn>=0.13",
     "pypdf>=5.0",
+    "torch>=2.5",
 ]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [dependency-groups]
 dev = [

@@ -1,0 +1,383 @@
+"""Route B 27B-32B News/Event LLM Zero-Shot & 4-bit NF4 QLoRA (Default: Qwen/Qwen3.8-27B)."""
+
+from __future__ import annotations
+
+import math
+import time
+from collections.abc import Sequence
+from typing import Any, Literal
+
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn.functional as F
+
+from stock_volatility import config
+from stock_volatility.phase_b.data_contract import build_event_prompt
+
+DEFAULT_LLM_MODEL: str = "Qwen/Qwen3.8-27B"
+SUPPORTED_LLM_MODELS: tuple[str, ...] = (
+    "Qwen/Qwen3.8-27B",
+    "Qwen/Qwen3-32B",
+    "Qwen/Qwen3-30B-A3B",
+    "google/gemma-4-31B",
+    "meta-models/Muse-Glimmer-30B",
+)
+
+TEXT_LORA_SUFFIXES: frozenset[str] = frozenset(
+    {
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "in_proj_qkv",
+        "out_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj",
+    }
+)
+EXCLUDED_LORA_PREFIXES: tuple[str, ...] = (
+    "visual",
+    "vision",
+    "merger",
+    "mtp",
+    "lm_head",
+)
+
+
+def require_cuda_and_download_flag(
+    *,
+    allow_weight_download: bool,
+    component: str,
+) -> None:
+    """Hard gate preventing accidental GPU weight downloads or CUDA calls on CPU-only VMs."""
+    if not allow_weight_download:
+        raise RuntimeError(
+            f"Refusing to download or run GPU weights for {component!r}: "
+            "pass --allow-weight-download explicitly on a CUDA A100 runtime."
+        )
+    if not torch.cuda.is_available():
+        raise RuntimeError(
+            f"CUDA GPU required for {component!r}, but torch.cuda.is_available() is False. "
+            "Run notebooks/phase_b_colab.ipynb on a Colab A100 (40GB/80GB) runtime."
+        )
+
+
+def detect_model_loader_kind(
+    model_type: str,
+    architectures: Sequence[str],
+) -> Literal["image_text_to_text", "causal_lm"]:
+    """Choose AutoModelForImageTextToText vs AutoModelForCausalLM cleanly from HF config.
+
+    Critical for `Qwen/Qwen3.8-27B` whose HF config declares `model_type='qwen3_5'` and
+    `architectures=['Qwen3_5ForConditionalGeneration']` (multimodal VLM wrapper).
+    """
+    mt = str(model_type or "").lower()
+    arch_str = " ".join(str(a) for a in architectures).lower()
+    if mt in {"qwen3_5", "gemma3", "gemma4", "qwen2_5_vl", "qwen3_vl"}:
+        return "image_text_to_text"
+    if "forconditionalgeneration" in arch_str and "t5" not in arch_str:
+        return "image_text_to_text"
+    return "causal_lm"
+
+
+def filter_text_lora_target_modules(module_names: Sequence[str]) -> list[str]:
+    """Select strictly text-backbone linear projections for LoRA, excluding visual & MTP layers."""
+    selected: list[str] = []
+    for raw_name in module_names:
+        name = str(raw_name).strip()
+        if not name:
+            continue
+        parts = name.split(".")
+        if any(p in EXCLUDED_LORA_PREFIXES for p in parts):
+            continue
+        if parts[-1] in TEXT_LORA_SUFFIXES:
+            selected.append(name)
+    return sorted(set(selected))
+
+
+def compute_yes_no_log_odds(
+    last_token_logits: torch.Tensor,
+    *,
+    yes_token_id: int,
+    no_token_id: int,
+) -> torch.Tensor:
+    """Compute exact next-token log-odds `logit(YES) - logit(NO)` for tail-risk scoring."""
+    return last_token_logits[:, yes_token_id] - last_token_logits[:, no_token_id]
+
+
+def _resolve_single_token_id(tokenizer: Any, token_text: str) -> int:
+    """Resolve a single vocabulary token ID for YES/NO scoring."""
+    for candidate in (f" {token_text}", token_text):
+        ids = tokenizer.encode(candidate, add_special_tokens=False)
+        if len(ids) == 1:
+            return int(ids[0])
+    ids = tokenizer.encode(token_text, add_special_tokens=False)
+    if not ids:
+        raise ValueError(f"Tokenizer returned empty IDs for {token_text!r}")
+    return int(ids[0])
+
+
+def _score_prompts_log_odds(
+    model: Any,
+    tokenizer: Any,
+    prompts: Sequence[str],
+    *,
+    yes_id: int,
+    no_id: int,
+    max_seq_len: int,
+    batch_size: int,
+) -> np.ndarray:
+    """Run eval-mode batched forward passes returning raw `logit(YES) - logit(NO)` scores."""
+    model.eval()
+    device = next(model.parameters()).device
+    scores: list[np.ndarray] = []
+    with torch.no_grad():
+        for start in range(0, len(prompts), batch_size):
+            batch_txt = list(prompts[start : start + batch_size])
+            enc = tokenizer(
+                batch_txt,
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=max_seq_len,
+            ).to(device)
+            out = model(input_ids=enc["input_ids"], attention_mask=enc["attention_mask"])
+            # Read logit at the final non-padding token position for each row
+            last_idx = enc["attention_mask"].sum(dim=1) - 1
+            batch_arange = torch.arange(enc["input_ids"].size(0), device=device)
+            last_logits = out.logits[batch_arange, last_idx, :].float()
+            z = compute_yes_no_log_odds(last_logits, yes_token_id=yes_id, no_token_id=no_id)
+            scores.append(z.cpu().numpy())
+    if not scores:
+        return np.empty((0,), dtype=np.float32)
+    return np.concatenate(scores, axis=0).astype(np.float32)
+
+
+def run_llm_zero_shot_and_qlora(
+    *,
+    event_splits: dict[str, pd.DataFrame],
+    model_id: str = DEFAULT_LLM_MODEL,
+    allow_weight_download: bool = False,
+    max_seq_len: int = 512,
+    epochs: int = 1,
+    grad_accum_steps: int = 8,
+    eval_batch_size: int = 4,
+    lr: float = 1e-4,
+    lora_r: int = 16,
+    lora_alpha: int = 32,
+    lora_dropout: float = 0.05,
+    max_train_events: int | None = None,
+    seed: int = config.RANDOM_SEED,
+) -> dict[str, Any]:
+    """Run Zero-Shot + 4-bit NF4 QLoRA on Colab A100 for event-anchored days (H3)."""
+    require_cuda_and_download_flag(
+        allow_weight_download=allow_weight_download, component=f"llm:{model_id}"
+    )
+
+    from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+    from transformers import (
+        AutoConfig,
+        AutoModelForCausalLM,
+        AutoModelForImageTextToText,
+        AutoTokenizer,
+        BitsAndBytesConfig,
+    )
+
+    t0 = time.perf_counter()
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.cuda.reset_peak_memory_stats()
+
+    hf_cfg = AutoConfig.from_pretrained(model_id)
+    loader_kind = detect_model_loader_kind(
+        getattr(hf_cfg, "model_type", ""),
+        getattr(hf_cfg, "architectures", []) or [],
+    )
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "right"
+
+    yes_id = _resolve_single_token_id(tokenizer, "YES")
+    no_id = _resolve_single_token_id(tokenizer, "NO")
+
+    bnb_cfg = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_compute_dtype=torch.bfloat16,
+    )
+    model_cls = (
+        AutoModelForImageTextToText if loader_kind == "image_text_to_text" else AutoModelForCausalLM
+    )
+    base_model = model_cls.from_pretrained(
+        model_id,
+        quantization_config=bnb_cfg,
+        device_map="auto",
+        torch_dtype=torch.bfloat16,
+    )
+    base_model.config.use_cache = False
+
+    train_ev = event_splits["train"].copy()
+    val_ev = event_splits["val"].copy()
+    test_ev = event_splits["test"].copy()
+    if max_train_events is not None and len(train_ev) > max_train_events:
+        train_ev = train_ev.sample(n=max_train_events, random_state=seed).sort_values(
+            ["date", "ticker"]
+        )
+
+    val_prompts = [build_event_prompt(r) for r in val_ev.to_dict(orient="records")]
+    test_prompts = [build_event_prompt(r) for r in test_ev.to_dict(orient="records")]
+    train_prompts = [build_event_prompt(r) for r in train_ev.to_dict(orient="records")]
+
+    # 1. Zero-shot event-anchored inference on 2024 Val & 2025 Test
+    zs_val_logits = _score_prompts_log_odds(
+        base_model,
+        tokenizer,
+        val_prompts,
+        yes_id=yes_id,
+        no_id=no_id,
+        max_seq_len=max_seq_len,
+        batch_size=eval_batch_size,
+    )
+    zs_test_logits = _score_prompts_log_odds(
+        base_model,
+        tokenizer,
+        test_prompts,
+        yes_id=yes_id,
+        no_id=no_id,
+        max_seq_len=max_seq_len,
+        batch_size=eval_batch_size,
+    )
+
+    # 2. Attach text-only LoRA adapters (explicitly excluding visual / mtp modules)
+    linear_names = [
+        name
+        for name, mod in base_model.named_modules()
+        if isinstance(mod, torch.nn.Linear) or mod.__class__.__name__.startswith("Linear4bit")
+    ]
+    target_modules = filter_text_lora_target_modules(linear_names)
+    if not target_modules:
+        raise RuntimeError(f"No text LoRA target modules matched for {model_id}")
+
+    base_model = prepare_model_for_kbit_training(base_model, use_gradient_checkpointing=True)
+    lora_cfg = LoraConfig(
+        r=lora_r,
+        lora_alpha=lora_alpha,
+        lora_dropout=lora_dropout,
+        bias="none",
+        target_modules=target_modules,
+    )
+    peft_model = get_peft_model(base_model, lora_cfg)
+    trainable_params = sum(p.numel() for p in peft_model.parameters() if p.requires_grad)
+    total_params = sum(p.numel() for p in peft_model.parameters())
+
+    # 3. Supervised class-weighted BCE fine-tuning strictly on Train event-anchored days
+    y_train = train_ev["y_tail"].astype(float).to_numpy()
+    pos_w = float(max(np.sum(y_train == 0), 1.0) / max(np.sum(y_train == 1), 1.0))
+    device = next(peft_model.parameters()).device
+    pos_weight_t = torch.tensor([pos_w], dtype=torch.float32, device=device)
+
+    try:
+        import bitsandbytes as bnb
+
+        optimizer: torch.optim.Optimizer = bnb.optim.PagedAdamW8bit(
+            [p for p in peft_model.parameters() if p.requires_grad],
+            lr=lr,
+            weight_decay=0.01,
+        )
+    except Exception:
+        optimizer = torch.optim.AdamW(
+            [p for p in peft_model.parameters() if p.requires_grad],
+            lr=lr,
+            weight_decay=0.01,
+        )
+
+    rng = np.random.default_rng(seed)
+    n_train = len(train_prompts)
+    total_opt_steps = max(1, math.ceil((n_train * epochs) / grad_accum_steps))
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_opt_steps)
+
+    epoch_losses: list[float] = []
+    peft_model.train()
+    for _ep in range(epochs):
+        order = rng.permutation(n_train)
+        running_loss = 0.0
+        optimizer.zero_grad(set_to_none=True)
+        for step_idx, row_i in enumerate(order, start=1):
+            enc = tokenizer(
+                train_prompts[int(row_i)],
+                return_tensors="pt",
+                truncation=True,
+                max_length=max_seq_len,
+            ).to(device)
+            out = peft_model(input_ids=enc["input_ids"], attention_mask=enc["attention_mask"])
+            last_logits = out.logits[:, -1, :].float()
+            z = compute_yes_no_log_odds(last_logits, yes_token_id=yes_id, no_token_id=no_id)
+            y_t = torch.tensor([y_train[int(row_i)]], dtype=torch.float32, device=device)
+            loss = F.binary_cross_entropy_with_logits(z, y_t, pos_weight=pos_weight_t)
+            (loss / grad_accum_steps).backward()
+            running_loss += float(loss.detach().cpu().item())
+
+            if step_idx % grad_accum_steps == 0 or step_idx == n_train:
+                torch.nn.utils.clip_grad_norm_(peft_model.parameters(), 1.0)
+                optimizer.step()
+                scheduler.step()
+                optimizer.zero_grad(set_to_none=True)
+        epoch_losses.append(running_loss / max(n_train, 1))
+
+    # 4. QLoRA post-fine-tuning inference on 2024 Val & 2025 Test event-anchored days
+    qlora_val_logits = _score_prompts_log_odds(
+        peft_model,
+        tokenizer,
+        val_prompts,
+        yes_id=yes_id,
+        no_id=no_id,
+        max_seq_len=max_seq_len,
+        batch_size=eval_batch_size,
+    )
+    qlora_test_logits = _score_prompts_log_odds(
+        peft_model,
+        tokenizer,
+        test_prompts,
+        yes_id=yes_id,
+        no_id=no_id,
+        max_seq_len=max_seq_len,
+        batch_size=eval_batch_size,
+    )
+
+    peak_vram_gb = float(torch.cuda.max_memory_allocated() / 1e9)
+    elapsed_sec = float(time.perf_counter() - t0)
+
+    val_scores_df = val_ev[["ticker", "date"]].copy()
+    val_scores_df["llm_zs_logit"] = zs_val_logits
+    val_scores_df["llm_qlora_logit"] = qlora_val_logits
+
+    test_scores_df = test_ev[["ticker", "date"]].copy()
+    test_scores_df["llm_zs_logit"] = zs_test_logits
+    test_scores_df["llm_qlora_logit"] = qlora_test_logits
+
+    return {
+        "model_id": model_id,
+        "revision": getattr(hf_cfg, "_commit_hash", "unknown"),
+        "loader_kind": loader_kind,
+        "lora_r": lora_r,
+        "lora_alpha": lora_alpha,
+        "lora_dropout": lora_dropout,
+        "lora_target_module_count": len(target_modules),
+        "trainable_params": int(trainable_params),
+        "total_loaded_params": int(total_params),
+        "train_event_days_used": int(n_train),
+        "train_event_days_total": int(len(event_splits["train"])),
+        "val_event_days": int(len(val_ev)),
+        "test_event_days": int(len(test_ev)),
+        "epochs": int(epochs),
+        "epoch_losses": epoch_losses,
+        "gpu_name": str(torch.cuda.get_device_name(0)),
+        "peak_vram_gb": round(peak_vram_gb, 3),
+        "elapsed_sec": round(elapsed_sec, 2),
+        "val_scores_df": val_scores_df,
+        "test_scores_df": test_scores_df,
+    }
