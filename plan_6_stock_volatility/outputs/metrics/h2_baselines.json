@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0.0",
+  "milestone": "M4",
+  "total_garch_fits": 300,
+  "garch_converged_fits": 300,
+  "garch_convergence_rate": 1.0,
+  "folds": [
+    {
+      "fold_id": "val_2024",
+      "fit_end_date": "2023-12-20",
+      "eval_start_date": "2024-01-02",
+      "eval_end_date": "2024-12-20",
+      "n_eval_days": 246,
+      "purge_trading_days": 6,
+      "allowed_fit_splits": [
+        "train"
+      ],
+      "n_fit_rows": 73860,
+      "n_eval_rows": 14760,
+      "persistence_base_rate": 0.08686704576225292,
+      "har_duan_smearing": 1.0355152372595582,
+      "garch_converged_count": 60
+    },
+    {
+      "fold_id": "2025Q1",
+      "fit_end_date": "2024-12-20",
+      "eval_start_date": "2025-01-02",
+      "eval_end_date": "2025-03-31",
+      "n_eval_days": 60,
+      "purge_trading_days": 6,
+      "allowed_fit_splits": [
+        "train",
+        "val"
+      ],
+      "n_fit_rows": 88620,
+      "n_eval_rows": 3600,
+      "persistence_base_rate": 0.0826788535319341,
+      "har_duan_smearing": 1.0359839074004067,
+      "garch_converged_count": 60
+    },
+    {
+      "fold_id": "2025Q2",
+      "fit_end_date": "2025-03-24",
+      "eval_start_date": "2025-04-01",
+      "eval_end_date": "2025-06-30",
+      "n_eval_days": 62,
+      "purge_trading_days": 5,
+      "allowed_fit_splits": [
+        "train",
+        "val",
+        "test"
+      ],
+      "n_fit_rows": 91920,
+      "n_eval_rows": 3720,
+      "persistence_base_rate": 0.08381201044386423,
+      "har_duan_smearing": 1.0362014352314506,
+      "garch_converged_count": 60
+    },
+    {
+      "fold_id": "2025Q3",
+      "fit_end_date": "2025-06-23",
+      "eval_start_date": "2025-07-01",
+      "eval_end_date": "2025-09-30",
+      "n_eval_days": 64,
+      "purge_trading_days": 5,
+      "allowed_fit_splits": [
+        "train",
+        "val",
+        "test"
+      ],
+      "n_fit_rows": 95640,
+      "n_eval_rows": 3840,
+      "persistence_base_rate": 0.08517356754496026,
+      "har_duan_smearing": 1.038021512243951,
+      "garch_converged_count": 60
+    },
+    {
+      "fold_id": "2025Q4",
+      "fit_end_date": "2025-09-23",
+      "eval_start_date": "2025-10-01",
+      "eval_end_date": "2025-12-23",
+      "n_eval_days": 59,
+      "purge_trading_days": 5,
+      "allowed_fit_splits": [
+        "train",
+        "val",
+        "test"
+      ],
+      "n_fit_rows": 99480,
+      "n_eval_rows": 3540,
+      "persistence_base_rate": 0.08378568556493768,
+      "har_duan_smearing": 1.0377809318498166,
+      "garch_converged_count": 60
+    }
+  ],
+  "generated_at_utc": "2026-11-22T14:04:28+00:00"
+}

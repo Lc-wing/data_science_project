@@ -1,0 +1,229 @@
+{
+  "schema_version": "1.0.0",
+  "milestone": "M4",
+  "selection_split": "val_2024_only",
+  "random_seed": 42,
+  "feature_columns": [
+    "rv_d",
+    "rv_w",
+    "rv_m",
+    "log_rv_d",
+    "log_rv_w",
+    "log_rv_m",
+    "ret_1d",
+    "neg_ret_1d",
+    "ret_5d",
+    "vol_ratio_20d",
+    "daily_range_pct",
+    "vix_close",
+    "t10y2y",
+    "spy_ret_1d",
+    "has_news",
+    "news_count",
+    "has_8k_earnings",
+    "sector_technology",
+    "sector_financials",
+    "sector_healthcare",
+    "sector_consumer",
+    "sector_energy"
+  ],
+  "selected_regressor": {
+    "config_id": "reg_l15_m200_n200",
+    "num_leaves": 15,
+    "min_child_samples": 200,
+    "n_estimators": 200,
+    "reg_lambda": 10.0
+  },
+  "regressor_val_grid": [
+    {
+      "config_id": "reg_l15_m100_n250",
+      "num_leaves": 15,
+      "min_child_samples": 100,
+      "n_estimators": 250,
+      "reg_lambda": 5.0,
+      "train_duan_smearing": 1.0309545130647029,
+      "val_qlike": 0.16614221159533543,
+      "val_rmse": 0.061628036394743825
+    },
+    {
+      "config_id": "reg_l15_m50_n300",
+      "num_leaves": 15,
+      "min_child_samples": 50,
+      "n_estimators": 300,
+      "reg_lambda": 1.0,
+      "train_duan_smearing": 1.0300298047544314,
+      "val_qlike": 0.1661057552586682,
+      "val_rmse": 0.06161875147515412
+    },
+    {
+      "config_id": "reg_l31_m100_n250",
+      "num_leaves": 31,
+      "min_child_samples": 100,
+      "n_estimators": 250,
+      "reg_lambda": 5.0,
+      "train_duan_smearing": 1.0280805806186104,
+      "val_qlike": 0.16652047118027488,
+      "val_rmse": 0.06134946484361397
+    },
+    {
+      "config_id": "reg_l31_m50_n300",
+      "num_leaves": 31,
+      "min_child_samples": 50,
+      "n_estimators": 300,
+      "reg_lambda": 1.0,
+      "train_duan_smearing": 1.0268399883808361,
+      "val_qlike": 0.16697975090882983,
+      "val_rmse": 0.06137513741189786
+    },
+    {
+      "config_id": "reg_l15_m200_n200",
+      "num_leaves": 15,
+      "min_child_samples": 200,
+      "n_estimators": 200,
+      "reg_lambda": 10.0,
+      "train_duan_smearing": 1.0320862591011855,
+      "val_qlike": 0.1654879467015951,
+      "val_rmse": 0.061347503007464506
+    },
+    {
+      "config_id": "reg_l31_m200_n200",
+      "num_leaves": 31,
+      "min_child_samples": 200,
+      "n_estimators": 200,
+      "reg_lambda": 10.0,
+      "train_duan_smearing": 1.0295589580777698,
+      "val_qlike": 0.16581861420804844,
+      "val_rmse": 0.06123778832422655
+    }
+  ],
+  "selected_classifier": {
+    "config_id": "clf_l15_m100_wbal",
+    "num_leaves": 15,
+    "min_child_samples": 100,
+    "n_estimators": 200,
+    "scale_pos_weight": "balanced",
+    "reg_lambda": 5.0
+  },
+  "classifier_val_grid": [
+    {
+      "config_id": "clf_l15_m100_w1",
+      "num_leaves": 15,
+      "min_child_samples": 100,
+      "n_estimators": 200,
+      "scale_pos_weight": 1.0,
+      "reg_lambda": 5.0,
+      "val_pr_auc": 0.09029012117783244,
+      "val_brier_raw": 0.05801032177639656,
+      "val_ece_raw": 0.006598862131363426
+    },
+    {
+      "config_id": "clf_l15_m100_w3",
+      "num_leaves": 15,
+      "min_child_samples": 100,
+      "n_estimators": 200,
+      "scale_pos_weight": 3.0,
+      "reg_lambda": 5.0,
+      "val_pr_auc": 0.0893966591385518,
+      "val_brier_raw": 0.07205266413585078,
+      "val_ece_raw": 0.10184158524417798
+    },
+    {
+      "config_id": "clf_l15_m100_wbal",
+      "num_leaves": 15,
+      "min_child_samples": 100,
+      "n_estimators": 200,
+      "scale_pos_weight": "balanced",
+      "reg_lambda": 5.0,
+      "val_pr_auc": 0.09288680081775481,
+      "val_brier_raw": 0.16331631625286408,
+      "val_ece_raw": 0.308554318306168
+    },
+    {
+      "config_id": "clf_l31_m100_w1",
+      "num_leaves": 31,
+      "min_child_samples": 100,
+      "n_estimators": 200,
+      "scale_pos_weight": 1.0,
+      "reg_lambda": 5.0,
+      "val_pr_auc": 0.09059172124145302,
+      "val_brier_raw": 0.05845346924770364,
+      "val_ece_raw": 0.011007219353385103
+    },
+    {
+      "config_id": "clf_l31_m100_w3",
+      "num_leaves": 31,
+      "min_child_samples": 100,
+      "n_estimators": 200,
+      "scale_pos_weight": 3.0,
+      "reg_lambda": 5.0,
+      "val_pr_auc": 0.09119009716369257,
+      "val_brier_raw": 0.07075203751283196,
+      "val_ece_raw": 0.09331396269270832
+    },
+    {
+      "config_id": "clf_l31_m200_wbal",
+      "num_leaves": 31,
+      "min_child_samples": 200,
+      "n_estimators": 200,
+      "scale_pos_weight": "balanced",
+      "reg_lambda": 10.0,
+      "val_pr_auc": 0.09229473854730032,
+      "val_brier_raw": 0.15232054282557733,
+      "val_ece_raw": 0.2865734970680135
+    }
+  ],
+  "selected_calibrator": {
+    "method": "isotonic",
+    "selection_protocol": "4_quarter_oof_cv_inside_2024_val_then_refit_full_val",
+    "candidates_oof_val": [
+      {
+        "method": "isotonic",
+        "oof_val_brier": 0.057268879172870484,
+        "oof_val_ece": 0.004865771403302086,
+        "raw_val_brier": 0.16331631625286408,
+        "raw_val_ece": 0.308554318306168
+      },
+      {
+        "method": "platt_sigmoid",
+        "oof_val_brier": 0.05756066240577044,
+        "oof_val_ece": 0.004391273738434872,
+        "raw_val_brier": 0.16331631625286408,
+        "raw_val_ece": 0.308554318306168
+      },
+      {
+        "method": "temperature_scaling",
+        "oof_val_brier": 0.14394141163126645,
+        "oof_val_ece": 0.20759988125197318,
+        "raw_val_brier": 0.16331631625286408,
+        "raw_val_ece": 0.308554318306168
+      }
+    ]
+  },
+  "test_quarterly_refits": [
+    {
+      "fold_id": "2025Q1",
+      "fit_end_date": "2024-12-20",
+      "n_fit_rows": 88620,
+      "duan_smearing_factor": 1.0329242620429653
+    },
+    {
+      "fold_id": "2025Q2",
+      "fit_end_date": "2025-03-24",
+      "n_fit_rows": 91920,
+      "duan_smearing_factor": 1.0332034678191397
+    },
+    {
+      "fold_id": "2025Q3",
+      "fit_end_date": "2025-06-23",
+      "n_fit_rows": 95640,
+      "duan_smearing_factor": 1.0345063991653134
+    },
+    {
+      "fold_id": "2025Q4",
+      "fit_end_date": "2025-09-23",
+      "n_fit_rows": 99480,
+      "duan_smearing_factor": 1.0343415503768314
+    }
+  ],
+  "generated_at_utc": "2026-11-22T14:04:28+00:00"
+}
