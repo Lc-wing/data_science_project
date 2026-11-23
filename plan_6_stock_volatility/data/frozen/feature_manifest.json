@@ -1,0 +1,307 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at_utc": "2026-11-22T14:04:28+00:00",
+  "panel_daily_columns": [
+    "ticker",
+    "sector",
+    "sub_group",
+    "date",
+    "split",
+    "has_full_features",
+    "has_full_target",
+    "rv_5d_fwd",
+    "y_log_rv",
+    "rv_5d_cc_fwd",
+    "cum_ret_5d_fwd",
+    "y_tail",
+    "y_tail_rv90",
+    "rv_d",
+    "rv_w",
+    "rv_m",
+    "log_rv_d",
+    "log_rv_w",
+    "log_rv_m",
+    "ret_1d",
+    "neg_ret_1d",
+    "ret_5d",
+    "vol_ratio_20d",
+    "daily_range_pct",
+    "vix_close",
+    "t10y2y",
+    "spy_ret_1d",
+    "has_news",
+    "news_count",
+    "has_8k_earnings",
+    "news_source",
+    "sector_technology",
+    "sector_financials",
+    "sector_healthcare",
+    "sector_consumer",
+    "sector_energy"
+  ],
+  "events_text_phase_b_columns": [
+    "ticker",
+    "date",
+    "split",
+    "has_news",
+    "news_count",
+    "news_source",
+    "forms",
+    "item_codes",
+    "titles_capped_5",
+    "text_concat_capped_5"
+  ],
+  "primary_key": [
+    "ticker",
+    "date"
+  ],
+  "identifiers_and_flags": [
+    "ticker",
+    "sector",
+    "sub_group",
+    "date",
+    "split",
+    "has_full_features",
+    "has_full_target"
+  ],
+  "targets_future_t_plus_1_to_t_plus_5": [
+    "rv_5d_fwd",
+    "y_log_rv",
+    "rv_5d_cc_fwd",
+    "cum_ret_5d_fwd",
+    "y_tail",
+    "y_tail_rv90"
+  ],
+  "predictors_strictly_le_t": {
+    "continuous": [
+      "rv_d",
+      "rv_w",
+      "rv_m",
+      "log_rv_d",
+      "log_rv_w",
+      "log_rv_m",
+      "ret_1d",
+      "neg_ret_1d",
+      "ret_5d",
+      "vol_ratio_20d",
+      "daily_range_pct",
+      "vix_close",
+      "t10y2y",
+      "spy_ret_1d"
+    ],
+    "event": [
+      "has_news",
+      "news_count",
+      "has_8k_earnings",
+      "news_source"
+    ],
+    "sector_dummies": [
+      "sector_technology",
+      "sector_financials",
+      "sector_healthcare",
+      "sector_consumer",
+      "sector_energy"
+    ]
+  },
+  "anti_leakage_invariants": {
+    "price_features_max_timestamp": "date t NYSE close",
+    "macro_features_fill_policy": "backward-only ffill on full FRED history, never bfill",
+    "event_cutoff_rule": "strictly < 16:00:00 America/New_York on normal NYSE days and < 13:00:00 America/New_York on 15 NYSE scheduled early-close days; at/after close or non-trading days shifted forward to next NYSE trading day",
+    "event_capping_rule": "intra-day normalized headline dedup (keep latest) + cap at <= 5 latest items/day",
+    "preprocessing_fit_split": "train_2019_2023_only",
+    "titles_capped_5_encoding": "JSON array string of up to 5 ordered headline strings"
+  },
+  "train_preprocessing": {
+    "fitted_split": "train",
+    "fitted_row_count": 73860,
+    "fitted_date_min": "2019-02-01",
+    "fitted_date_max": "2023-12-20",
+    "winsor_lower_q": 0.005,
+    "winsor_upper_q": 0.995,
+    "rv_tail_q": 0.9,
+    "rv90_threshold": 0.37419599976660156,
+    "continuous_features": {
+      "rv_d": {
+        "p005": 0.06103085533287144,
+        "p995": 1.0349836034645639,
+        "mean": 0.22799954872035666,
+        "std": 0.15573985576898436,
+        "winsor_mean": 0.22631480524842412,
+        "winsor_std": 0.14165675764070573,
+        "min": 0.03469295672330253,
+        "max": 4.444140688121918
+      },
+      "rv_w": {
+        "p005": 0.0847311041673523,
+        "p995": 1.0134710266708824,
+        "mean": 0.2391808723511263,
+        "std": 0.13800863972127125,
+        "winsor_mean": 0.23779763958732622,
+        "winsor_std": 0.12661317445759218,
+        "min": 0.060440222953622294,
+        "max": 3.121320897132893
+      },
+      "rv_m": {
+        "p005": 0.10239022611183796,
+        "p995": 0.9072478645869425,
+        "mean": 0.24545603387638748,
+        "std": 0.12663739121915724,
+        "winsor_mean": 0.24423420896341713,
+        "winsor_std": 0.1174950174746143,
+        "min": 0.08747514179500158,
+        "max": 1.9875594396409326
+      },
+      "log_rv_d": {
+        "p005": -2.7963594566201273,
+        "p995": 0.03438648350471166,
+        "mean": -1.6321834582678392,
+        "std": 0.5297683177983288,
+        "winsor_mean": -1.632872310916328,
+        "winsor_std": 0.5237259872159694,
+        "min": -3.3611897650264577,
+        "max": 1.4915867542848642
+      },
+      "log_rv_w": {
+        "p005": -2.468260715287745,
+        "p995": 0.013382085501325868,
+        "mean": -1.5395593886466807,
+        "std": 0.4415392325711382,
+        "winsor_mean": -1.5402938675954188,
+        "winsor_std": 0.43612938245945193,
+        "min": -2.806083907605895,
+        "max": 1.1382565970707457
+      },
+      "log_rv_m": {
+        "p005": -2.2789542528107516,
+        "p995": -0.09733954521326534,
+        "mean": -1.4931515702131977,
+        "std": 0.3952816440899438,
+        "winsor_mean": -1.4940280277787723,
+        "winsor_std": 0.39021295708240167,
+        "min": -2.4363891879984645,
+        "max": 0.686907976966209
+      },
+      "ret_1d": {
+        "p005": -0.07592418596269226,
+        "p995": 0.08154608011392332,
+        "mean": 0.0007344534447998472,
+        "std": 0.022078208594123145,
+        "winsor_mean": 0.0007257092099929495,
+        "winsor_std": 0.020026462483858476,
+        "min": -0.5201381024685476,
+        "max": 0.3369775818271148
+      },
+      "neg_ret_1d": {
+        "p005": -0.07592418596269226,
+        "p995": 0.0,
+        "mean": -0.006837493135899091,
+        "std": 0.013532100667119408,
+        "winsor_mean": -0.006663419424832011,
+        "winsor_std": 0.011960111253577444,
+        "min": -0.5201381024685476,
+        "max": 0.0
+      },
+      "ret_5d": {
+        "p005": -0.15360655834600426,
+        "p995": 0.1669613611524652,
+        "mean": 0.0036378335466016663,
+        "std": 0.04723394375761873,
+        "winsor_mean": 0.0036830112978697926,
+        "winsor_std": 0.04384881205477525,
+        "min": -0.6308054764908291,
+        "max": 0.7668353732467397
+      },
+      "vol_ratio_20d": {
+        "p005": 0.40057459391211375,
+        "p995": 3.032104664736269,
+        "mean": 1.0089385819281744,
+        "std": 0.4116897915915209,
+        "winsor_mean": 1.0051655597283484,
+        "winsor_std": 0.37937538105747076,
+        "min": 0.12563366916675558,
+        "max": 8.645951178029689
+      },
+      "daily_range_pct": {
+        "p005": 0.006403225546408853,
+        "p995": 0.10805005134488874,
+        "mean": 0.02391252385544212,
+        "std": 0.016360612299829914,
+        "winsor_mean": 0.023735891828083194,
+        "winsor_std": 0.01485234017736374,
+        "min": 0.0036395398327908677,
+        "max": 0.5715428010702497
+      },
+      "vix_close": {
+        "p005": 12.069999694824219,
+        "p995": 65.54000091552734,
+        "mean": 21.4401299905041,
+        "std": 8.296210783408052,
+        "winsor_mean": 21.396108868255737,
+        "winsor_std": 8.019153734967182,
+        "min": 11.539999961853027,
+        "max": 82.69000244140625
+      },
+      "t10y2y": {
+        "p005": -0.99,
+        "p995": 1.54,
+        "mean": 0.24471974004874086,
+        "std": 0.6535005274106584,
+        "winsor_mean": 0.24482534524776609,
+        "winsor_std": 0.6526848490228427,
+        "min": -1.08,
+        "max": 1.59
+      },
+      "spy_ret_1d": {
+        "p005": -0.04500502735562384,
+        "p995": 0.05174500438799101,
+        "mean": 0.0006025080245048527,
+        "std": 0.013269754131639982,
+        "winsor_mean": 0.0006594320760262521,
+        "winsor_std": 0.012093235586173345,
+        "min": -0.1094239246000791,
+        "max": 0.09060325945836323
+      }
+    }
+  },
+  "event_alignment_summary": {
+    "total_input_events": 7703,
+    "on_trading_day_before_cutoff": 3123,
+    "shifted_after_1600_et": 4570,
+    "shifted_due_to_early_close": 2,
+    "shifted_non_trading_day": 8,
+    "dropped_after_end_date": 0,
+    "dst_edt_events": 5089,
+    "dst_est_events": 2614,
+    "retained_after_alignment": 7703,
+    "cutoff_tz": "America/New_York",
+    "cutoff_hour": 16,
+    "early_close_hour": 13,
+    "early_close_dates_count": 15,
+    "early_close_shifted_examples": [
+      {
+        "ticker": "WFC",
+        "form": "8-K",
+        "accession_number": "0001387131-19-004828",
+        "acceptance_datetime_et": "2019-07-03T14:55:29-04:00",
+        "aligned_date": "2019-07-05"
+      },
+      {
+        "ticker": "WFC",
+        "form": "8-K",
+        "accession_number": "0001387131-19-009231",
+        "acceptance_datetime_et": "2019-11-29T13:02:31-05:00",
+        "aligned_date": "2019-12-02"
+      }
+    ]
+  },
+  "event_dedup_and_cap_summary": {
+    "input_rows": 7703,
+    "dedup_accession_dropped": 0,
+    "dedup_headline_dropped": 29,
+    "capped_over_5_dropped": 0,
+    "ticker_days_capped": 0,
+    "output_rows": 7674,
+    "active_ticker_days": 6822,
+    "max_events_per_day_after_cap": 4
+  }
+}

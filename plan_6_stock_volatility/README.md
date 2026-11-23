@@ -17,8 +17,8 @@ Phase A is strictly CPU-reproducible and freezes the aligned panel, splits, and 
 | Milestone | Scope | Status | Delivery & AI Execution Doc |
 | --- | --- | --- | --- |
 | M0 | Repository hygiene, TeX Live + Poppler toolchain, isolated `uv` scaffold, `config.py`, smoke tests | done (`124fc67`) | [`docs/milestones/M0_repo_cleanup_and_scaffold.md`](docs/milestones/M0_repo_cleanup_and_scaffold.md) |
-| M1 | 60-stock OHLCV, macro (`^VIX`, FRED `VIXCLS`/`T10Y2Y`, `SPY`), paginated SEC EDGAR `8-K/10-Q/10-K`, Day-1 & coverage audit, milestone delivery docs | done | [`docs/milestones/M1_data_ingest_and_day1_audit.md`](docs/milestones/M1_data_ingest_and_day1_audit.md) |
-| M2 | Strict `16:00 America/New_York` cutoff, deduplication & `<= 5`/day cap, features/targets, Purged+Embargoed splits, SHA-256 freeze | planned | `docs/milestones/M2_panel_splits_and_freeze.md` *(template in [`docs/milestones/README.md`](docs/milestones/README.md))* |
+| M1 | 60-stock OHLCV, macro (`^VIX`, FRED `VIXCLS`/`T10Y2Y`, `SPY`), paginated SEC EDGAR `8-K/10-Q/10-K`, Day-1 & coverage audit, milestone delivery docs | done (`5370d18`) | [`docs/milestones/M1_data_ingest_and_day1_audit.md`](docs/milestones/M1_data_ingest_and_day1_audit.md) |
+| M2 | Strict `16:00 America/New_York` (`13:00 ET` early-close) cutoff, deduplication & `<= 5`/day cap, features/targets, Purged+Embargoed splits, SHA-256 freeze | done | [`docs/milestones/M2_panel_splits_and_freeze.md`](docs/milestones/M2_panel_splits_and_freeze.md) |
 | M3 | Cross-cycle EDA & H1 Stock-FE Extended Panel HAR-RV with Driscoll–Kraay SE & Holm-adjusted CIs | planned | `docs/milestones/M3_eda_and_h1_panel_har_rv.md` |
 | M4 | H2 Out-of-sample baselines (Persistence, GJR-GARCH, HAR-RV), Global LightGBM, 2024 Val calibration, 2025 Holdout Test, `h=5` HLN-DM/Holm & Train-background TreeSHAP | planned | `docs/milestones/M4_h2_forecasting_calibration_and_shap.md` |
 | M5 | 300-DPI Figure 1 & Figure 2, Table 1, audited CS482 Phase A Draft PDF (3.5–3.8 A4 pp), and one-command replay CLI | planned | `docs/milestones/M5_figures_table1_and_cs482_report.md` |
@@ -63,6 +63,15 @@ Rebuild interim macro/event tables and Day-1 & cross-period coverage audits dete
 MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/01_download_and_audit.py --skip-download
 ```
 
+### M2 Panel Build, Purged Splits & SHA-256 Freeze CLI
+
+Verify the cryptographic SHA-256 freeze manifest or deterministically refreeze offline from committed M1 inputs:
+
+```bash
+MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/02_build_panel_and_freeze.py --check
+MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/02_build_panel_and_freeze.py --refreeze
+```
+
 ### Planned One-Command Phase A Replay CLI (M5)
 
 Once Milestones M1–M5 are complete, the entire Phase A pipeline will replay deterministically from frozen inputs via:
@@ -77,9 +86,9 @@ MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/run_phase_a.py --report-o
 
 - **Deterministic 60-Stock Cross-Sector Universe**: 5 GICS sectors (`Technology`, `Financials`, `Healthcare`, `Consumer`, `Energy`) × 12 pre-2019 liquid S&P 500 constituents (Consumer split 6 Staples + 6 Discretionary under pre-2019 GICS taxonomy; zero 2025 lookahead).
 - **Market & Macro Data**: Daily OHLCV and adjusted close for the 60 equities plus `SPY` and `^VIX` via Yahoo Finance, joined onto the canonical 2019–2025 NYSE trading calendar with FRED `T10Y2Y` and `VIXCLS` using backward-only forward-fill (never backfill).
-- **Corporate Event Backbone (Plan 6 §2.1 Deterministic Fallback)**: Public SEC EDGAR Form `8-K`, `8-K/A`, `10-Q`, and `10-K` submissions across 2019–2025 with recursive `filings.files` archive pagination, academic `User-Agent`, `<= 8 req/s` throttling, DST-aware `16:00 America/New_York` cutoff (`>= 16:00 ET` or non-trading-day filings mapped to the next NYSE trading day `t+1`), deduplication, and a hard cap of `<= 5` latest items per stock-day.
+- **Corporate Event Backbone (Plan 6 §2.1 Deterministic Fallback)**: Public SEC EDGAR Form `8-K`, `8-K/A`, `10-Q`, and `10-K` submissions across 2019–2025 with recursive `filings.files` archive pagination, academic `User-Agent`, `<= 8 req/s` throttling, DST-aware `16:00 America/New_York` cutoff (`13:00 ET` on all 15 NYSE early-close days; at/after close or non-trading-day filings mapped to the next NYSE trading day `t+1`), deduplication, and a hard cap of `<= 5` latest items per stock-day.
 - **Purged + 5-Day Embargo Splits** (frozen verbatim for Phase A & Phase B):
-  - `Train`: `2019-01-02` to `2023-12-20` (1,252 trading days)
+  - `Train`: `2019-01-02` to `2023-12-20` (1,252 trading days; 1,231 modeling-complete days from `2019-02-01`)
   - `Embargo 1`: `2023-12-21` to `2023-12-29` (6 trading days)
   - `Val`: `2024-01-02` to `2024-12-20` (246 trading days; hyperparameter tuning & probability calibration only)
   - `Embargo 2`: `2024-12-23` to `2024-12-31` (6 trading days)
@@ -90,19 +99,20 @@ MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/run_phase_a.py --report-o
 ```text
 plan_6_stock_volatility/
 ├── .gitignore                          # [M0] Local cache, archive, weight, and LaTeX ignores
-├── README.md                           # [M0/M1] Project overview, setup, and non-investment notice
+├── README.md                           # [M0–M2] Project overview, setup, and non-investment notice
 ├── pyproject.toml                      # [M0] uv + hatchling package, ruff, and pytest configuration
 ├── uv.lock                             # [M0] Locked dependency graph
 ├── docs/
 │   └── milestones/                     # [M1–M6] Tracked milestone delivery & AI execution docs
-│       ├── README.md                   # [M1] Master ledger, policy, and M2–M6 template
+│       ├── README.md                   # [M1–M2] Master ledger, policy, and M2–M6 template
 │       ├── M0_repo_cleanup_and_scaffold.md
-│       └── M1_data_ingest_and_day1_audit.md
+│       ├── M1_data_ingest_and_day1_audit.md
+│       └── M2_panel_splits_and_freeze.md
 ├── src/stock_volatility/
 │   ├── __init__.py                     # [M0] Package metadata
 │   ├── config.py                       # [M0] Canonical paths, constants, UNIVERSE_60, helpers
 │   ├── ingest/                         # [M1] Universe, OHLCV, macro, SEC EDGAR, Day-1 audit
-│   ├── panel/                          # [M2] 16:00 ET alignment, features, splits, SHA-256 freeze
+│   ├── panel/                          # [M2] 16:00/13:00 ET alignment, features, splits, SHA-256 freeze
 │   ├── eda.py                          # [M3] Volatility regimes, leverage, coverage, VIX x news
 │   ├── regression.py                   # [M3] H1 Stock-FE Panel HAR-RV + Driscoll-Kraay SE
 │   ├── baselines.py                    # [M4] Persistence, GJR-GARCH(1,1), HAR-RV baselines
@@ -112,12 +122,14 @@ plan_6_stock_volatility/
 │   ├── figures.py                      # [M5] 300-DPI Figure 1 & Figure 2 (PNG + PDF)
 │   └── report.py                       # [M5] Programmatic LaTeX, pdflatex build, claims audit
 ├── scripts/
-│   └── 01_download_and_audit.py        # [M1] Data ingest & offline --skip-download Day-1 audit CLI
-├── data/                               # [M1–M2] raw/, interim/, frozen/
+│   ├── 01_download_and_audit.py        # [M1] Data ingest & offline --skip-download Day-1 audit CLI
+│   └── 02_build_panel_and_freeze.py    # [M2] Panel build, purged splits & --check/--refreeze CLI
+├── data/                               # [M1–M2] raw/, interim/, frozen/ (FREEZE_MANIFEST.json)
 ├── outputs/                            # [M1–M5] figures/, metrics/, tables/
 ├── report/                             # [M5] phase_a_draft.tex, references.bib, PDF, audit
 └── tests/
     ├── conftest.py                     # [M1] MPLBACKEND=Agg, OMP_NUM_THREADS=1, block_network fixture
     ├── test_smoke.py                   # [M0] Scaffold, universe, split, library, TeX/Poppler checks
-    └── test_ingest.py                  # [M1] Unit, offline replay, artifact & milestone doc tests
+    ├── test_ingest.py                  # [M1] Unit, offline replay, artifact & milestone doc tests
+    └── test_panel_and_freeze.py        # [M2] Cutoff/early-close, anti-leakage, split & freeze tests
 ```

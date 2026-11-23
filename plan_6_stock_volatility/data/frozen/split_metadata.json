@@ -1,0 +1,157 @@
+{
+  "schema_version": "1.0.0",
+  "horizon_days": 5,
+  "total_canonical_trading_days": 1760,
+  "total_panel_rows": 105600,
+  "embargo_1_trading_days": 6,
+  "embargo_2_trading_days": 6,
+  "train_last_date": "2023-12-20",
+  "train_last_target_date": "2023-12-28",
+  "val_first_date": "2024-01-02",
+  "val_last_date": "2024-12-20",
+  "val_last_target_date": "2024-12-30",
+  "test_first_date": "2025-01-02",
+  "test_last_date": "2025-12-31",
+  "test_scorable_trading_days": 245,
+  "test_incomplete_tail_days": 5,
+  "zero_target_overlap_verified": true,
+  "splits": {
+    "train": {
+      "start_date": "2019-01-02",
+      "end_date": "2023-12-20",
+      "trading_days": 1252,
+      "total_rows": 75120,
+      "feature_complete_trading_days": 1231,
+      "feature_complete_rows": 73860,
+      "modeling_complete_trading_days": 1231,
+      "modeling_complete_rows": 73860,
+      "modeling_start_date": "2019-02-01",
+      "modeling_end_date": "2023-12-20"
+    },
+    "embargo_1": {
+      "start_date": "2023-12-21",
+      "end_date": "2023-12-29",
+      "trading_days": 6,
+      "total_rows": 360,
+      "feature_complete_trading_days": 6,
+      "feature_complete_rows": 360,
+      "modeling_complete_trading_days": 6,
+      "modeling_complete_rows": 360,
+      "modeling_start_date": "2023-12-21",
+      "modeling_end_date": "2023-12-29"
+    },
+    "val": {
+      "start_date": "2024-01-02",
+      "end_date": "2024-12-20",
+      "trading_days": 246,
+      "total_rows": 14760,
+      "feature_complete_trading_days": 246,
+      "feature_complete_rows": 14760,
+      "modeling_complete_trading_days": 246,
+      "modeling_complete_rows": 14760,
+      "modeling_start_date": "2024-01-02",
+      "modeling_end_date": "2024-12-20"
+    },
+    "embargo_2": {
+      "start_date": "2024-12-23",
+      "end_date": "2024-12-31",
+      "trading_days": 6,
+      "total_rows": 360,
+      "feature_complete_trading_days": 6,
+      "feature_complete_rows": 360,
+      "modeling_complete_trading_days": 6,
+      "modeling_complete_rows": 360,
+      "modeling_start_date": "2024-12-23",
+      "modeling_end_date": "2024-12-31"
+    },
+    "test": {
+      "start_date": "2025-01-02",
+      "end_date": "2025-12-31",
+      "trading_days": 250,
+      "total_rows": 15000,
+      "feature_complete_trading_days": 250,
+      "feature_complete_rows": 15000,
+      "modeling_complete_trading_days": 245,
+      "modeling_complete_rows": 14700,
+      "modeling_start_date": "2025-01-02",
+      "modeling_end_date": "2025-12-23"
+    }
+  },
+  "generated_at_utc": "2026-11-22T14:04:28+00:00",
+  "event_alignment_audit": {
+    "total_input_events": 7703,
+    "on_trading_day_before_cutoff": 3123,
+    "shifted_after_1600_et": 4570,
+    "shifted_due_to_early_close": 2,
+    "shifted_non_trading_day": 8,
+    "dropped_after_end_date": 0,
+    "dst_edt_events": 5089,
+    "dst_est_events": 2614,
+    "retained_after_alignment": 7703,
+    "cutoff_tz": "America/New_York",
+    "cutoff_hour": 16,
+    "early_close_hour": 13,
+    "early_close_dates_count": 15,
+    "early_close_shifted_examples": [
+      {
+        "ticker": "WFC",
+        "form": "8-K",
+        "accession_number": "0001387131-19-004828",
+        "acceptance_datetime_et": "2019-07-03T14:55:29-04:00",
+        "aligned_date": "2019-07-05"
+      },
+      {
+        "ticker": "WFC",
+        "form": "8-K",
+        "accession_number": "0001387131-19-009231",
+        "acceptance_datetime_et": "2019-11-29T13:02:31-05:00",
+        "aligned_date": "2019-12-02"
+      }
+    ]
+  },
+  "event_dedup_and_cap_audit": {
+    "input_rows": 7703,
+    "dedup_accession_dropped": 0,
+    "dedup_headline_dropped": 29,
+    "capped_over_5_dropped": 0,
+    "ticker_days_capped": 0,
+    "output_rows": 7674,
+    "active_ticker_days": 6822,
+    "max_events_per_day_after_cap": 4
+  },
+  "target_prevalence": {
+    "train": {
+      "n_rows": 73860,
+      "n_dates": 1231,
+      "rv_5d_fwd_median": 0.2070411113030165,
+      "rv_5d_fwd_mean": 0.23901751286634196,
+      "rv_5d_fwd_max": 3.121320897132893,
+      "y_tail_pos": 6416,
+      "y_tail_rate": 0.08686704576225292,
+      "y_tail_rv90_pos": 7386,
+      "y_tail_rv90_rate": 0.1
+    },
+    "val": {
+      "n_rows": 14760,
+      "n_dates": 246,
+      "rv_5d_fwd_median": 0.18354134007688605,
+      "rv_5d_fwd_mean": 0.20030199846361427,
+      "rv_5d_fwd_max": 0.955659178318206,
+      "y_tail_pos": 911,
+      "y_tail_rate": 0.061720867208672085,
+      "y_tail_rv90_pos": 502,
+      "y_tail_rv90_rate": 0.03401084010840109
+    },
+    "test": {
+      "n_rows": 14700,
+      "n_dates": 245,
+      "rv_5d_fwd_median": 0.21470383675114252,
+      "rv_5d_fwd_mean": 0.24111035634979255,
+      "rv_5d_fwd_max": 1.3533743817693784,
+      "y_tail_pos": 1267,
+      "y_tail_rate": 0.08619047619047619,
+      "y_tail_rv90_pos": 1219,
+      "y_tail_rv90_rate": 0.08292517006802722
+    }
+  }
+}
