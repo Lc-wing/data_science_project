@@ -83,6 +83,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--llm-epochs", type=int, default=1, help="QLoRA fine-tuning epochs.")
     parser.add_argument(
+        "--llm-train-batch-size",
+        type=int,
+        default=8,
+        help="Micro-batch size for QLoRA training (default: 8 on L4/A100, grad_accum adjusts).",
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Reuse already-saved Stage 1-3 outputs in outputs/phase_b/ instead of recomputing.",
+    )
+    parser.add_argument(
         "--max-train-events",
         type=int,
         default=None,
@@ -129,7 +140,8 @@ def main(argv: list[str] | None = None) -> int:
         select_default_llm_for_vram(vram_gb) if args.llm_model == "auto" else args.llm_model
     )
     print(
-        f"[PhaseB] GPU={gpu_name} ({vram_gb:.1f} GB VRAM) | LLM={resolved_llm}",
+        f"[PhaseB] GPU={gpu_name} ({vram_gb:.1f} GB VRAM) | LLM={resolved_llm} "
+        f"| resume={args.resume}",
         flush=True,
     )
 
@@ -163,17 +175,42 @@ def main(argv: list[str] | None = None) -> int:
 
     # 1. Route A: PatchTST 1M vs 15M capacity ablation (5 seeds)
     if run_all or "route_a" in run_set:
-        print("[PhaseB] Stage 1/4: Route A PatchTST (1M & 15M, 5 seeds)...", flush=True)
-        windows = build_patchtst_windows(panel_df, feat_m, lookback=60)
-        print(
-            f"[PhaseB] Windows built: Train={len(windows['train']['x_seq']):,}, "
-            f"Val={len(windows['val']['x_seq']):,}, Test={len(windows['test']['x_seq']):,}",
-            flush=True,
-        )
+        windows: dict[str, Any] | None = None
         for cfg_obj, arm_id, lbl in (
             (PATCHTST_1M_CONFIG, "patchtst_1m", "PatchTST (1M, 5-seed)"),
             (PATCHTST_15M_CONFIG, "patchtst_15m", "PatchTST (15M, 5-seed)"),
         ):
+            pred_p = out_dir / f"{arm_id}_test_predictions.parquet"
+            met_p = out_dir / f"{arm_id}_metrics.json"
+            if args.resume and pred_p.is_file() and met_p.is_file():
+                met_saved = json.loads(met_p.read_text(encoding="utf-8"))
+                pred_saved = pd.read_parquet(pred_p)
+                cov80 = float(met_saved["test_nominal_80_coverage"])
+                print(
+                    f"[PhaseB] Resumed {arm_id} from {pred_p.name} "
+                    f"(QLIKE={met_saved['test_metrics_ensemble']['qlike']:.4f})",
+                    flush=True,
+                )
+                arms_for_ablation[arm_id] = {
+                    "label": f"{lbl} (80% cov={100.0 * cov80:.1f}%)",
+                    "test_pred_df": pred_saved,
+                    "nominal_80_coverage": cov80,
+                }
+                if arm_id == "patchtst_15m":
+                    summary["patchtst_15m_qlike"] = float(
+                        met_saved["test_metrics_ensemble"]["qlike"]
+                    )
+                    summary["patchtst_15m_coverage_80"] = cov80
+                continue
+
+            if windows is None:
+                print("[PhaseB] Stage 1/4: Route A PatchTST (1M & 15M, 5 seeds)...", flush=True)
+                windows = build_patchtst_windows(panel_df, feat_m, lookback=60)
+                print(
+                    f"[PhaseB] Windows built: Train={len(windows['train']['x_seq']):,}, "
+                    f"Val={len(windows['val']['x_seq']):,}, Test={len(windows['test']['x_seq']):,}",
+                    flush=True,
+                )
             res_pt = train_and_predict_patchtst(
                 windows=windows,
                 cfg=cfg_obj,
@@ -182,13 +219,8 @@ def main(argv: list[str] | None = None) -> int:
                 batch_size=512,
                 device="cuda",
             )
-            res_pt["test_pred_df"].to_parquet(
-                out_dir / f"{arm_id}_test_predictions.parquet", index=False, compression="zstd"
-            )
-            _write_json(
-                out_dir / f"{arm_id}_metrics.json",
-                {k: v for k, v in res_pt.items() if not k.endswith("_df")},
-            )
+            res_pt["test_pred_df"].to_parquet(pred_p, index=False, compression="zstd")
+            _write_json(met_p, {k: v for k, v in res_pt.items() if not k.endswith("_df")})
             arms_for_ablation[arm_id] = {
                 "label": f"{lbl} (80% cov={100.0 * res_pt['test_nominal_80_coverage']:.1f}%)",
                 "test_pred_df": res_pt["test_pred_df"],
@@ -201,21 +233,33 @@ def main(argv: list[str] | None = None) -> int:
 
     # 2. Route B (Chronos Foundation Time-Series Baselines)
     if run_all or "chronos" in run_set:
-        print("[PhaseB] Stage 2/4: Route B Chronos foundation baselines...", flush=True)
         for ch_id in DEFAULT_CHRONOS_MODELS:
             slug = ch_id.split("/")[-1].replace("-", "_")
+            pred_p = out_dir / f"{slug}_test_predictions.parquet"
+            met_p = out_dir / f"{slug}_metrics.json"
+            if args.resume and pred_p.is_file() and met_p.is_file():
+                met_saved = json.loads(met_p.read_text(encoding="utf-8"))
+                pred_saved = pd.read_parquet(pred_p)
+                print(
+                    f"[PhaseB] Resumed {slug} from {pred_p.name} "
+                    f"(QLIKE={met_saved['test_metrics']['qlike']:.4f})",
+                    flush=True,
+                )
+                arms_for_ablation[slug] = {
+                    "label": f"{ch_id.split('/')[-1]} (Zero-Shot)",
+                    "test_pred_df": pred_saved,
+                    "nominal_80_coverage": float(met_saved["test_nominal_80_coverage"]),
+                }
+                continue
+
+            print(f"[PhaseB] Stage 2/4: Route B Chronos ({ch_id})...", flush=True)
             res_ch = run_chronos_volatility_forecasts(
                 panel_df=panel_df,
                 model_id=ch_id,
                 allow_weight_download=args.allow_weight_download,
             )
-            res_ch["test_pred_df"].to_parquet(
-                out_dir / f"{slug}_test_predictions.parquet", index=False, compression="zstd"
-            )
-            _write_json(
-                out_dir / f"{slug}_metrics.json",
-                {k: v for k, v in res_ch.items() if not k.endswith("_df")},
-            )
+            res_ch["test_pred_df"].to_parquet(pred_p, index=False, compression="zstd")
+            _write_json(met_p, {k: v for k, v in res_ch.items() if not k.endswith("_df")})
             arms_for_ablation[slug] = {
                 "label": f"{ch_id.split('/')[-1]} (Zero-Shot)",
                 "test_pred_df": res_ch["test_pred_df"],
@@ -225,39 +269,56 @@ def main(argv: list[str] | None = None) -> int:
 
     # 3. Route B (FinBERT 110M Baseline + 2024-Val OOF Fusion)
     if run_all or "finbert" in run_set:
-        print(f"[PhaseB] Stage 3/4: Route B FinBERT ({args.finbert_model})...", flush=True)
-        res_fb = extract_finbert_event_scores(
-            event_splits=ev_splits,
-            model_id=args.finbert_model,
-            allow_weight_download=args.allow_weight_download,
-        )
-        res_fb["val_scores_df"].to_parquet(out_dir / "finbert_val_scores.parquet", index=False)
-        res_fb["test_scores_df"].to_parquet(out_dir / "finbert_test_scores.parquet", index=False)
-        fused_fb = fit_2024_val_oof_meta_fusion(
-            val_phase_a=val_a,
-            test_phase_a=test_a,
-            val_text_scores=res_fb["val_scores_df"],
-            test_text_scores=res_fb["test_scores_df"],
-            score_col="finbert_neg_logit",
-            arm_name="lgbm_plus_finbert",
-        )
-        fused_fb["test_pred_df"].to_parquet(
-            out_dir / "lgbm_plus_finbert_test.parquet", index=False, compression="zstd"
-        )
-        arms_for_ablation["lgbm_plus_finbert"] = {
-            "label": "LightGBM + FinBERT (110M)",
-            "test_pred_df": fused_fb["test_pred_df"],
-        }
-        _free_cuda()
+        fb_test_p = out_dir / "lgbm_plus_finbert_test.parquet"
+        if args.resume and fb_test_p.is_file():
+            print(f"[PhaseB] Resumed lgbm_plus_finbert from {fb_test_p.name}", flush=True)
+            arms_for_ablation["lgbm_plus_finbert"] = {
+                "label": "LightGBM + FinBERT (110M)",
+                "test_pred_df": pd.read_parquet(fb_test_p),
+            }
+        else:
+            print(f"[PhaseB] Stage 3/4: Route B FinBERT ({args.finbert_model})...", flush=True)
+            res_fb = extract_finbert_event_scores(
+                event_splits=ev_splits,
+                model_id=args.finbert_model,
+                allow_weight_download=args.allow_weight_download,
+            )
+            res_fb["val_scores_df"].to_parquet(out_dir / "finbert_val_scores.parquet", index=False)
+            res_fb["test_scores_df"].to_parquet(
+                out_dir / "finbert_test_scores.parquet", index=False
+            )
+            fused_fb = fit_2024_val_oof_meta_fusion(
+                val_phase_a=val_a,
+                test_phase_a=test_a,
+                val_text_scores=res_fb["val_scores_df"],
+                test_text_scores=res_fb["test_scores_df"],
+                score_col="finbert_neg_logit",
+                arm_name="lgbm_plus_finbert",
+            )
+            fused_fb["test_pred_df"].to_parquet(fb_test_p, index=False, compression="zstd")
+            arms_for_ablation["lgbm_plus_finbert"] = {
+                "label": "LightGBM + FinBERT (110M)",
+                "test_pred_df": fused_fb["test_pred_df"],
+            }
+            _free_cuda()
 
     # 4. Route B Flagship: LLM Zero-Shot & 4-bit NF4 QLoRA + 2024-Val OOF Fusion
     if run_all or "llm" in run_set:
-        print(f"[PhaseB] Stage 4/4: Route B LLM Zero-Shot & QLoRA ({resolved_llm})...", flush=True)
+        train_bs = max(1, int(args.llm_train_batch_size))
+        grad_accum = max(1, (8 + train_bs - 1) // train_bs)
+        print(
+            f"[PhaseB] Stage 4/4: Route B LLM Zero-Shot & QLoRA ({resolved_llm}, "
+            f"bs={train_bs}x{grad_accum})...",
+            flush=True,
+        )
         res_llm = run_llm_zero_shot_and_qlora(
             event_splits=ev_splits,
             model_id=resolved_llm,
             allow_weight_download=args.allow_weight_download,
             epochs=args.llm_epochs,
+            train_batch_size=train_bs,
+            grad_accum_steps=grad_accum,
+            eval_batch_size=16,
             max_train_events=args.max_train_events,
         )
         res_llm["val_scores_df"].to_parquet(out_dir / "llm_val_scores.parquet", index=False)

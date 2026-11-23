@@ -142,6 +142,33 @@ def _resolve_single_token_id(tokenizer: Any, token_text: str) -> int:
     return int(ids[0])
 
 
+def _forward_last_logits(
+    model: Any,
+    input_ids: torch.Tensor,
+    attention_mask: torch.Tensor,
+    *,
+    use_logits_to_keep: bool,
+) -> tuple[torch.Tensor, bool]:
+    """Forward pass returning last-token float32 logits `[B, V]` with optional `logits_to_keep=1`.
+
+    Assumes `tokenizer.padding_side == 'left'`, so index `-1` is always each row's final token.
+    """
+    with torch.amp.autocast("cuda", dtype=torch.bfloat16):
+        if use_logits_to_keep:
+            try:
+                out = model(
+                    input_ids=input_ids,
+                    attention_mask=attention_mask,
+                    logits_to_keep=1,
+                )
+            except TypeError:
+                use_logits_to_keep = False
+                out = model(input_ids=input_ids, attention_mask=attention_mask)
+        else:
+            out = model(input_ids=input_ids, attention_mask=attention_mask)
+    return out.logits[:, -1, :].float(), use_logits_to_keep
+
+
 def _score_prompts_log_odds(
     model: Any,
     tokenizer: Any,
@@ -156,6 +183,7 @@ def _score_prompts_log_odds(
     model.eval()
     device = next(model.parameters()).device
     scores: list[np.ndarray] = []
+    use_ltk = True
     with torch.no_grad():
         for start in range(0, len(prompts), batch_size):
             batch_txt = list(prompts[start : start + batch_size])
@@ -166,11 +194,12 @@ def _score_prompts_log_odds(
                 truncation=True,
                 max_length=max_seq_len,
             ).to(device)
-            out = model(input_ids=enc["input_ids"], attention_mask=enc["attention_mask"])
-            # Read logit at the final non-padding token position for each row
-            last_idx = enc["attention_mask"].sum(dim=1) - 1
-            batch_arange = torch.arange(enc["input_ids"].size(0), device=device)
-            last_logits = out.logits[batch_arange, last_idx, :].float()
+            last_logits, use_ltk = _forward_last_logits(
+                model,
+                enc["input_ids"],
+                enc["attention_mask"],
+                use_logits_to_keep=use_ltk,
+            )
             z = compute_yes_no_log_odds(last_logits, yes_token_id=yes_id, no_token_id=no_id)
             scores.append(z.cpu().numpy())
     if not scores:
@@ -185,8 +214,9 @@ def run_llm_zero_shot_and_qlora(
     allow_weight_download: bool = False,
     max_seq_len: int = 512,
     epochs: int = 1,
-    grad_accum_steps: int = 8,
-    eval_batch_size: int = 4,
+    train_batch_size: int = 8,
+    grad_accum_steps: int = 1,
+    eval_batch_size: int = 16,
     lr: float = 1e-4,
     lora_r: int = 16,
     lora_alpha: int = 32,
@@ -194,7 +224,7 @@ def run_llm_zero_shot_and_qlora(
     max_train_events: int | None = None,
     seed: int = config.RANDOM_SEED,
 ) -> dict[str, Any]:
-    """Run Zero-Shot + 4-bit NF4 QLoRA on Colab A100 for event-anchored days (H3)."""
+    """Run Zero-Shot + batched 4-bit NF4 QLoRA on Colab L4/A100 for event-anchored days (H3)."""
     require_cuda_and_download_flag(
         allow_weight_download=allow_weight_download, component=f"llm:{model_id}"
     )
@@ -221,7 +251,8 @@ def run_llm_zero_shot_and_qlora(
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.padding_side = "right"
+    # Left-padding keeps each sequence's final real token at index -1, enabling logits_to_keep=1
+    tokenizer.padding_side = "left"
 
     yes_id = _resolve_single_token_id(tokenizer, "YES")
     no_id = _resolve_single_token_id(tokenizer, "NO")
@@ -247,7 +278,8 @@ def run_llm_zero_shot_and_qlora(
 
     alloc_gb = torch.cuda.memory_allocated() / 1e9
     print(
-        f"[LLM] Loaded {model_id} ({loader_kind}) | allocated={alloc_gb:.2f} GB",
+        f"[LLM] Loaded {model_id} ({loader_kind}) | allocated={alloc_gb:.2f} GB "
+        f"| train_bs={train_batch_size}x{grad_accum_steps} | eval_bs={eval_batch_size}",
         flush=True,
     )
 
@@ -264,8 +296,10 @@ def run_llm_zero_shot_and_qlora(
     train_prompts = [build_event_prompt(r) for r in train_ev.to_dict(orient="records")]
 
     # 1. Zero-shot event-anchored inference on 2024 Val & 2025 Test
+    t_zs = time.perf_counter()
     print(
-        f"[LLM] Zero-shot inference: Val={len(val_prompts)}, Test={len(test_prompts)}...",
+        f"[LLM] Zero-shot inference: Val={len(val_prompts)}, Test={len(test_prompts)} "
+        f"(batch_size={eval_batch_size})...",
         flush=True,
     )
     zs_val_logits = _score_prompts_log_odds(
@@ -287,7 +321,7 @@ def run_llm_zero_shot_and_qlora(
         batch_size=eval_batch_size,
     )
     print(
-        f"[LLM] Zero-shot done in {time.perf_counter() - t0:.1f}s "
+        f"[LLM] Zero-shot done in {time.perf_counter() - t_zs:.1f}s "
         f"| peak_vram={torch.cuda.max_memory_allocated() / 1e9:.2f} GB",
         flush=True,
     )
@@ -346,69 +380,67 @@ def run_llm_zero_shot_and_qlora(
 
     rng = np.random.default_rng(seed)
     n_train = len(train_prompts)
-    total_opt_steps = max(1, math.ceil((n_train * epochs) / grad_accum_steps))
+    n_batches = max(1, math.ceil(n_train / train_batch_size))
+    total_opt_steps = max(1, math.ceil((n_batches * epochs) / grad_accum_steps))
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_opt_steps)
 
     epoch_losses: list[float] = []
-    supports_logits_to_keep = True
+    use_ltk = True
     peft_model.train()
     for ep_idx in range(1, epochs + 1):
         t_ep = time.perf_counter()
         order = rng.permutation(n_train)
         running_loss = 0.0
+        seen_rows = 0
         optimizer.zero_grad(set_to_none=True)
-        for step_idx, row_i in enumerate(order, start=1):
+        for batch_idx, start in enumerate(range(0, n_train, train_batch_size), start=1):
+            idx_slice = order[start : start + train_batch_size]
+            batch_txt = [train_prompts[int(i)] for i in idx_slice]
             enc = tokenizer(
-                train_prompts[int(row_i)],
+                batch_txt,
                 return_tensors="pt",
+                padding=True,
                 truncation=True,
                 max_length=max_seq_len,
             ).to(device)
-            if supports_logits_to_keep:
-                try:
-                    out = peft_model(
-                        input_ids=enc["input_ids"],
-                        attention_mask=enc["attention_mask"],
-                        logits_to_keep=1,
-                    )
-                except TypeError:
-                    supports_logits_to_keep = False
-                    out = peft_model(
-                        input_ids=enc["input_ids"],
-                        attention_mask=enc["attention_mask"],
-                    )
-            else:
-                out = peft_model(
-                    input_ids=enc["input_ids"],
-                    attention_mask=enc["attention_mask"],
-                )
-            last_logits = out.logits[:, -1, :].float()
+            last_logits, use_ltk = _forward_last_logits(
+                peft_model,
+                enc["input_ids"],
+                enc["attention_mask"],
+                use_logits_to_keep=use_ltk,
+            )
             z = compute_yes_no_log_odds(last_logits, yes_token_id=yes_id, no_token_id=no_id)
-            y_t = torch.tensor([y_train[int(row_i)]], dtype=torch.float32, device=device)
+            y_t = torch.tensor(y_train[idx_slice], dtype=torch.float32, device=device)
             loss = F.binary_cross_entropy_with_logits(z, y_t, pos_weight=pos_weight_t)
             (loss / grad_accum_steps).backward()
-            running_loss += float(loss.detach().cpu().item())
 
-            if step_idx % grad_accum_steps == 0 or step_idx == n_train:
+            bs_cur = len(idx_slice)
+            running_loss += float(loss.detach().cpu().item()) * bs_cur
+            seen_rows += bs_cur
+
+            if batch_idx % grad_accum_steps == 0 or batch_idx == n_batches:
                 torch.nn.utils.clip_grad_norm_(peft_model.parameters(), 1.0)
                 optimizer.step()
                 scheduler.step()
                 optimizer.zero_grad(set_to_none=True)
 
-            if step_idx % 250 == 0 or step_idx == n_train:
+            if batch_idx == 1 or batch_idx % 25 == 0 or batch_idx == n_batches:
                 el = time.perf_counter() - t_ep
-                eta = (el / step_idx) * (n_train - step_idx)
+                eta = (el / batch_idx) * (n_batches - batch_idx)
                 print(
-                    f"[LLM] Epoch {ep_idx}/{epochs} step {step_idx}/{n_train} "
-                    f"| loss={running_loss / step_idx:.4f} "
+                    f"[LLM] Epoch {ep_idx}/{epochs} batch {batch_idx}/{n_batches} "
+                    f"({seen_rows}/{n_train}) | loss={running_loss / seen_rows:.4f} "
                     f"| peak_vram={torch.cuda.max_memory_allocated() / 1e9:.2f} GB "
                     f"| elapsed={el:.0f}s | ETA={eta:.0f}s",
                     flush=True,
                 )
-        epoch_losses.append(running_loss / max(n_train, 1))
+        epoch_losses.append(running_loss / max(seen_rows, 1))
 
     # 4. QLoRA post-fine-tuning inference on 2024 Val & 2025 Test event-anchored days
-    print("[LLM] Post-QLoRA inference on 2024 Val & 2025 Test...", flush=True)
+    print(
+        f"[LLM] Post-QLoRA inference on Val & Test (batch_size={eval_batch_size})...",
+        flush=True,
+    )
     qlora_val_logits = _score_prompts_log_odds(
         peft_model,
         tokenizer,
