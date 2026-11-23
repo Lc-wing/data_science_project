@@ -165,6 +165,11 @@ def main(argv: list[str] | None = None) -> int:
     if run_all or "route_a" in run_set:
         print("[PhaseB] Stage 1/4: Route A PatchTST (1M & 15M, 5 seeds)...", flush=True)
         windows = build_patchtst_windows(panel_df, feat_m, lookback=60)
+        print(
+            f"[PhaseB] Windows built: Train={len(windows['train']['x_seq']):,}, "
+            f"Val={len(windows['val']['x_seq']):,}, Test={len(windows['test']['x_seq']):,}",
+            flush=True,
+        )
         for cfg_obj, arm_id, lbl in (
             (PATCHTST_1M_CONFIG, "patchtst_1m", "PatchTST (1M, 5-seed)"),
             (PATCHTST_15M_CONFIG, "patchtst_15m", "PatchTST (15M, 5-seed)"),
@@ -174,7 +179,7 @@ def main(argv: list[str] | None = None) -> int:
                 cfg=cfg_obj,
                 seeds=args.patchtst_seeds,
                 epochs=25,
-                batch_size=256,
+                batch_size=512,
                 device="cuda",
             )
             res_pt["test_pred_df"].to_parquet(

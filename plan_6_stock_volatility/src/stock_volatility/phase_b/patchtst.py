@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass, replace
 from typing import Any
@@ -11,7 +12,6 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader, TensorDataset
 
 from stock_volatility import config
 from stock_volatility.evaluation import classification_metrics, qlike_loss_array, regression_metrics
@@ -171,28 +171,33 @@ def _seed_everything(seed: int) -> None:
         torch.cuda.manual_seed_all(seed)
 
 
-def _predict_split(
+def _predict_split_tensors(
     model: MultivariatePatchTST,
-    split_data: dict[str, np.ndarray],
+    x_seq: torch.Tensor,
+    ticker_id: torch.Tensor,
+    sector_id: torch.Tensor,
     *,
     batch_size: int,
-    device: torch.device,
+    use_bf16: bool,
 ) -> dict[str, np.ndarray]:
-    """Run eval-mode inference returning numpy arrays for point, quantiles, and tail logits."""
+    """Run eval-mode inference directly on device-resident tensors (zero DataLoader overhead)."""
     model.eval()
-    ds = TensorDataset(
-        torch.from_numpy(split_data["x_seq"]),
-        torch.from_numpy(split_data["ticker_id"]),
-        torch.from_numpy(split_data["sector_id"]),
-    )
-    loader = DataLoader(ds, batch_size=batch_size, shuffle=False)
+    n = x_seq.size(0)
     pts, qs, tlogs = [], [], []
     with torch.no_grad():
-        for xb, tb, sb in loader:
-            out = model(xb.to(device), tb.to(device), sb.to(device))
-            pts.append(out["point"].cpu().numpy())
-            qs.append(out["quantiles"].cpu().numpy())
-            tlogs.append(out["tail_logit"].cpu().numpy())
+        for start in range(0, n, batch_size):
+            end = min(start + batch_size, n)
+            xb = x_seq[start:end]
+            tb = ticker_id[start:end]
+            sb = sector_id[start:end]
+            if use_bf16:
+                with torch.amp.autocast("cuda", dtype=torch.bfloat16):
+                    out = model(xb, tb, sb)
+            else:
+                out = model(xb, tb, sb)
+            pts.append(out["point"].float().cpu().numpy())
+            qs.append(out["quantiles"].float().cpu().numpy())
+            tlogs.append(out["tail_logit"].float().cpu().numpy())
     return {
         "point": np.concatenate(pts, axis=0),
         "quantiles": np.concatenate(qs, axis=0),
@@ -213,10 +218,30 @@ def train_and_predict_patchtst(
     device: str | None = None,
 ) -> dict[str, Any]:
     """Train multi-seed PatchTST strictly on Train, early-stop on 2024 Val QLIKE, score Test."""
+    t_all = time.perf_counter()
     dev = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    use_bf16 = dev.type == "cuda" and torch.cuda.is_bf16_supported()
     tr = windows["train"]
     va = windows["val"]
     te = windows["test"]
+
+    # Keep compact window tensors (~335 MB total) resident on device to eliminate DataLoader copy
+    x_tr = torch.from_numpy(tr["x_seq"]).to(dev)
+    t_tr = torch.from_numpy(tr["ticker_id"]).to(dev)
+    s_tr = torch.from_numpy(tr["sector_id"]).to(dev)
+    y_log_tr = torch.from_numpy(tr["y_log_rv"]).to(dev)
+    y_tail_tr = torch.from_numpy(tr["y_tail"].astype(np.float32)).to(dev)
+
+    x_va = torch.from_numpy(va["x_seq"]).to(dev)
+    t_va = torch.from_numpy(va["ticker_id"]).to(dev)
+    s_va = torch.from_numpy(va["sector_id"]).to(dev)
+
+    x_te = torch.from_numpy(te["x_seq"]).to(dev)
+    t_te = torch.from_numpy(te["ticker_id"]).to(dev)
+    s_te = torch.from_numpy(te["sector_id"]).to(dev)
+
+    n_tr = x_tr.size(0)
+    eval_bs = max(batch_size * 2, 512)
 
     pos_cnt = max(float(np.sum(tr["y_tail"] == 1)), 1.0)
     neg_cnt = max(float(np.sum(tr["y_tail"] == 0)), 1.0)
@@ -228,21 +253,14 @@ def train_and_predict_patchtst(
     val_logit_list, test_logit_list = [], []
     param_count = 0
 
-    for seed in seeds:
+    for seed_i, seed in enumerate(seeds, start=1):
+        t_seed = time.perf_counter()
         _seed_everything(int(seed))
         model = MultivariatePatchTST(cfg).to(dev)
         param_count = count_trainable_parameters(model)
 
-        tr_ds = TensorDataset(
-            torch.from_numpy(tr["x_seq"]),
-            torch.from_numpy(tr["ticker_id"]),
-            torch.from_numpy(tr["sector_id"]),
-            torch.from_numpy(tr["y_log_rv"]),
-            torch.from_numpy(tr["y_tail"].astype(np.float32)),
-        )
-        g_gen = torch.Generator()
+        g_gen = torch.Generator(device=dev)
         g_gen.manual_seed(int(seed))
-        tr_loader = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, generator=g_gen)
 
         opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
         sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(epochs, 1))
@@ -254,30 +272,43 @@ def train_and_predict_patchtst(
 
         for ep in range(1, epochs + 1):
             model.train()
-            for xb, tb, sb, y_log_b, y_tail_b in tr_loader:
-                xb = xb.to(dev)
-                tb = tb.to(dev)
-                sb = sb.to(dev)
-                y_log_b = y_log_b.to(dev)
-                y_tail_b = y_tail_b.to(dev)
+            perm = torch.randperm(n_tr, generator=g_gen, device=dev)
+            resid_sum = 0.0
+            for start in range(0, n_tr, batch_size):
+                idx = perm[start : start + batch_size]
+                xb = x_tr[idx]
+                tb = t_tr[idx]
+                sb = s_tr[idx]
+                y_log_b = y_log_tr[idx]
+                y_tail_b = y_tail_tr[idx]
 
                 opt.zero_grad(set_to_none=True)
-                out = model(xb, tb, sb)
-                loss_reg = F.mse_loss(out["point"], y_log_b)
-                loss_q = pinball_loss(out["quantiles"], y_log_b)
-                loss_cls = F.binary_cross_entropy_with_logits(
-                    out["tail_logit"], y_tail_b, pos_weight=pos_weight
-                )
+                if use_bf16:
+                    with torch.amp.autocast("cuda", dtype=torch.bfloat16):
+                        out = model(xb, tb, sb)
+                else:
+                    out = model(xb, tb, sb)
+                pt_f = out["point"].float()
+                q_f = out["quantiles"].float()
+                tl_f = out["tail_logit"].float()
+
+                loss_reg = F.mse_loss(pt_f, y_log_b)
+                loss_q = pinball_loss(q_f, y_log_b)
+                loss_cls = F.binary_cross_entropy_with_logits(tl_f, y_tail_b, pos_weight=pos_weight)
                 loss = loss_reg + loss_q + 0.35 * loss_cls
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
                 opt.step()
+
+                with torch.no_grad():
+                    resid_sum += float(torch.exp(torch.clamp(y_log_b - pt_f, -5.0, 5.0)).sum())
             sched.step()
 
             # Early stop strictly on 2024 Val QLIKE using Train Duan smearing
-            tr_pred_ep = _predict_split(model, tr, batch_size=batch_size, device=dev)
-            smear_ep = float(np.mean(np.exp(np.clip(tr["y_log_rv"] - tr_pred_ep["point"], -5, 5))))
-            va_pred_ep = _predict_split(model, va, batch_size=batch_size, device=dev)
+            smear_ep = resid_sum / max(n_tr, 1)
+            va_pred_ep = _predict_split_tensors(
+                model, x_va, t_va, s_va, batch_size=eval_bs, use_bf16=use_bf16
+            )
             va_rv_hat = np.maximum(np.exp(va_pred_ep["point"]) * smear_ep - config.RV_EPS, 1e-4)
             va_qlike = float(np.mean(qlike_loss_array(va["rv_5d_fwd"], va_rv_hat)))
 
@@ -294,10 +325,16 @@ def train_and_predict_patchtst(
         if best_state is not None:
             model.load_state_dict(best_state)
 
-        tr_out = _predict_split(model, tr, batch_size=batch_size, device=dev)
+        tr_out = _predict_split_tensors(
+            model, x_tr, t_tr, s_tr, batch_size=eval_bs, use_bf16=use_bf16
+        )
         smearing = float(np.mean(np.exp(np.clip(tr["y_log_rv"] - tr_out["point"], -5, 5))))
-        va_out = _predict_split(model, va, batch_size=batch_size, device=dev)
-        te_out = _predict_split(model, te, batch_size=batch_size, device=dev)
+        va_out = _predict_split_tensors(
+            model, x_va, t_va, s_va, batch_size=eval_bs, use_bf16=use_bf16
+        )
+        te_out = _predict_split_tensors(
+            model, x_te, t_te, s_te, batch_size=eval_bs, use_bf16=use_bf16
+        )
 
         va_rv_hat = np.maximum(np.exp(va_out["point"]) * smearing - config.RV_EPS, 1e-4)
         te_rv_hat = np.maximum(np.exp(te_out["point"]) * smearing - config.RV_EPS, 1e-4)
@@ -324,6 +361,23 @@ def train_and_predict_patchtst(
                 "test_nominal_80_coverage": float(cov80),
             }
         )
+        print(
+            f"[PatchTST {param_count / 1e6:.2f}M] seed {seed_i}/{len(seeds)} (s={seed}) "
+            f"| best_ep={best_epoch}/{epochs} | val_QLIKE={best_val_qlike:.4f} "
+            f"| test_QLIKE={rm['qlike']:.4f} | 80%cov={100.0 * cov80:.1f}% "
+            f"| {time.perf_counter() - t_seed:.1f}s",
+            flush=True,
+        )
+
+    del x_tr, t_tr, s_tr, y_log_tr, y_tail_tr, x_va, t_va, s_va, x_te, t_te, s_te
+    if dev.type == "cuda":
+        torch.cuda.empty_cache()
+
+    print(
+        f"[PatchTST {param_count / 1e6:.2f}M] Ensemble finished in "
+        f"{time.perf_counter() - t_all:.1f}s (bf16={use_bf16})",
+        flush=True,
+    )
 
     # Multi-seed ensemble predictions
     ens_val_rv = np.mean(val_rv_list, axis=0)
