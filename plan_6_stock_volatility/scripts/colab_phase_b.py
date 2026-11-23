@@ -1,4 +1,4 @@
-"""One-command Colab Single-A100 Phase B Runner (Route A PatchTST + Route B Qwen3.8-27B QLoRA).
+"""One-command Colab L4/A100 Phase B Runner (PatchTST + Chronos + FinBERT + Gemma-4 / Qwen QLoRA).
 
 Refuses to download weights or touch CUDA unless BOTH `--allow-weight-download` is passed AND
 `torch.cuda.is_available()` is True. Reads Phase A `data/frozen/` read-only (verified via
@@ -8,12 +8,14 @@ Refuses to download weights or touch CUDA unless BOTH `--allow-weight-download` 
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import sys
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import torch
 
 from stock_volatility import config
 from stock_volatility.phase_b.data_contract import (
@@ -39,27 +41,32 @@ from stock_volatility.phase_b.route_b_finbert import (
     extract_finbert_event_scores,
 )
 from stock_volatility.phase_b.route_b_llm import (
+    DEFAULT_L4_LLM_MODEL,
     DEFAULT_LLM_MODEL,
     require_cuda_and_download_flag,
     run_llm_zero_shot_and_qlora,
+    select_default_llm_for_vram,
 )
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    """Parse CLI options for Colab single-A100 Phase B execution."""
+    """Parse CLI options for Colab single-GPU (L4 24GB or A100 40GB/80GB) Phase B execution."""
     parser = argparse.ArgumentParser(
-        description="Plan 6 Phase B Colab A100 Runner (PatchTST + FinBERT + Qwen3.8-27B + Chronos)."
+        description="Plan 6 Phase B Colab GPU Runner (PatchTST + FinBERT + LLM QLoRA + Chronos)."
     )
     parser.add_argument(
         "--allow-weight-download",
         action="store_true",
-        help="Explicitly authorize Hugging Face weight downloads and CUDA execution on Colab A100.",
+        help="Explicitly authorize Hugging Face weight downloads and CUDA execution on Colab GPU.",
     )
     parser.add_argument(
         "--llm-model",
         type=str,
-        default=DEFAULT_LLM_MODEL,
-        help=f"27B-32B Hugging Face model ID (default: {DEFAULT_LLM_MODEL}).",
+        default="auto",
+        help=(
+            "Hugging Face LLM ID or 'auto' "
+            f"(>=35GB VRAM -> {DEFAULT_LLM_MODEL}; <35GB L4 -> {DEFAULT_L4_LLM_MODEL})."
+        ),
     )
     parser.add_argument(
         "--finbert-model",
@@ -102,12 +109,28 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def _free_cuda() -> None:
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
 def main(argv: list[str] | None = None) -> int:
-    """Execute Colab A100 Phase B training, OOF fusion, H3 ablation & export artifacts."""
+    """Execute Colab GPU Phase B training, OOF fusion, H3 ablation & export artifacts."""
     args = parse_args(argv)
     require_cuda_and_download_flag(
         allow_weight_download=args.allow_weight_download,
         component="colab_phase_b",
+    )
+
+    gpu_name = str(torch.cuda.get_device_name(0))
+    vram_gb = float(torch.cuda.get_device_properties(0).total_memory / 1e9)
+    resolved_llm = (
+        select_default_llm_for_vram(vram_gb) if args.llm_model == "auto" else args.llm_model
+    )
+    print(
+        f"[PhaseB] GPU={gpu_name} ({vram_gb:.1f} GB VRAM) | LLM={resolved_llm}",
+        flush=True,
     )
 
     root = config.PROJECT_ROOT
@@ -129,7 +152,9 @@ def main(argv: list[str] | None = None) -> int:
     summary: dict[str, Any] = {
         "schema_version": "1.0.0",
         "milestone": "PhaseB",
-        "llm_model_id": args.llm_model,
+        "gpu_name": gpu_name,
+        "gpu_vram_gb": round(vram_gb, 2),
+        "llm_model_id": resolved_llm,
         "finbert_model_id": args.finbert_model,
         "train_event_days": int(len(ev_splits["train"])),
         "val_event_days": int(len(ev_splits["val"])),
@@ -138,6 +163,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # 1. Route A: PatchTST 1M vs 15M capacity ablation (5 seeds)
     if run_all or "route_a" in run_set:
+        print("[PhaseB] Stage 1/4: Route A PatchTST (1M & 15M, 5 seeds)...", flush=True)
         windows = build_patchtst_windows(panel_df, feat_m, lookback=60)
         for cfg_obj, arm_id, lbl in (
             (PATCHTST_1M_CONFIG, "patchtst_1m", "PatchTST (1M, 5-seed)"),
@@ -166,9 +192,11 @@ def main(argv: list[str] | None = None) -> int:
             if arm_id == "patchtst_15m":
                 summary["patchtst_15m_qlike"] = res_pt["test_metrics_ensemble"]["qlike"]
                 summary["patchtst_15m_coverage_80"] = res_pt["test_nominal_80_coverage"]
+            _free_cuda()
 
     # 2. Route B (Chronos Foundation Time-Series Baselines)
     if run_all or "chronos" in run_set:
+        print("[PhaseB] Stage 2/4: Route B Chronos foundation baselines...", flush=True)
         for ch_id in DEFAULT_CHRONOS_MODELS:
             slug = ch_id.split("/")[-1].replace("-", "_")
             res_ch = run_chronos_volatility_forecasts(
@@ -188,9 +216,11 @@ def main(argv: list[str] | None = None) -> int:
                 "test_pred_df": res_ch["test_pred_df"],
                 "nominal_80_coverage": res_ch["test_nominal_80_coverage"],
             }
+            _free_cuda()
 
     # 3. Route B (FinBERT 110M Baseline + 2024-Val OOF Fusion)
     if run_all or "finbert" in run_set:
+        print(f"[PhaseB] Stage 3/4: Route B FinBERT ({args.finbert_model})...", flush=True)
         res_fb = extract_finbert_event_scores(
             event_splits=ev_splits,
             model_id=args.finbert_model,
@@ -213,12 +243,14 @@ def main(argv: list[str] | None = None) -> int:
             "label": "LightGBM + FinBERT (110M)",
             "test_pred_df": fused_fb["test_pred_df"],
         }
+        _free_cuda()
 
-    # 4. Route B Flagship: 27B-32B Zero-Shot & 4-bit NF4 QLoRA + 2024-Val OOF Fusion
+    # 4. Route B Flagship: LLM Zero-Shot & 4-bit NF4 QLoRA + 2024-Val OOF Fusion
     if run_all or "llm" in run_set:
+        print(f"[PhaseB] Stage 4/4: Route B LLM Zero-Shot & QLoRA ({resolved_llm})...", flush=True)
         res_llm = run_llm_zero_shot_and_qlora(
             event_splits=ev_splits,
-            model_id=args.llm_model,
+            model_id=resolved_llm,
             allow_weight_download=args.allow_weight_download,
             epochs=args.llm_epochs,
             max_train_events=args.max_train_events,
@@ -238,7 +270,7 @@ def main(argv: list[str] | None = None) -> int:
                 "llm_trainable_params": res_llm["trainable_params"],
             }
         )
-        short_name = args.llm_model.split("/")[-1]
+        short_name = resolved_llm.split("/")[-1]
         for col_name, arm_key, label in (
             ("llm_zs_logit", "lgbm_plus_llm_zs", f"LightGBM + {short_name} (Zero-Shot)"),
             ("llm_qlora_logit", "lgbm_plus_llm_qlora", f"LightGBM + {short_name} (4-bit QLoRA)"),
@@ -258,6 +290,7 @@ def main(argv: list[str] | None = None) -> int:
                 "label": label,
                 "test_pred_df": fused["test_pred_df"],
             }
+        _free_cuda()
 
     # 5. Formal 2025 H3 Ablation Table (QLIKE, Event QLIKE, PR-AUC, ECE, HLN-DM + Holm)
     ablation = evaluate_phase_b_h3_ablation(
@@ -293,7 +326,7 @@ def main(argv: list[str] | None = None) -> int:
                 "h3_interpretation": (
                     f"Relative to Phase A price-only LightGBM (event-day PR-AUC "
                     f"{base_r['pr_auc_event_days']:.4f}, full QLIKE {base_r['qlike_full']:.4f}), "
-                    f"{args.llm_model} QLoRA achieves event-day PR-AUC "
+                    f"{resolved_llm} QLoRA achieves event-day PR-AUC "
                     f"{ql_r['pr_auc_event_days']:.4f} and full QLIKE {ql_r['qlike_full']:.4f} "
                     f"(HLN-DM Holm p={ql_r['dm_qlike_p_holm']:.3f})."
                 ),

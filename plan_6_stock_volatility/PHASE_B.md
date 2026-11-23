@@ -21,33 +21,35 @@ MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run --no-sync pytest -v
 Local CPU verification (`torch==2.15.0+cpu` from `pytorch-cpu` index) validates:
 - **Frozen Data Contract & Zero-Leakage Prompts** (`src/stock_volatility/phase_b/data_contract.py`): Verifies `FREEZE_MANIFEST.json`, builds strictly `<= t` 60-day Train-standardized sequences, constructs strictly pre-close (`< 16:00 ET` / `< 13:00 ET` early-close) SEC EDGAR event-anchored prompts (`5,032` Train / `880` Val / `899` Test active days; zero embargo rows; zero forward targets leaked).
 - **Route A Multivariate `PatchTST`** (`src/stock_volatility/phase_b/patchtst.py`): Real PyTorch `1M` (`~1.08M` params) and `15M` (`~14.6M` params) capacity presets with ticker (`60`) + sector (`5`) embeddings, non-crossing `q10 <= q50 <= q90` Pinball Loss, Duan smearing back-transform, and nominal 80% interval empirical coverage.
-- **Route B `Qwen/Qwen3.8-27B` Architecture & LoRA Guardrails** (`src/stock_volatility/phase_b/route_b_llm.py`): Live Hugging Face config inspection confirmed `Qwen/Qwen3.8-27B` (`sha: 37561816e66b`, `gated: false`) uses `Qwen3_5ForConditionalGeneration` (`model_type: qwen3_5`, hybrid 48 `linear_attn` + 16 `self_attn` layers). `detect_model_loader_kind()` automatically routes it to `AutoModelForImageTextToText` (with `AutoModelForCausalLM` fallback for text-only checkpoints), `filter_text_lora_target_modules()` restricts LoRA strictly to `model.language_model` linear projections (excluding `visual` and `mtp`), and next-token `logit("YES") - logit("NO")` scoring provides apples-to-apples Zero-Shot vs. 4-bit NF4 QLoRA parity.
+- **Route B Multi-GPU Architecture & LoRA Guardrails** (`src/stock_volatility/phase_b/route_b_llm.py`): Live Hugging Face metadata & safetensors header probes confirmed both **`google/gemma-4-12B-it`** (`11.96B`, `sha: 43c9d014b231`, `gated: false`, `Gemma4UnifiedForConditionalGeneration`, `model_type: gemma4_unified`, tied embeddings — fits **Colab L4 24GB** at `~11–13 GB` peak VRAM) and **`Qwen/Qwen3.8-27B`** (`sha: 37561816e66b`, `gated: false`, `Qwen3_5ForConditionalGeneration`, `model_type: qwen3_5` — fits **Colab A100 40GB/80GB**). `detect_model_loader_kind()` automatically routes multimodal wrappers to `AutoModelForImageTextToText` (with `AutoModelForCausalLM` fallback for text-only models like `Qwen/Qwen3-14B`), `filter_text_lora_target_modules()` restricts LoRA strictly to `model.language_model` linear projections (excluding `visual`/`vision_tower`/`vision_embedder`/`embed_vision`/`audio`/`audio_tower`/`embed_audio`/`mtp`), `logits_to_keep=1` trims training VRAM, and next-token `logit("YES") - logit("NO")` scoring ensures apples-to-apples Zero-Shot vs. 4-bit NF4 QLoRA parity.
 - **2024-Val OOF Calibration, Meta-Fusion & H3 Evaluation** (`src/stock_volatility/phase_b/fusion_and_eval.py`): Fits 1-parameter Temperature Scaling and L2-regularized 4-quarter OOF meta-fusion strictly inside `2024 Val` (preventing in-sample QLoRA memorization bias), evaluating 2025 Full QLIKE, Event-Day QLIKE, Tail PR-AUC (Full / Event / Earnings), ECE, paired date-block bootstrap 95% CIs, and `h=5` HLN-DM + Holm `p`-values.
 - **GPU Download Safety Gate**: `scripts/colab_phase_b.py` refuses to download Hugging Face weights or run CUDA unless **both** `--allow-weight-download` is passed **and** `torch.cuda.is_available()` is `True`.
 
 ---
 
-## 2. Running Phase B on Colab Single-A100 (40GB / 80GB)
+## 2. Running Phase B on Colab Single-GPU (`L4 24GB` or `A100 40GB / 80GB`)
 
-Open [`notebooks/phase_b_colab.ipynb`](notebooks/phase_b_colab.ipynb) in Google Colab (select **NVIDIA A100** runtime) and run all cells, or run manually from a Colab A100 terminal:
+Open [`notebooks/phase_b_colab.ipynb`](notebooks/phase_b_colab.ipynb) in Google Colab (select **NVIDIA L4** or **NVIDIA A100** runtime) and run all cells, or run manually from a Colab GPU terminal:
 
 ```bash
 git clone --branch main https://github.com/Lc-wing/data_science_project.git
 cd data_science_project/plan_6_stock_volatility
-pip install -q -U "transformers>=4.57" peft bitsandbytes accelerate chronos-forecasting pyarrow lightgbm arch shap
+pip install -q -U "transformers>=5.10" peft bitsandbytes accelerate chronos-forecasting pyarrow lightgbm arch shap
 pip install -q -e . --no-deps
 
 export MPLBACKEND=Agg
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-# Full Phase B run (Route A PatchTST 1M/15M 5-seed + Chronos-2/T5-Large + FinBERT + Qwen/Qwen3.8-27B Zero-Shot & 4-bit QLoRA):
-python scripts/colab_phase_b.py --allow-weight-download --llm-model Qwen/Qwen3.8-27B --llm-epochs 1
+# Auto-selects LLM by VRAM (L4 24GB -> google/gemma-4-12B-it; A100 >=35GB -> Qwen/Qwen3.8-27B):
+python scripts/colab_phase_b.py --allow-weight-download --llm-model auto --llm-epochs 1
 ```
 
 ### Useful Colab CLI Flags
-- `--llm-model`: Default `Qwen/Qwen3.8-27B` (ungated, `model_type: qwen3_5`). If Colab's PyPI `transformers` reports unrecognized `qwen3_5`, run `pip install -q -U git+https://github.com/huggingface/transformers.git`, or use a drop-in alternative: `Qwen/Qwen3-32B`, `Qwen/Qwen3-30B-A3B`, `google/gemma-4-31B` (requires `HF_TOKEN`), `meta-models/Muse-Glimmer-30B`.
+- `--llm-model`: Default `auto` (`google/gemma-4-12B-it` on L4 24GB; `Qwen/Qwen3.8-27B` on A100 40GB/80GB). Supported explicit overrides (all ungated):
+  - **L4 (24GB VRAM)**: `google/gemma-4-12B-it` (recommended, `~11–13 GB` peak), `google/gemma-4-12B` (base), `Qwen/Qwen3-14B` (`~14–16 GB` peak).
+  - **A100 (40GB / 80GB VRAM)**: `Qwen/Qwen3.8-27B`, `Qwen/Qwen3-32B`, `Qwen/Qwen3-30B-A3B`, `google/gemma-4-31B-it`.
 - `--routes`: Run specific subsets (`all`, `route_a`, `finbert`, `llm`, `chronos`), e.g. `--routes finbert llm` for rapid H3 text ablation.
-- `--max-train-events`: Optional Plan 6 fallback cap if A100 units run tight (default uses all `5,032` Train event-anchored days — already compact enough for ~25–40 min on A100 without subsampling).
+- `--max-train-events`: Optional Plan 6 fallback cap if GPU compute units run tight (default uses all `5,032` Train event-anchored days — compact enough for ~25–40 min on L4/A100 without subsampling).
 
 ### Colab Outputs Written to `outputs/phase_b/`
 - `outputs/phase_b/phase_b_summary.json` (model revisions, GPU name, peak VRAM GB, elapsed time, and verified H3 metrics)

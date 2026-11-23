@@ -1,7 +1,8 @@
-"""Route B 27B-32B News/Event LLM Zero-Shot & 4-bit NF4 QLoRA (Default: Qwen/Qwen3.8-27B)."""
+"""Route B News/Event LLM Zero-Shot & 4-bit NF4 QLoRA (L4: Gemma-4-12B-it; A100: Qwen3.8-27B)."""
 
 from __future__ import annotations
 
+import gc
 import math
 import time
 from collections.abc import Sequence
@@ -16,10 +17,15 @@ from stock_volatility import config
 from stock_volatility.phase_b.data_contract import build_event_prompt
 
 DEFAULT_LLM_MODEL: str = "Qwen/Qwen3.8-27B"
+DEFAULT_L4_LLM_MODEL: str = "google/gemma-4-12B-it"
 SUPPORTED_LLM_MODELS: tuple[str, ...] = (
+    "google/gemma-4-12B-it",
+    "google/gemma-4-12B",
+    "Qwen/Qwen3-14B",
     "Qwen/Qwen3.8-27B",
     "Qwen/Qwen3-32B",
     "Qwen/Qwen3-30B-A3B",
+    "google/gemma-4-31B-it",
     "google/gemma-4-31B",
     "meta-models/Muse-Glimmer-30B",
 )
@@ -40,10 +46,26 @@ TEXT_LORA_SUFFIXES: frozenset[str] = frozenset(
 EXCLUDED_LORA_PREFIXES: tuple[str, ...] = (
     "visual",
     "vision",
+    "vision_tower",
+    "vision_embedder",
+    "embed_vision",
+    "audio",
+    "audio_tower",
+    "embed_audio",
+    "multi_modal_projector",
     "merger",
     "mtp",
     "lm_head",
 )
+
+
+def select_default_llm_for_vram(vram_gb: float) -> str:
+    """Choose the optimal ungated 4-bit QLoRA LLM based on single-GPU VRAM capacity.
+
+    - >= 35 GB (e.g., A100-40GB / A100-80GB): `Qwen/Qwen3.8-27B` (~22-26 GB peak)
+    - <  35 GB (e.g., L4-24GB): `google/gemma-4-12B-it` (11.96B, ~11-13 GB peak, zero OOM)
+    """
+    return DEFAULT_LLM_MODEL if float(vram_gb) >= 35.0 else DEFAULT_L4_LLM_MODEL
 
 
 def require_cuda_and_download_flag(
@@ -55,12 +77,12 @@ def require_cuda_and_download_flag(
     if not allow_weight_download:
         raise RuntimeError(
             f"Refusing to download or run GPU weights for {component!r}: "
-            "pass --allow-weight-download explicitly on a CUDA A100 runtime."
+            "pass --allow-weight-download explicitly on a CUDA L4/A100 runtime."
         )
     if not torch.cuda.is_available():
         raise RuntimeError(
             f"CUDA GPU required for {component!r}, but torch.cuda.is_available() is False. "
-            "Run notebooks/phase_b_colab.ipynb on a Colab A100 (40GB/80GB) runtime."
+            "Run notebooks/phase_b_colab.ipynb on a Colab L4 (24GB) or A100 (40GB/80GB) runtime."
         )
 
 
@@ -70,12 +92,13 @@ def detect_model_loader_kind(
 ) -> Literal["image_text_to_text", "causal_lm"]:
     """Choose AutoModelForImageTextToText vs AutoModelForCausalLM cleanly from HF config.
 
-    Critical for `Qwen/Qwen3.8-27B` whose HF config declares `model_type='qwen3_5'` and
-    `architectures=['Qwen3_5ForConditionalGeneration']` (multimodal VLM wrapper).
+    Critical for multimodal conditional-generation wrappers including `google/gemma-4-12B-it`
+    (`model_type='gemma4_unified'`, `Gemma4UnifiedForConditionalGeneration`) and
+    `Qwen/Qwen3.8-27B` (`model_type='qwen3_5'`, `Qwen3_5ForConditionalGeneration`).
     """
     mt = str(model_type or "").lower()
     arch_str = " ".join(str(a) for a in architectures).lower()
-    if mt in {"qwen3_5", "gemma3", "gemma4", "qwen2_5_vl", "qwen3_vl"}:
+    if mt in {"qwen3_5", "gemma3", "gemma4", "gemma4_unified", "qwen2_5_vl", "qwen3_vl"}:
         return "image_text_to_text"
     if "forconditionalgeneration" in arch_str and "t5" not in arch_str:
         return "image_text_to_text"
@@ -83,7 +106,7 @@ def detect_model_loader_kind(
 
 
 def filter_text_lora_target_modules(module_names: Sequence[str]) -> list[str]:
-    """Select strictly text-backbone linear projections for LoRA, excluding visual & MTP layers."""
+    """Select strictly text-backbone linear projections for LoRA, excluding vision/audio/MTP."""
     selected: list[str] = []
     for raw_name in module_names:
         name = str(raw_name).strip()
@@ -219,6 +242,14 @@ def run_llm_zero_shot_and_qlora(
         torch_dtype=torch.bfloat16,
     )
     base_model.config.use_cache = False
+    if hasattr(base_model.config, "text_config") and base_model.config.text_config is not None:
+        base_model.config.text_config.use_cache = False
+
+    alloc_gb = torch.cuda.memory_allocated() / 1e9
+    print(
+        f"[LLM] Loaded {model_id} ({loader_kind}) | allocated={alloc_gb:.2f} GB",
+        flush=True,
+    )
 
     train_ev = event_splits["train"].copy()
     val_ev = event_splits["val"].copy()
@@ -233,6 +264,10 @@ def run_llm_zero_shot_and_qlora(
     train_prompts = [build_event_prompt(r) for r in train_ev.to_dict(orient="records")]
 
     # 1. Zero-shot event-anchored inference on 2024 Val & 2025 Test
+    print(
+        f"[LLM] Zero-shot inference: Val={len(val_prompts)}, Test={len(test_prompts)}...",
+        flush=True,
+    )
     zs_val_logits = _score_prompts_log_odds(
         base_model,
         tokenizer,
@@ -251,8 +286,13 @@ def run_llm_zero_shot_and_qlora(
         max_seq_len=max_seq_len,
         batch_size=eval_batch_size,
     )
+    print(
+        f"[LLM] Zero-shot done in {time.perf_counter() - t0:.1f}s "
+        f"| peak_vram={torch.cuda.max_memory_allocated() / 1e9:.2f} GB",
+        flush=True,
+    )
 
-    # 2. Attach text-only LoRA adapters (explicitly excluding visual / mtp modules)
+    # 2. Attach text-only LoRA adapters (explicitly excluding vision / audio / mtp modules)
     linear_names = [
         name
         for name, mod in base_model.named_modules()
@@ -262,7 +302,11 @@ def run_llm_zero_shot_and_qlora(
     if not target_modules:
         raise RuntimeError(f"No text LoRA target modules matched for {model_id}")
 
-    base_model = prepare_model_for_kbit_training(base_model, use_gradient_checkpointing=True)
+    base_model = prepare_model_for_kbit_training(
+        base_model,
+        use_gradient_checkpointing=True,
+        gradient_checkpointing_kwargs={"use_reentrant": False},
+    )
     lora_cfg = LoraConfig(
         r=lora_r,
         lora_alpha=lora_alpha,
@@ -273,6 +317,11 @@ def run_llm_zero_shot_and_qlora(
     peft_model = get_peft_model(base_model, lora_cfg)
     trainable_params = sum(p.numel() for p in peft_model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in peft_model.parameters())
+    print(
+        f"[LLM] LoRA attached: {len(target_modules)} text modules | "
+        f"trainable={trainable_params:,} | vram={torch.cuda.memory_allocated() / 1e9:.2f} GB",
+        flush=True,
+    )
 
     # 3. Supervised class-weighted BCE fine-tuning strictly on Train event-anchored days
     y_train = train_ev["y_tail"].astype(float).to_numpy()
@@ -301,8 +350,10 @@ def run_llm_zero_shot_and_qlora(
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_opt_steps)
 
     epoch_losses: list[float] = []
+    supports_logits_to_keep = True
     peft_model.train()
-    for _ep in range(epochs):
+    for ep_idx in range(1, epochs + 1):
+        t_ep = time.perf_counter()
         order = rng.permutation(n_train)
         running_loss = 0.0
         optimizer.zero_grad(set_to_none=True)
@@ -313,7 +364,24 @@ def run_llm_zero_shot_and_qlora(
                 truncation=True,
                 max_length=max_seq_len,
             ).to(device)
-            out = peft_model(input_ids=enc["input_ids"], attention_mask=enc["attention_mask"])
+            if supports_logits_to_keep:
+                try:
+                    out = peft_model(
+                        input_ids=enc["input_ids"],
+                        attention_mask=enc["attention_mask"],
+                        logits_to_keep=1,
+                    )
+                except TypeError:
+                    supports_logits_to_keep = False
+                    out = peft_model(
+                        input_ids=enc["input_ids"],
+                        attention_mask=enc["attention_mask"],
+                    )
+            else:
+                out = peft_model(
+                    input_ids=enc["input_ids"],
+                    attention_mask=enc["attention_mask"],
+                )
             last_logits = out.logits[:, -1, :].float()
             z = compute_yes_no_log_odds(last_logits, yes_token_id=yes_id, no_token_id=no_id)
             y_t = torch.tensor([y_train[int(row_i)]], dtype=torch.float32, device=device)
@@ -326,9 +394,21 @@ def run_llm_zero_shot_and_qlora(
                 optimizer.step()
                 scheduler.step()
                 optimizer.zero_grad(set_to_none=True)
+
+            if step_idx % 250 == 0 or step_idx == n_train:
+                el = time.perf_counter() - t_ep
+                eta = (el / step_idx) * (n_train - step_idx)
+                print(
+                    f"[LLM] Epoch {ep_idx}/{epochs} step {step_idx}/{n_train} "
+                    f"| loss={running_loss / step_idx:.4f} "
+                    f"| peak_vram={torch.cuda.max_memory_allocated() / 1e9:.2f} GB "
+                    f"| elapsed={el:.0f}s | ETA={eta:.0f}s",
+                    flush=True,
+                )
         epoch_losses.append(running_loss / max(n_train, 1))
 
     # 4. QLoRA post-fine-tuning inference on 2024 Val & 2025 Test event-anchored days
+    print("[LLM] Post-QLoRA inference on 2024 Val & 2025 Test...", flush=True)
     qlora_val_logits = _score_prompts_log_odds(
         peft_model,
         tokenizer,
@@ -350,6 +430,17 @@ def run_llm_zero_shot_and_qlora(
 
     peak_vram_gb = float(torch.cuda.max_memory_allocated() / 1e9)
     elapsed_sec = float(time.perf_counter() - t0)
+    gpu_name = str(torch.cuda.get_device_name(0))
+    print(
+        f"[LLM] Complete ({model_id}) | peak_vram={peak_vram_gb:.2f} GB "
+        f"| elapsed={elapsed_sec:.1f}s",
+        flush=True,
+    )
+
+    # Free GPU memory cleanly after LLM run
+    del optimizer, scheduler, peft_model, base_model
+    gc.collect()
+    torch.cuda.empty_cache()
 
     val_scores_df = val_ev[["ticker", "date"]].copy()
     val_scores_df["llm_zs_logit"] = zs_val_logits
@@ -375,7 +466,7 @@ def run_llm_zero_shot_and_qlora(
         "test_event_days": int(len(test_ev)),
         "epochs": int(epochs),
         "epoch_losses": epoch_losses,
-        "gpu_name": str(torch.cuda.get_device_name(0)),
+        "gpu_name": gpu_name,
         "peak_vram_gb": round(peak_vram_gb, 3),
         "elapsed_sec": round(elapsed_sec, 2),
         "val_scores_df": val_scores_df,

@@ -46,7 +46,7 @@ def extract_finbert_event_scores(
     pos_idx = next(i for i, lbl in id2label.items() if "pos" in lbl)
     neg_idx = next(i for i, lbl in id2label.items() if "neg" in lbl)
 
-    def _score_df(df: pd.DataFrame) -> pd.DataFrame:
+    def _score_df(df: pd.DataFrame, mdl: Any) -> pd.DataFrame:
         texts = df["text_concat_capped_5"].fillna("").astype(str).tolist()
         probs_all: list[np.ndarray] = []
         with torch.no_grad():
@@ -59,7 +59,7 @@ def extract_finbert_event_scores(
                     truncation=True,
                     max_length=max_seq_len,
                 ).to(device)
-                logits = model(**enc).logits.float()
+                logits = mdl(**enc).logits.float()
                 probs = torch.softmax(logits, dim=-1).cpu().numpy()
                 probs_all.append(probs)
         mat = np.concatenate(probs_all, axis=0) if probs_all else np.zeros((0, 3))
@@ -75,16 +75,24 @@ def extract_finbert_event_scores(
         out["finbert_neg_logit"] = neg_logit
         return out
 
-    val_scores = _score_df(event_splits["val"])
-    test_scores = _score_df(event_splits["test"])
+    val_scores = _score_df(event_splits["val"], model)
+    test_scores = _score_df(event_splits["test"], model)
+    param_count = int(sum(p.numel() for p in model.parameters()))
+    elapsed = round(float(time.perf_counter() - t0), 2)
+    print(
+        f"[FinBERT] Scored Val={len(val_scores)}, Test={len(test_scores)} in {elapsed:.1f}s",
+        flush=True,
+    )
+    del model
+    torch.cuda.empty_cache()
 
     return {
         "model_id": model_id,
         "revision": getattr(hf_cfg, "_commit_hash", "unknown"),
-        "param_count": int(sum(p.numel() for p in model.parameters())),
+        "param_count": param_count,
         "val_event_days": int(len(val_scores)),
         "test_event_days": int(len(test_scores)),
-        "elapsed_sec": round(float(time.perf_counter() - t0), 2),
+        "elapsed_sec": elapsed,
         "val_scores_df": val_scores,
         "test_scores_df": test_scores,
     }

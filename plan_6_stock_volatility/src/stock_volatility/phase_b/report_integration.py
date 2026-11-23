@@ -53,7 +53,7 @@ def render_phase_b_section_tex(
     interp = _esc_tex(phase_b_summary["h3_interpretation"])
 
     return (
-        "\n\\section{Extension: Deep Time-Series and 27B QLoRA News LLM (H3)}\n\n"
+        "\n\\section{Extension: Deep Time-Series and QLoRA News LLM (H3)}\n\n"
         f"Keeping the Phase A frozen panel and purged splits strictly unchanged, we evaluate "
         f"two deep learning extensions on single-GPU hardware ({gpu}; peak VRAM {vram}\\,GB). "
         f"First, Route~A trains a 5-seed multivariate \\texttt{{PatchTST}} (15M parameters; "

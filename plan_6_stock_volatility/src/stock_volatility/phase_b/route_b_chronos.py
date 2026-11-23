@@ -129,12 +129,21 @@ def run_chronos_volatility_forecasts(
         pred_df["q10_rv"].to_numpy(),
         pred_df["q90_rv"].to_numpy(),
     )
+    elapsed = round(float(time.perf_counter() - t0), 2)
+    print(
+        f"[Chronos] {model_id} | rows={len(pred_df)} | QLIKE={rm['qlike']:.4f} "
+        f"| 80% cov={100.0 * cov80:.1f}% | elapsed={elapsed:.1f}s",
+        flush=True,
+    )
+    del pipeline
+    torch.cuda.empty_cache()
+
     return {
         "model_id": model_id,
         "context_length": int(context_length),
         "test_rows": int(len(pred_df)),
         "test_metrics": rm,
         "test_nominal_80_coverage": float(cov80),
-        "elapsed_sec": round(float(time.perf_counter() - t0), 2),
+        "elapsed_sec": elapsed,
         "test_pred_df": pred_df,
     }

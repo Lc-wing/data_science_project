@@ -110,4 +110,16 @@ git check-ignore -v --no-index plan_6_stock_volatility/PHASE_B.md plan_6_stock_v
 - [x] `PHASE_B.md`, `notebooks/phase_b_colab.ipynb`, `docs/milestones/README.md`, `plan_6_stock_volatility/README.md`, and root `README.md` updated and git-tracked
 - [x] Zero diffs in `data/frozen/`, `plan_2_tourism_hotel/`, `plan_5_spatial_equity/`, and `plans/`
 - [x] Zero fabricated Phase B metrics committed; zero GPU weights downloaded locally; zero secrets
-- **Next Step (Milestone M8)**: Open `plan_6_stock_volatility/notebooks/phase_b_colab.ipynb` in Colab with an **NVIDIA A100 (40GB/80GB)** runtime, run all cells to generate `outputs/phase_b/`, copy `outputs/phase_b/` into the repository, and run `uv run python scripts/07_integrate_phase_b_report.py` to compile & audit the final submission `report/CS482_GroupX_StockVolatilityLLM.pdf`.
+- **Next Step (Milestone M8)**: Open `plan_6_stock_volatility/notebooks/phase_b_colab.ipynb` in Colab with an **NVIDIA L4 (24GB)** (auto-selects `google/gemma-4-12B-it`, `~11–13 GB` peak VRAM) or **NVIDIA A100 (40GB/80GB)** (auto-selects `Qwen/Qwen3.8-27B`) runtime, run all cells to generate `outputs/phase_b/`, copy `outputs/phase_b/` into the repository, and run `uv run python scripts/07_integrate_phase_b_report.py` to compile & audit the final submission `report/CS482_GroupX_StockVolatilityLLM.pdf`.
+
+---
+
+## 7. Post-M7 L4 (24GB) + `google/gemma-4-12B-it` Hardening Addendum
+
+When Colab A100/G4 quota is unavailable, live Hugging Face metadata & safetensors header probing verified **`google/gemma-4-12B-it`** (`sha: 43c9d014b231`, `gated: false`, `11.96B` params / `23.92 GB` bf16, `model_type: gemma4_unified`, `Gemma4UnifiedForConditionalGeneration`, tied `262,144` vocab embeddings, supported natively by PyPI `transformers>=5.10`):
+- **L4 24GB Fit**: `~8.5 GB` 4-bit NF4 static footprint and `~11–13 GB` peak QLoRA VRAM (`> 10 GB` headroom on L4 24GB; zero OOM).
+- **Engineering Hardening Applied**:
+  1. Added `select_default_llm_for_vram()` (`< 35 GB` -> `google/gemma-4-12B-it`; `>= 35 GB` -> `Qwen/Qwen3.8-27B`) and `--llm-model auto` in `scripts/colab_phase_b.py` + `notebooks/phase_b_colab.ipynb`.
+  2. Expanded `EXCLUDED_LORA_PREFIXES` with `vision_tower`, `vision_embedder`, `embed_vision`, `audio`, `audio_tower`, `embed_audio`, `multi_modal_projector` and added `gemma4_unified` to `detect_model_loader_kind()`.
+  3. Disabled `use_cache` on both outer `config` and nested `config.text_config`, enabled `use_reentrant=False` gradient checkpointing, added safe `logits_to_keep=1` on unpadded training steps, added live step/ETA/VRAM progress logs, and added explicit inter-stage `gc.collect()` + `torch.cuda.empty_cache()` cleanup across all 4 routes.
+  4. Made Section 6 LaTeX heading model-size agnostic (`Extension: Deep Time-Series and QLoRA News LLM (H3)`).

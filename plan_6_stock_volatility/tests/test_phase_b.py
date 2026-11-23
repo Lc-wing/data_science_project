@@ -169,26 +169,40 @@ def test_patchtst_1m_and_15m_param_counts_pinball_coverage_and_training(
 def test_route_b_qwen35_loader_lora_filter_yes_no_log_odds_and_gpu_guards(
     block_network: None,
 ) -> None:
-    """Verify Qwen3_5ForConditionalGeneration routing, text-only LoRA filter, and GPU gates."""
+    """Verify Qwen3.5 & Gemma4Unified routing, text-only LoRA filter, L4 selector & GPU gates."""
     from stock_volatility.phase_b.route_b_llm import (
+        DEFAULT_L4_LLM_MODEL,
         DEFAULT_LLM_MODEL,
         compute_yes_no_log_odds,
         detect_model_loader_kind,
         filter_text_lora_target_modules,
         require_cuda_and_download_flag,
+        select_default_llm_for_vram,
     )
 
     assert DEFAULT_LLM_MODEL == "Qwen/Qwen3.8-27B"
+    assert DEFAULT_L4_LLM_MODEL == "google/gemma-4-12B-it"
+    assert select_default_llm_for_vram(23.7) == "google/gemma-4-12B-it"
+    assert select_default_llm_for_vram(42.5) == "Qwen/Qwen3.8-27B"
     assert (
         detect_model_loader_kind("qwen3_5", ["Qwen3_5ForConditionalGeneration"])
         == "image_text_to_text"
     )
+    assert (
+        detect_model_loader_kind("gemma4_unified", ["Gemma4UnifiedForConditionalGeneration"])
+        == "image_text_to_text"
+    )
     assert detect_model_loader_kind("qwen3", ["Qwen3ForCausalLM"]) == "causal_lm"
 
-    # Real Qwen/Qwen3.8-27B linear layer names: must exclude visual and mtp!
+    # Real Qwen3.8-27B & Gemma-4-12B-it layer names: must exclude vision, audio, and mtp!
     sample_modules = [
         "model.visual.blocks.0.attn.qkv",
         "model.visual.merger.linear_fc1",
+        "model.vision_tower.layers.0.self_attn.q_proj",
+        "model.vision_embedder.layers.0.mlp.gate_proj",
+        "model.embed_vision.q_proj",
+        "model.audio_tower.layers.0.self_attn.q_proj",
+        "model.embed_audio.out_proj",
         "mtp.layers.0.self_attn.q_proj",
         "mtp.layers.0.mlp.gate_proj",
         "model.language_model.layers.0.linear_attn.in_proj_qkv",
@@ -203,7 +217,13 @@ def test_route_b_qwen35_loader_lora_filter_yes_no_log_odds_and_gpu_guards(
     ]
     targets = filter_text_lora_target_modules(sample_modules)
     assert len(targets) == 9
-    assert all("visual" not in name and not name.startswith("mtp.") for name in targets)
+    assert all(
+        "visual" not in name
+        and "vision" not in name
+        and "audio" not in name
+        and not name.startswith("mtp.")
+        for name in targets
+    )
     assert "model.language_model.layers.0.linear_attn.in_proj_qkv" in targets
     assert "model.language_model.layers.3.self_attn.q_proj" in targets
 
@@ -431,6 +451,8 @@ def test_colab_cli_guard_notebook_and_m7_milestone_docs() -> None:
     assert "scripts/colab_phase_b.py" in nb_src
     assert "--allow-weight-download" in nb_src
     assert "Qwen/Qwen3.8-27B" in nb_src
+    assert "google/gemma-4-12B-it" in nb_src
+    assert "transformers>=5.10" in nb_src
 
     phase_b_md = config.PROJECT_ROOT / "PHASE_B.md"
     m7_doc = config.PROJECT_ROOT / "docs" / "milestones" / "M7_phase_b_colab_and_dl_pipeline.md"
