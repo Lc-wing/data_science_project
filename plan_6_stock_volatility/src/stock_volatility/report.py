@@ -26,7 +26,12 @@ FORBIDDEN_PATTERNS: tuple[tuple[str, str], ...] = (
     (r"\?\?", "unresolved LaTeX reference '??'"),
     (r"\bTODO\b", "unresolved placeholder 'TODO'"),
     (r"\bTBD\b", "unresolved placeholder 'TBD'"),
+    (r"\bTBD_[A-Z0-9_]+\b", "unresolved placeholder 'TBD_*'"),
     (r"\bNaN\b", "missing/NaN value rendered in text"),
+)
+
+_CASE_SENSITIVE_PATTERNS: frozenset[str] = frozenset(
+    {r"\bTODO\b", r"\bTBD\b", r"\bTBD_[A-Z0-9_]+\b", r"\bNaN\b", r"\?\?"}
 )
 
 
@@ -34,7 +39,7 @@ def scan_report_text_issues(text: str) -> list[str]:
     """Scan report prose/PDF text for forbidden causal phrasing and unresolved LaTeX artifacts."""
     issues: list[str] = []
     for pattern, label in FORBIDDEN_PATTERNS:
-        flags = 0 if pattern in (r"\bTODO\b", r"\bTBD\b", r"\bNaN\b", r"\?\?") else re.IGNORECASE
+        flags = 0 if pattern in _CASE_SENSITIVE_PATTERNS else re.IGNORECASE
         for match in re.finditer(pattern, text, flags=flags):
             snippet = text[max(0, match.start() - 25) : min(len(text), match.end() + 25)].replace(
                 "\n", " "
@@ -1064,10 +1069,17 @@ def audit_compiled_pdf(
     w_pts, h_pts = float(m_size.group(1)), float(m_size.group(2))
     is_a4 = abs(w_pts - 595.28) < 1.5 and abs(h_pts - 841.89) < 1.5
 
-    # 2. Extract per-page text with pypdf and pdftotext
+    # 2. Extract per-page text and verify A4 dimensions on EVERY page via pypdf
     reader = PdfReader(str(pdf_path))
     total_pages = len(reader.pages)
     page_texts = [p.extract_text() or "" for p in reader.pages]
+    non_a4_pages: list[int] = [
+        idx
+        for idx, page in enumerate(reader.pages, start=1)
+        if abs(float(page.mediabox.width) - 595.28) >= 1.5
+        or abs(float(page.mediabox.height) - 841.89) >= 1.5
+    ]
+    is_a4 = is_a4 and len(non_a4_pages) == 0
 
     txt_proc = subprocess.run(
         ["pdftotext", str(pdf_path), "-"],
@@ -1115,16 +1127,24 @@ def audit_compiled_pdf(
     main_and_decl_text = "\n".join(page_texts[i] for i in range(total_pages))
     # Strip bibliography reference titles before causal-word scan so cited paper titles don't trip
     scan_pages = [page_texts[0], *(page_texts[i] for i in main_page_indices)]
+    in_decl = False
     for idx in range(ref_page_idx, total_pages):
         pt = page_texts[idx]
-        if "Separate Contribution Statement" in pt:
+        if in_decl:
+            scan_pages.append(pt)
+        elif "Separate Contribution Statement" in pt:
+            in_decl = True
             scan_pages.append(pt.split("Separate Contribution Statement", 1)[1])
+        elif "AI Usage Declaration" in pt:
+            in_decl = True
+            scan_pages.append(pt.split("AI Usage Declaration", 1)[1])
     text_issues = scan_report_text_issues("\n".join(scan_pages))
-    # Also scan full document strictly for ?? / TODO / TBD / NaN
+    # Also scan full document strictly for ?? / TODO / TBD / TBD_* / NaN
     for pat, lbl in (
         (r"\?\?", "unresolved '??'"),
         (r"\bTODO\b", "'TODO'"),
         (r"\bTBD\b", "'TBD'"),
+        (r"\bTBD_[A-Z0-9_]+\b", "'TBD_*'"),
         (r"\bNaN\b", "'NaN'"),
     ):
         if re.search(pat, main_and_decl_text):
@@ -1193,6 +1213,7 @@ def audit_compiled_pdf(
     return {
         "verdict": verdict,
         "is_a4": is_a4,
+        "non_a4_pages": non_a4_pages,
         "width_pts": w_pts,
         "height_pts": h_pts,
         "total_pages": total_pages,

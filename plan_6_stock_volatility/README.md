@@ -21,8 +21,8 @@ Phase A is strictly CPU-reproducible and freezes the aligned panel, splits, and 
 | M2 | Strict `16:00 America/New_York` (`13:00 ET` early-close) cutoff, deduplication & `<= 5`/day cap, features/targets, Purged+Embargoed splits, SHA-256 freeze | done (`3c9bba9`) | [`docs/milestones/M2_panel_splits_and_freeze.md`](docs/milestones/M2_panel_splits_and_freeze.md) |
 | M3 | Cross-cycle EDA & H1 Stock-FE Extended Panel HAR-RV with Driscoll–Kraay SE & Holm-adjusted CIs | done (`d7a35b6`) | [`docs/milestones/M3_eda_and_h1_panel_har_rv.md`](docs/milestones/M3_eda_and_h1_panel_har_rv.md) |
 | M4 | H2 Out-of-sample baselines (Persistence, GJR-GARCH, HAR-RV), Global LightGBM, 2024 Val calibration, 2025 Holdout Test, `h=5` HLN-DM/Holm & Train-background TreeSHAP | done (`744df5d`) | [`docs/milestones/M4_h2_forecasting_calibration_and_shap.md`](docs/milestones/M4_h2_forecasting_calibration_and_shap.md) |
-| M5 | 300-DPI Figure 1 & Figure 2, Table 1, audited CS482 Phase A Draft PDF (`4.00` A4 main pp), and one-command replay CLI | done | [`docs/milestones/M5_figures_table1_and_cs482_report.md`](docs/milestones/M5_figures_table1_and_cs482_report.md) |
-| M6 | Opaque-box E2E Tiers 1–4 verification & Tier 5 adversarial hardening | planned | `docs/milestones/M6_e2e_and_adversarial_hardening.md` |
+| M5 | 300-DPI Figure 1 & Figure 2, Table 1, audited CS482 Phase A Draft PDF (`4.00` A4 main pp), and one-command replay CLI | done (`63dc8ec`) | [`docs/milestones/M5_figures_table1_and_cs482_report.md`](docs/milestones/M5_figures_table1_and_cs482_report.md) |
+| M6 | Opaque-box E2E Tiers 1–4 verification, Tier 5 white-box adversarial hardening & final Phase A sign-off | done | [`docs/milestones/M6_e2e_and_adversarial_hardening.md`](docs/milestones/M6_e2e_and_adversarial_hardening.md) / [`TEST_READY.md`](TEST_READY.md) |
 
 See [`docs/milestones/README.md`](docs/milestones/README.md) for the master milestone delivery ledger, the mandatory per-milestone AI execution recording policy, and the standard template for Milestones M0–M6.
 
@@ -101,6 +101,15 @@ MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/run_phase_a.py --report-o
 MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/run_phase_a.py --skip-download
 ```
 
+### M6 5-Tier E2E & White-Box Adversarial Hardening Suite
+
+Run the standalone 5-tier E2E & single-fault adversarial hardening suite (31 tests across Tiers 1–5; see [`TEST_READY.md`](TEST_READY.md)) or the full 97-test repository suite:
+
+```bash
+MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run pytest tests/e2e --project-root . -v
+MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run pytest -v
+```
+
 ## Data Sources & Anti-Leakage Protocol Summary
 
 - **Deterministic 60-Stock Cross-Sector Universe**: 5 GICS sectors (`Technology`, `Financials`, `Healthcare`, `Consumer`, `Energy`) × 12 pre-2019 liquid S&P 500 constituents (Consumer split 6 Staples + 6 Discretionary under pre-2019 GICS taxonomy; zero 2025 lookahead).
@@ -118,22 +127,24 @@ MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/run_phase_a.py --skip-dow
 ```text
 plan_6_stock_volatility/
 ├── .gitignore                          # [M0] Local cache, archive, weight, and LaTeX ignores
-├── README.md                           # [M0–M5] Project overview, setup, and non-investment notice
+├── README.md                           # [M0–M6] Project overview, setup, and non-investment notice
+├── TEST_READY.md                       # [M6] Final E2E Tiers 1–5 & adversarial sign-off guide
 ├── pyproject.toml                      # [M0] uv + hatchling package, ruff, and pytest configuration
 ├── uv.lock                             # [M0] Locked dependency graph
 ├── docs/
 │   └── milestones/                     # [M1–M6] Tracked milestone delivery & AI execution docs
-│       ├── README.md                   # [M1–M5] Master ledger, policy, and M2–M6 template
+│       ├── README.md                   # [M1–M6] Master ledger, policy, and M2–M6 template
 │       ├── M0_repo_cleanup_and_scaffold.md
 │       ├── M1_data_ingest_and_day1_audit.md
 │       ├── M2_panel_splits_and_freeze.md
 │       ├── M3_eda_and_h1_panel_har_rv.md
 │       ├── M4_h2_forecasting_calibration_and_shap.md
-│       └── M5_figures_table1_and_cs482_report.md
+│       ├── M5_figures_table1_and_cs482_report.md
+│       └── M6_e2e_and_adversarial_hardening.md
 ├── src/stock_volatility/
 │   ├── __init__.py                     # [M0] Package metadata
 │   ├── config.py                       # [M0] Canonical paths, constants, UNIVERSE_60, helpers
-│   ├── ingest/                         # [M1] Universe, OHLCV, macro, SEC EDGAR, Day-1 audit
+│   ├── ingest/                         # [M1,M6] Universe, OHLCV, macro, SEC EDGAR, Day-1 audit
 │   ├── panel/                          # [M2] 16:00/13:00 ET alignment, features, splits, SHA-256 freeze
 │   ├── eda.py                          # [M3] Volatility regimes, leverage, coverage, VIX x news
 │   ├── regression.py                   # [M3] H1 Stock-FE Panel HAR-RV + Driscoll-Kraay SE
@@ -142,7 +153,7 @@ plan_6_stock_volatility/
 │   ├── evaluation.py                   # [M4] QLIKE/PR-AUC/ECE, block bootstrap, h=5 HLN-DM/Holm
 │   ├── explain.py                      # [M4] Train-background TreeSHAP explainability
 │   ├── figures.py                      # [M5] 300-DPI Figure 1 & Figure 2 (PNG + PDF)
-│   └── report.py                       # [M5] Programmatic Table 1, LaTeX/PDF build & 51-claim audit
+│   └── report.py                       # [M5,M6] Table 1, deterministic PDF build & hardened audit
 ├── scripts/
 │   ├── 01_download_and_audit.py        # [M1] Data ingest & offline --skip-download Day-1 audit CLI
 │   ├── 02_build_panel_and_freeze.py    # [M2] Panel build, purged splits & --check/--refreeze CLI
@@ -150,12 +161,12 @@ plan_6_stock_volatility/
 │   ├── 04_panel_har_rv.py              # [M3] H1 Stock-FE Extended Panel HAR-RV CLI
 │   ├── 05_forecast_backtest.py         # [M4] H2 baselines, LightGBM, HLN-DM & TreeSHAP CLI
 │   ├── 06_write_report.py              # [M5] 300-DPI figures, Table 1, CS482 PDF & audit CLI
-│   └── run_phase_a.py                  # [M5] One-command offline Phase A replay CLI
+│   └── run_phase_a.py                  # [M5,M6] One-command offline Phase A replay CLI (--project-root)
 ├── data/                               # [M1–M2] raw/, interim/, frozen/ (FREEZE_MANIFEST.json)
 ├── outputs/                            # [M1–M5] figures/, metrics/, tables/
 ├── report/                             # [M5] phase_a_draft.tex, references.bib, PDF, audit
 └── tests/
-    ├── conftest.py                     # [M1] MPLBACKEND=Agg, OMP_NUM_THREADS=1, block_network fixture
+    ├── conftest.py                     # [M1,M6] MPLBACKEND, OMP_NUM_THREADS, block_network, --project-root
     ├── test_smoke.py                   # [M0] Scaffold, universe, split, library, TeX/Poppler checks
     ├── test_ingest.py                  # [M1] Unit, offline replay, artifact & milestone doc tests
     ├── test_panel_and_freeze.py        # [M2] Cutoff/early-close, anti-leakage, split & freeze tests
@@ -163,5 +174,6 @@ plan_6_stock_volatility/
     ├── test_regression.py              # [M3] Driscoll-Kraay equivalence, Holm & H1 contract tests
     ├── test_forecast.py                # [M4] Purged folds, GJR-GARCH, calibration & selection tests
     ├── test_evaluation_and_shap.py     # [M4] QLIKE/ECE, HLN-DM, bootstrap & TreeSHAP tests
-    └── test_figures_and_report.py      # [M5] 300-DPI figures, Table 1, A4 PDF audit & CLI tests
+    ├── test_figures_and_report.py      # [M5] 300-DPI figures, Table 1, A4 PDF audit & CLI tests
+    └── e2e/                            # [M6] 5-tier opaque-box E2E (Tiers 1–4) & Tier 5 adversarial suite
 ```

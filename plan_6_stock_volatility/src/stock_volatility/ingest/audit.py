@@ -815,37 +815,42 @@ def run_download_and_audit_pipeline(*, force_download: bool = False) -> dict[str
     }
 
 
-def run_skip_download_pipeline() -> dict[str, Any]:
+def run_skip_download_pipeline(
+    *,
+    project_root: Path | None = None,
+) -> dict[str, Any]:
     """Execute strictly offline `--skip-download` replay from committed `data/raw/` snapshots.
 
     Makes ZERO network calls, does NOT mutate any file in `data/raw/`, verifies SHA-256 and
     byte sizes of all `data/raw/` files against `data_provenance.json`, and uses timestamps
     strictly from `data_provenance.json` so repeated runs produce bit-for-bit identical hashes.
     """
-    if not config.PROVENANCE_PATH.is_file():
+    root = Path(project_root) if project_root is not None else config.PROJECT_ROOT
+    raw_dir = root / "data" / "raw"
+    interim_dir = root / "data" / "interim"
+    prov_path = raw_dir / "data_provenance.json"
+    if not prov_path.is_file():
         raise FileNotFoundError(
-            f"Missing {config.PROVENANCE_PATH}; run without --skip-download first."
+            f"Missing {prov_path}; run without --skip-download first."
         )
 
-    prov = ProvenanceLog.load(config.PROVENANCE_PATH, project_root=config.PROJECT_ROOT)
+    prov = ProvenanceLog.load(prov_path, project_root=root)
     prov.verify_files()
     provenance_dict = prov.to_dict()
 
-    uni_df = load_universe_csv(config.DATA_RAW_DIR / "universe_60.csv")
-    ohlcv_df = pd.read_parquet(config.DATA_RAW_DIR / "prices" / "ohlcv_daily.parquet")
+    uni_df = load_universe_csv(raw_dir / "universe_60.csv")
+    ohlcv_df = pd.read_parquet(raw_dir / "prices" / "ohlcv_daily.parquet")
 
     macro_df, _ = build_macro_daily_from_raw(
-        raw_macro_dir=config.DATA_RAW_DIR / "macro",
-        out_path=config.DATA_INTERIM_DIR / "macro_daily.parquet",
+        raw_macro_dir=raw_dir / "macro",
+        out_path=interim_dir / "macro_daily.parquet",
     )
     events_df = build_events_raw_from_snapshot(
-        config.DATA_RAW_DIR / "sec_edgar" / "edgar_filings_2019_2025.parquet",
-        out_path=config.DATA_INTERIM_DIR / "events_raw.parquet",
+        raw_dir / "sec_edgar" / "edgar_filings_2019_2025.parquet",
+        out_path=interim_dir / "events_raw.parquet",
     )
     pagination_manifest = json.loads(
-        (config.DATA_RAW_DIR / "sec_edgar" / "pagination_manifest.json").read_text(
-            encoding="utf-8"
-        )
+        (raw_dir / "sec_edgar" / "pagination_manifest.json").read_text(encoding="utf-8")
     )
 
     metrics = write_audit_outputs(
@@ -855,6 +860,8 @@ def run_skip_download_pipeline() -> dict[str, Any]:
         events_df=events_df,
         pagination_manifest=pagination_manifest,
         provenance_dict=provenance_dict,
+        outputs_metrics_dir=root / "outputs" / "metrics",
+        outputs_tables_dir=root / "outputs" / "tables",
     )
 
     return {
