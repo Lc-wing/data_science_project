@@ -1,11 +1,11 @@
-# Final Submission — CS482 Phase A + Phase B Automated Audit
+# Final Submission — CS482 Unified 5-Section Report Automated Audit
 
 - Overall Audit Verdict: **PASS**
 - Provenance Timestamp (UTC): `2026-11-22T14:04:28+00:00`
-- Target PDF: `report/CS482_GroupX_StockVolatilityLLM.pdf` (`434,809 B`)
+- Target PDF: `report/CS482_GroupX_StockVolatilityLLM.pdf` (`439,600 B`)
 - Page Geometry (`pdfinfo`): `595.28 x 841.89 pts` (A4 = `595.28 x 841.89 pts`, pass=`True`)
 - Total PDF Pages: `8` (Cover: `1`, Main Text pages occupied: `5`, Back Matter: `2`)
-- Main Text Length: `4.70` A4 pages (CS482 required range: `[3.00, 5.00]` A4 pages, cover/references/declarations excluded)
+- Main Text Length: `4.46` A4 pages (CS482 required range: `[3.00, 5.00]` A4 pages, cover/references/declarations excluded)
 - Numeric Claims Verified: `61/61`
 - Forbidden Wording / Artifact Hits: `0`
 

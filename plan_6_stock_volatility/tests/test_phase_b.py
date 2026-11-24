@@ -569,6 +569,33 @@ def test_committed_m8_phase_b_outputs_final_pdf_and_milestone_doc(
     assert audit["main_pages_occupied"] <= 5
     assert audit["claims_verified"] == audit["claims_total"]
 
+    # Verify unified 5-section CS482 rubric layout (Phase B merged into Data Analysis)
+    final_tex = (config.REPORT_DIR / "final_report.tex").read_text(encoding="utf-8")
+    final_bib = (config.REPORT_DIR / "final_references.bib").read_text(encoding="utf-8")
+    for heading in (
+        r"\section{Research Question}",
+        r"\section{Data Collection and Preparation}",
+        r"\section{Data Analysis}",
+        r"\section{Method Evaluation}",
+        r"\section{Results and Discussion}",
+    ):
+        assert heading in final_tex, f"Missing CS482 rubric section {heading}"
+    assert r"\section{Extension:" not in final_tex
+    sec3_to_sec4 = final_tex.split(r"\section{Data Analysis}", 1)[1].split(
+        r"\section{Method Evaluation}", 1
+    )[0]
+    for tok in ("PatchTST", "chronos-2", "FinBERT", "google/gemma-4-12B-it", "QLoRA"):
+        assert tok in sec3_to_sec4, f"Expected Phase B {tok!r} merged inside Data Analysis"
+    for ai_tok in ("Tools and Purposes", "Independent Verification", "Student Responsibility"):
+        assert ai_tok in final_tex
+    for bib_key in (
+        "nie2023patchtst",
+        "ansari2024chronos",
+        "araci2019finbert",
+        "dettmers2023qlora",
+    ):
+        assert bib_key in final_bib
+
     # M8 milestone doc tracked, non-empty, and linked from all READMEs
     m8_doc = config.PROJECT_ROOT / "docs" / "milestones" / "M8_phase_b_l4_results_and_final_pdf.md"
     assert m8_doc.is_file() and m8_doc.stat().st_size > 2000

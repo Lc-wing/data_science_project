@@ -4,13 +4,13 @@
 - **Status**: `COMPLETED & VERIFIED (FINAL PLAN 6 DELIVERY)`
 - **Parent / Baseline Commit SHA**: `1b6827f3beab5611854d5ab880844e924140c0c4` (`M7` + L4/batched QLoRA upgrades on `origin/main`)
 - **Date (UTC)**: `2026-11-23`
-- **Verification Verdict**: `VERIFIED PASS` (`ruff check .`: 0 errors; `pytest tests/test_phase_b.py -v`: `7/7` passed; full `pytest -v`: `104/104` passed; Final CS482 PDF audit `PASS` `9/9` gates, `61/61` numeric claims verified, `4.70` A4 main pages [`5` pages occupied, `8` total pages], `0` forbidden causal words, `0` frozen/sibling diffs, `0` secrets)
+- **Verification Verdict**: `VERIFIED PASS` (`ruff check .`: 0 errors; `pytest tests/test_phase_b.py -v`: `7/7` passed; full `pytest -v`: `104/104` passed; Final CS482 PDF audit `PASS` `9/9` gates, `61/61` numeric claims verified, `4.46` A4 main pages [`5` pages occupied, `8` total pages], 5-section CS482 rubric layout with Phase B merged into `3 Data Analysis`, `18` verified references, `0` forbidden causal words, `0` frozen/sibling diffs, `0` secrets)
 
 ---
 
 ## 1. Milestone Objectives & Scope (里程碑目标与范围)
 
-Milestone M8 integrates the **real, non-fabricated Colab NVIDIA L4 (24 GB VRAM) Phase B experimental outputs** (`outputs/phase_b/`) against the cryptographically untouched Phase A frozen dataset (`data/frozen/FREEZE_MANIFEST.json`, SHA-256 `8aa3b379b8beef2b077d5c3e6651733be089eea45e0ac56b738de07a30aa3b1b`), deterministically generates the final publication-grade Table 2 (`phase_b_comparison.{csv,md,tex}`), compiles and audits the final CS482 submission report **`report/CS482_GroupX_StockVolatilityLLM.pdf`**, and verifies the entire 104-test Plan 6 repository suite cleanly offline.
+Milestone M8 integrates the **real, non-fabricated Colab NVIDIA L4 (24 GB VRAM) Phase B experimental outputs** (`outputs/phase_b/`) against the cryptographically untouched Phase A frozen dataset (`data/frozen/FREEZE_MANIFEST.json`, SHA-256 `8aa3b379b8beef2b077d5c3e6651733be089eea45e0ac56b738de07a30aa3b1b`), deterministically generates the final publication-grade Table 2 (`phase_b_comparison.{csv,md,tex}`), compiles and audits the unified 5-section CS482 submission report **`report/CS482_GroupX_StockVolatilityLLM.pdf`** (merging Phase B directly into `3 Data Analysis`, `4 Method Evaluation`, and `5 Results and Discussion`), and verifies the entire 104-test Plan 6 repository suite cleanly offline.
 
 1. **Zero Phase A Mutation**: All 6 frozen artifacts in `data/frozen/` and all Phase A econometric/LightGBM baselines remain byte-identical.
 2. **Real Colab Single-L4 GPU Execution (`outputs/phase_b/`)**:
@@ -18,8 +18,8 @@ Milestone M8 integrates the **real, non-fabricated Colab NVIDIA L4 (24 GB VRAM) 
    - **Route A**: 5-seed multivariate `PatchTST` capacity scaling ablation (`1.09M` vs. `14.65M` parameters, CUDA `bf16` autocast, 60-day lookback, ticker/sector embeddings, non-crossing Pinball quantiles).
    - **Route B (Time-Series Foundation Models)**: Strictly causal 5-day volatility forecasting with `amazon/chronos-2` (120M) and `amazon/chronos-t5-large` (710M).
    - **Route B (H3 Event-Anchored Multimodal Text Ablation)**: Frozen `ProsusAI/finbert` (110M) vs. `google/gemma-4-12B-it` Zero-Shot vs. `google/gemma-4-12B-it` 4-bit NF4 QLoRA (`r=16, alpha=32, dropout=0.05`, `328` text-backbone linear modules, `65,568,768` trainable params, 1 epoch across all `4,929` modeling-complete Train pre-close event days, `epoch_loss = 2.0774`, `6,914.6s`), fused via leakage-free **2024-Val 4-quarter OOF meta-fusion** onto Phase A Global LightGBM and evaluated single-shot on **2025 Holdout (`14,700` full rows; `895` scorable pre-close event days)**.
-3. **Final CS482 Submission PDF & Automated Audit**:
-   - Built `report/CS482_GroupX_StockVolatilityLLM.pdf` (`8` total pages = `1` Cover + `5` Main Text pages [`4.70` A4 pp est., strictly inside `[3.0, 5.0]`] + `2` Back Matter pages) and `report/phase_b_audit.md` (`VERDICT: PASS`, `9/9` gates, `61/61` numeric claims traced, `0` forbidden causal words, `0` unresolved placeholders).
+3. **Final Unified 5-Section CS482 Submission PDF & Automated Audit**:
+   - Built `report/CS482_GroupX_StockVolatilityLLM.pdf` (`8` total pages = `1` Cover + `5` Main Text pages [`4.46` A4 pp est., single-column, 11pt, 1.5 line spacing, strictly inside `[3.0, 5.0]`] + `1` References page [`18` verified citations in `report/final_references.bib`] + `1` Separate Contribution Statement & AI Usage Declaration page) and `report/phase_b_audit.md` (`VERDICT: PASS`, `9/9` gates, `61/61` numeric claims traced, `0` forbidden causal words, `0` unresolved placeholders).
 
 ---
 
