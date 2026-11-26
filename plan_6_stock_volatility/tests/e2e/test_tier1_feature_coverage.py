@@ -194,7 +194,11 @@ def test_t1_05_m4_h2_backtest_calibration_dm_and_shap_artifacts(
     sel_m = json.loads(
         (project_root / "outputs" / "metrics" / "h2_lgbm_selection.json").read_text("utf-8")
     )
-    assert sel_m["selected_calibrator"]["method"] in {"isotonic", "platt", "temperature"}
+    assert sel_m["selected_calibrator"]["method"] in {
+        "isotonic",
+        "platt_sigmoid",
+        "temperature_scaling",
+    }
 
     shap_m = json.loads(
         (project_root / "outputs" / "metrics" / "shap_audit.json").read_text("utf-8")

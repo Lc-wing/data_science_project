@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 
 from stock_volatility.panel.freeze import (
     build_and_freeze_panel,
@@ -31,6 +32,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Deterministically rebuild interim/frozen artifacts and rewrite FREEZE_MANIFEST.json.",
     )
+    parser.add_argument(
+        "--project-root",
+        type=Path,
+        default=None,
+        help="Optional Plan 6 project root override (defaults to plan_6_stock_volatility/).",
+    )
     return parser.parse_args(argv)
 
 
@@ -38,9 +45,12 @@ def main(argv: list[str] | None = None) -> int:
     """Run M2 freeze build, `--refreeze` deterministic rebuild, or `--check` audit."""
     args = parse_args(argv)
     if args.check:
-        summary = verify_freeze_manifest()
+        summary = verify_freeze_manifest(project_root=args.project_root)
     else:
-        summary = build_and_freeze_panel(refreeze=bool(args.refreeze))
+        summary = build_and_freeze_panel(
+            project_root=args.project_root,
+            refreeze=bool(args.refreeze),
+        )
     print(json.dumps(summary, indent=2))
     return 0
 

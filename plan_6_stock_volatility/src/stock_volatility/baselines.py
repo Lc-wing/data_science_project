@@ -110,6 +110,8 @@ def build_quarterly_expanding_folds(
     )
     val_fit_end = config.TRAIN_END
     val_purge = date_to_idx[val_eval_dates[0]] - date_to_idx[val_fit_end] - 1
+    if val_purge < horizon_days:
+        raise ValueError(f"Insufficient purge in val_2024: {val_purge} < {horizon_days}")
     val_fold: dict[str, Any] = {
         "fold_id": "val_2024",
         "fit_end_date": val_fit_end,
@@ -279,21 +281,26 @@ def fit_predict_gjr_garch_fold(
         fallback_used = False
 
         am = arch_model(r_fit_pct, mean="Zero", vol="GARCH", p=1, o=1, q=1, dist="normal")
-        res = am.fit(disp="off", show_warning=False)
-        conv_flag = int(res.convergence_flag)
-        converged = conv_flag == 0
-
-        if converged:
+        try:
+            res = am.fit(disp="off", show_warning=False)
+            conv_flag = int(res.convergence_flag)
             omega = float(res.params["omega"])
             alpha = float(res.params["alpha[1]"])
             gamma = float(res.params["gamma[1]"])
             beta = float(res.params["beta[1]"])
             var_cur = float(res.conditional_volatility[-1] ** 2)
-        else:
+            converged = conv_flag == 0 and bool(
+                np.isfinite([omega, alpha, gamma, beta, var_cur]).all()
+            )
+        except Exception:
+            conv_flag = -1
+            converged = False
+
+        if not converged:
             # Explicit documented fallback to RiskMetrics EWMA if optimizer fails
             fallback_used = True
             omega, alpha, gamma, beta = 0.0, 0.06, 0.0, 0.94
-            var_cur = float(np.var(r_fit_pct))
+            var_cur = max(float(np.var(r_fit_pct)), 1e-8)
 
         persistence = alpha + 0.5 * gamma + beta
         conv_records.append(

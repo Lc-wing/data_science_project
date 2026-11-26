@@ -228,7 +228,7 @@ def compute_day1_audit_metrics(
     max_diff_idx = int(abs_vix_diff.idxmax())
     corr_vix = (
         float(macro_df["vix_close"].corr(macro_df["vix_fred"]))
-        if len(macro_df) >= 2 and macro_df["vix_close"].std() > 0
+        if len(macro_df) >= 2 and macro_df["vix_close"].std() > 0 and macro_df["vix_fred"].std() > 0
         else 1.0
     )
     ffilled_dates = list(macro_df.loc[macro_df["t10y2y_ffilled_flag"], "date"].astype(str))
@@ -638,46 +638,61 @@ def write_audit_outputs(
     return metrics
 
 
-def run_download_and_audit_pipeline(*, force_download: bool = False) -> dict[str, Any]:
+def run_download_and_audit_pipeline(
+    *,
+    force_download: bool = False,
+    project_root: Path | None = None,
+) -> dict[str, Any]:
     """Execute full M1 download, provenance manifest generation, interim build, and Day-1 audit."""
-    config.ensure_project_dirs()
+    root = Path(project_root).resolve() if project_root is not None else config.PROJECT_ROOT
+    if project_root is None:
+        config.ensure_project_dirs()
+    raw_dir = root / "data" / "raw"
+    interim_dir = root / "data" / "interim"
+    cache_dir = root / ".cache"
+    prov_path = raw_dir / "data_provenance.json"
+
     session = build_retry_session()
+    try:
+        # 1. Download 60-ticker OHLCV
+        ohlcv_path = raw_dir / "prices" / "ohlcv_daily.parquet"
+        ohlcv_df, ohlcv_meta = download_ohlcv_universe(
+            out_path=ohlcv_path,
+            force=force_download,
+        )
 
-    # 1. Download 60-ticker OHLCV
-    ohlcv_path = config.DATA_RAW_DIR / "prices" / "ohlcv_daily.parquet"
-    ohlcv_df, ohlcv_meta = download_ohlcv_universe(
-        out_path=ohlcv_path,
-        force=force_download,
-    )
+        # 2. Download raw macro series and build interim macro_daily.parquet
+        raw_macro_dir = raw_dir / "macro"
+        macro_raw_meta = download_macro_raw(
+            raw_macro_dir=raw_macro_dir,
+            session=session,
+            force=force_download,
+        )
+        macro_df, macro_summary = build_macro_daily_from_raw(
+            raw_macro_dir=raw_macro_dir,
+            out_path=interim_dir / "macro_daily.parquet",
+        )
 
-    # 2. Download raw macro series and build interim macro_daily.parquet
-    raw_macro_dir = config.DATA_RAW_DIR / "macro"
-    macro_raw_meta = download_macro_raw(
-        raw_macro_dir=raw_macro_dir,
-        session=session,
-        force=force_download,
-    )
-    macro_df, _ = build_macro_daily_from_raw(
-        raw_macro_dir=raw_macro_dir,
-        out_path=config.DATA_INTERIM_DIR / "macro_daily.parquet",
-    )
+        # 3. Download paginated SEC EDGAR submissions and build interim events_raw.parquet
+        sec_raw_dir = raw_dir / "sec_edgar"
+        sec_cache_dir = cache_dir / "sec_edgar"
+        cik_map, snapshot_df, sec_meta = download_sec_edgar_all(
+            raw_sec_dir=sec_raw_dir,
+            cache_sec_dir=sec_cache_dir,
+            session=session,
+            force=force_download,
+        )
+    finally:
+        session.close()
 
-    # 3. Download paginated SEC EDGAR submissions and build interim events_raw.parquet
-    sec_raw_dir = config.DATA_RAW_DIR / "sec_edgar"
-    sec_cache_dir = config.CACHE_DIR / "sec_edgar"
-    cik_map, snapshot_df, sec_meta = download_sec_edgar_all(
-        raw_sec_dir=sec_raw_dir,
-        cache_sec_dir=sec_cache_dir,
-        force=force_download,
-    )
     events_df = build_events_raw_from_snapshot(
         sec_meta["snapshot_path"],
-        out_path=config.DATA_INTERIM_DIR / "events_raw.parquet",
+        out_path=interim_dir / "events_raw.parquet",
     )
 
     # 4. Build and write data/raw/universe_60.csv
     uni_df = build_universe_table(ohlcv_df, cik_map, expected_trading_days=len(macro_df))
-    uni_path = write_universe_csv(uni_df, config.DATA_RAW_DIR / "universe_60.csv")
+    uni_path = write_universe_csv(uni_df, raw_dir / "universe_60.csv")
 
     # 5. Compute Day-1 audit metrics and anomaly summary for data_provenance.json
     pagination_manifest = json.loads(
@@ -692,6 +707,8 @@ def run_download_and_audit_pipeline(*, force_download: bool = False) -> dict[str
         events_df=events_df,
         pagination_manifest=pagination_manifest,
         provenance_dict=prelim_prov_dict,
+        outputs_metrics_dir=root / "outputs" / "metrics",
+        outputs_tables_dir=root / "outputs" / "tables",
     )
 
     anomaly_counts = {
@@ -706,8 +723,8 @@ def run_download_and_audit_pipeline(*, force_download: bool = False) -> dict[str
             "extreme_daily_return_gt_20pct_count"
         ],
         "macro_t10y2y_ffilled_days": metrics["macro"]["t10y2y_ffilled_count"],
-        "macro_vix_fred_ffilled_days": 0,
-        "macro_vix_close_ffilled_days": 0,
+        "macro_vix_fred_ffilled_days": int(macro_summary["vix_fred_ffilled_count"]),
+        "macro_vix_close_ffilled_days": int(macro_summary["vix_close_ffilled_count"]),
         "macro_spy_ret_1d_warmup_nan_rows": metrics["macro"]["spy_ret_1d_nan_count"],
         "sec_missing_acceptance_datetime_rows": metrics["sec_edgar"][
             "missing_acceptance_datetime_count"
@@ -720,7 +737,7 @@ def run_download_and_audit_pipeline(*, force_download: bool = False) -> dict[str
     }
 
     prov = ProvenanceLog(
-        project_root=config.PROJECT_ROOT,
+        project_root=root,
         generated_at_utc=run_timestamp,
         news_source_decision=NEWS_SOURCE_DECISION,
         ticker_replacements=[],
@@ -799,7 +816,7 @@ def run_download_and_audit_pipeline(*, force_download: bool = False) -> dict[str
             "filings snapshot"
         ),
     )
-    prov.save(config.PROVENANCE_PATH)
+    prov.save(prov_path)
     prov.verify_files()
 
     return {

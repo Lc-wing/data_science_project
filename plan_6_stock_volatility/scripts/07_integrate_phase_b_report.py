@@ -1,4 +1,4 @@
-"""Post-Colab CLI: integrate verified Phase B A100 outputs into the final CS482 PDF & audit."""
+"""Post-Colab CLI: integrate verified Phase B Colab GPU (L4/A100) outputs into final CS482 PDF."""
 
 from __future__ import annotations
 

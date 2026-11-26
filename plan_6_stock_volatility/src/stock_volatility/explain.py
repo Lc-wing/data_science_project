@@ -57,6 +57,8 @@ def compute_train_background_treeshap(
         & panel_df["has_full_features"].astype(bool)
         & panel_df["has_full_target"].astype(bool)
     ].sort_values(["date", "ticker"], kind="mergesort")
+    if train_df.empty or test_df.empty:
+        raise ValueError("Cannot compute TreeSHAP on empty train or test modeling slice")
 
     # Train-only VIX median threshold for High/Low VIX SHAP regime audit (zero lookahead)
     vix_train_median = float(train_df.groupby("date")["vix_close"].first().median())

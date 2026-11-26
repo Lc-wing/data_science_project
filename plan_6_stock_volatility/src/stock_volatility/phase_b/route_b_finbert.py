@@ -9,7 +9,10 @@ import numpy as np
 import pandas as pd
 import torch
 
-from stock_volatility.phase_b.route_b_llm import require_cuda_and_download_flag
+from stock_volatility.phase_b.route_b_llm import (
+    require_cuda_and_download_flag,
+    resolve_hf_model_revision,
+)
 
 DEFAULT_FINBERT_MODEL: str = "ProsusAI/finbert"
 
@@ -78,6 +81,7 @@ def extract_finbert_event_scores(
     val_scores = _score_df(event_splits["val"], model)
     test_scores = _score_df(event_splits["test"], model)
     param_count = int(sum(p.numel() for p in model.parameters()))
+    resolved_revision = resolve_hf_model_revision(model_id, hf_cfg, model)
     elapsed = round(float(time.perf_counter() - t0), 2)
     print(
         f"[FinBERT] Scored Val={len(val_scores)}, Test={len(test_scores)} in {elapsed:.1f}s",
@@ -88,7 +92,7 @@ def extract_finbert_event_scores(
 
     return {
         "model_id": model_id,
-        "revision": getattr(hf_cfg, "_commit_hash", "unknown"),
+        "revision": resolved_revision,
         "param_count": param_count,
         "val_event_days": int(len(val_scores)),
         "test_event_days": int(len(test_scores)),

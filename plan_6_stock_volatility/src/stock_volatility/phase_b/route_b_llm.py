@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import gc
 import math
+import re
 import time
 from collections.abc import Sequence
 from typing import Any, Literal
@@ -57,6 +58,30 @@ EXCLUDED_LORA_PREFIXES: tuple[str, ...] = (
     "mtp",
     "lm_head",
 )
+
+
+def resolve_hf_model_revision(model_id: str, *objs: Any) -> str:
+    """Resolve exact Hugging Face commit SHA from loaded config/model or local HF cache path."""
+    for obj in objs:
+        if obj is None:
+            continue
+        for cand in (obj, getattr(obj, "config", None)):
+            if cand is None:
+                continue
+            sha = getattr(cand, "_commit_hash", None)
+            if isinstance(sha, str) and sha.strip() and sha.strip().lower() != "unknown":
+                return sha.strip()
+    try:
+        from huggingface_hub import try_to_load_from_cache
+
+        cached_cfg = try_to_load_from_cache(model_id, "config.json")
+        if isinstance(cached_cfg, str):
+            m = re.search(r"/snapshots/([0-9a-f]{7,40})/", cached_cfg.replace("\\", "/"))
+            if m:
+                return m.group(1)
+    except Exception:
+        pass
+    return "unknown"
 
 
 def select_default_llm_for_vram(vram_gb: float) -> str:
@@ -266,12 +291,21 @@ def run_llm_zero_shot_and_qlora(
     model_cls = (
         AutoModelForImageTextToText if loader_kind == "image_text_to_text" else AutoModelForCausalLM
     )
-    base_model = model_cls.from_pretrained(
-        model_id,
-        quantization_config=bnb_cfg,
-        device_map="auto",
-        torch_dtype=torch.bfloat16,
-    )
+    try:
+        base_model = model_cls.from_pretrained(
+            model_id,
+            quantization_config=bnb_cfg,
+            device_map="auto",
+            dtype=torch.bfloat16,
+        )
+    except TypeError:
+        base_model = model_cls.from_pretrained(
+            model_id,
+            quantization_config=bnb_cfg,
+            device_map="auto",
+            torch_dtype=torch.bfloat16,
+        )
+    resolved_revision = resolve_hf_model_revision(model_id, hf_cfg, base_model)
     base_model.config.use_cache = False
     if hasattr(base_model.config, "text_config") and base_model.config.text_config is not None:
         base_model.config.text_config.use_cache = False
@@ -338,9 +372,14 @@ def run_llm_zero_shot_and_qlora(
 
     base_model = prepare_model_for_kbit_training(
         base_model,
-        use_gradient_checkpointing=True,
-        gradient_checkpointing_kwargs={"use_reentrant": False},
+        use_gradient_checkpointing=False,
     )
+    if hasattr(base_model, "enable_input_require_grads"):
+        base_model.enable_input_require_grads()
+    if hasattr(base_model, "gradient_checkpointing_enable"):
+        base_model.gradient_checkpointing_enable(
+            gradient_checkpointing_kwargs={"use_reentrant": False}
+        )
     lora_cfg = LoraConfig(
         r=lora_r,
         lora_alpha=lora_alpha,
@@ -484,7 +523,7 @@ def run_llm_zero_shot_and_qlora(
 
     return {
         "model_id": model_id,
-        "revision": getattr(hf_cfg, "_commit_hash", "unknown"),
+        "revision": resolved_revision,
         "loader_kind": loader_kind,
         "lora_r": lora_r,
         "lora_alpha": lora_alpha,

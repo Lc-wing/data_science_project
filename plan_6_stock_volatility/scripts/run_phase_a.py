@@ -46,7 +46,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="Optional Plan 6 project root override (defaults to plan_6_stock_volatility/).",
     )
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.report_only and args.refreeze:
+        parser.error("Cannot combine --report-only with --refreeze")
+    return args
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -63,7 +66,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.skip_download:
         results["step_01_ingest"] = run_skip_download_pipeline(project_root=root)
     else:
-        results["step_01_ingest"] = run_download_and_audit_pipeline(force_download=False)
+        results["step_01_ingest"] = run_download_and_audit_pipeline(
+            force_download=False,
+            project_root=root,
+        )
 
     if args.refreeze:
         results["step_02_freeze"] = build_and_freeze_panel(project_root=root, refreeze=True)

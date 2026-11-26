@@ -161,7 +161,8 @@ def hln_dm_test(
     LOWER loss (better) than model B.
     """
     d = np.asarray(loss_diff_by_date, dtype=float)
-    d = d[np.isfinite(d)]
+    if not np.isfinite(d).all():
+        raise ValueError("loss_diff_by_date contains non-finite values; cannot drop interior lags")
     n_t = len(d)
     if n_t <= horizon + 1:
         raise ValueError(f"Need > {horizon + 1} time points for h={horizon} HLN-DM, got {n_t}")
@@ -224,8 +225,8 @@ def evaluate_holdout_predictions(
     # 1. Overall 2025 Test metrics with date-block bootstrap 95% CIs
     metric_rows: list[dict[str, Any]] = []
     for model_name, rv_col, p_col in model_specs:
-        rv_hat = df[rv_col].to_numpy(dtype=float)
-        p_hat = df[p_col].to_numpy(dtype=float)
+        rv_hat = np.maximum(df[rv_col].to_numpy(dtype=float), RV_FLOOR)
+        p_hat = np.clip(df[p_col].to_numpy(dtype=float), 0.0, 1.0)
         rm = regression_metrics(rv_true, rv_hat)
         cm = classification_metrics(y_tail, p_hat)
 
@@ -327,6 +328,8 @@ def evaluate_holdout_predictions(
     sector_rows: list[dict[str, Any]] = []
     for sec in config.SECTORS:
         sub = df[df["sector"] == sec]
+        if sub.empty:
+            continue
         for model_name, rv_col, p_col in model_specs:
             rm = regression_metrics(
                 sub["rv_5d_fwd"].to_numpy(dtype=float), sub[rv_col].to_numpy(dtype=float)
@@ -355,6 +358,8 @@ def evaluate_holdout_predictions(
     event_rows: list[dict[str, Any]] = []
     for grp_name, mask in event_masks:
         sub = df[mask]
+        if sub.empty:
+            continue
         for model_name, rv_col, p_col in model_specs:
             rm = regression_metrics(
                 sub["rv_5d_fwd"].to_numpy(dtype=float), sub[rv_col].to_numpy(dtype=float)
@@ -392,15 +397,31 @@ def evaluate_holdout_predictions(
         (
             "se",
             lambda d_df, c_a, c_b: (
-                (d_df["rv_5d_fwd"].to_numpy() - d_df[c_a].to_numpy()) ** 2
-                - (d_df["rv_5d_fwd"].to_numpy() - d_df[c_b].to_numpy()) ** 2
+                (
+                    d_df["rv_5d_fwd"].to_numpy(dtype=float)
+                    - np.maximum(d_df[c_a].to_numpy(dtype=float), RV_FLOOR)
+                )
+                ** 2
+                - (
+                    d_df["rv_5d_fwd"].to_numpy(dtype=float)
+                    - np.maximum(d_df[c_b].to_numpy(dtype=float), RV_FLOOR)
+                )
+                ** 2
             ),
         ),
         (
             "brier",
             lambda d_df, c_a, c_b: (
-                (d_df["y_tail"].to_numpy(dtype=float) - d_df[c_a].to_numpy(dtype=float)) ** 2
-                - (d_df["y_tail"].to_numpy(dtype=float) - d_df[c_b].to_numpy(dtype=float)) ** 2
+                (
+                    d_df["y_tail"].to_numpy(dtype=float)
+                    - np.clip(d_df[c_a].to_numpy(dtype=float), 0.0, 1.0)
+                )
+                ** 2
+                - (
+                    d_df["y_tail"].to_numpy(dtype=float)
+                    - np.clip(d_df[c_b].to_numpy(dtype=float), 0.0, 1.0)
+                )
+                ** 2
             ),
         ),
     ]

@@ -54,8 +54,8 @@ def write_freeze_manifest(
     provenance_timestamp_utc: str | None = None,
 ) -> dict[str, Any]:
     """Compute SHA-256 digests and byte sizes for all 6 frozen artifacts and write manifest."""
-    root = Path(project_root) if project_root is not None else config.PROJECT_ROOT
-    f_dir = Path(frozen_dir) if frozen_dir is not None else (root / "data" / "frozen")
+    root = (Path(project_root) if project_root is not None else config.PROJECT_ROOT).resolve()
+    f_dir = (Path(frozen_dir) if frozen_dir is not None else (root / "data" / "frozen")).resolve()
     f_dir.mkdir(parents=True, exist_ok=True)
 
     files_section: dict[str, dict[str, Any]] = {}
@@ -95,8 +95,8 @@ def verify_freeze_manifest(
     Raises `ValueError` on missing manifest, missing artifact, byte-size mismatch, or SHA-256
     mismatch. Called at startup by all downstream scripts (`03`..`06` and `run_phase_a.py`).
     """
-    root = Path(project_root) if project_root is not None else config.PROJECT_ROOT
-    f_dir = Path(frozen_dir) if frozen_dir is not None else (root / "data" / "frozen")
+    root = (Path(project_root) if project_root is not None else config.PROJECT_ROOT).resolve()
+    f_dir = (Path(frozen_dir) if frozen_dir is not None else (root / "data" / "frozen")).resolve()
     manifest_path = f_dir / "FREEZE_MANIFEST.json"
     if not manifest_path.is_file():
         raise ValueError(f"Missing FREEZE_MANIFEST.json at {manifest_path}")

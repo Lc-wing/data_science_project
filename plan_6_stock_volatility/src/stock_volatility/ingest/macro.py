@@ -49,7 +49,7 @@ FRED_URLS: dict[str, str] = {
 
 YAHOO_V8_CHART_URL_TEMPLATE: str = (
     "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
-    "?period1=1546300800&period2=1767312000&interval=1d"
+    "?period1={period1}&period2={period2}&interval=1d"
 )
 
 
@@ -117,12 +117,19 @@ def fetch_yahoo_v8_daily(
     session: requests.Session | None = None,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     """Fetch daily series via Yahoo Finance v8 Chart API fallback."""
+    owns_session = session is None
     sess = session or build_retry_session()
-    encoded = quote(symbol, safe="")
-    url = YAHOO_V8_CHART_URL_TEMPLATE.format(symbol=encoded)
-    resp = sess.get(url, timeout=30)
-    resp.raise_for_status()
-    df = parse_yahoo_v8_chart_payload(resp.json(), start_date=start_date, end_date=end_date)
+    try:
+        p1 = int(datetime.fromisoformat(f"{start_date}T00:00:00+00:00").timestamp()) - 86_400
+        p2 = int(datetime.fromisoformat(f"{end_date}T00:00:00+00:00").timestamp()) + 2 * 86_400
+        encoded = quote(symbol, safe="")
+        url = YAHOO_V8_CHART_URL_TEMPLATE.format(symbol=encoded, period1=p1, period2=p2)
+        resp = sess.get(url, timeout=30)
+        resp.raise_for_status()
+        df = parse_yahoo_v8_chart_payload(resp.json(), start_date=start_date, end_date=end_date)
+    finally:
+        if owns_session:
+            sess.close()
     return df, {
         "url": url,
         "http_status": int(resp.status_code),
@@ -134,12 +141,13 @@ def fetch_yahoo_v8_daily(
 
 def parse_fred_csv(path: Path, series_id: str) -> pd.DataFrame:
     """Parse a raw FRED CSV (`observation_date,<SERIES>`) coercing `''` and `'.'` to `NaN`."""
-    raw_df = pd.read_csv(path, dtype=str)
+    raw_df = pd.read_csv(path, dtype=str, keep_default_na=False)
     date_col = "observation_date" if "observation_date" in raw_df.columns else raw_df.columns[0]
     val_col = series_id if series_id in raw_df.columns else raw_df.columns[1]
+    dates_clean = raw_df[date_col].astype(str).str.strip().replace("", np.nan)
     out = pd.DataFrame(
         {
-            "date": raw_df[date_col].astype(str).str.strip(),
+            "date": dates_clean,
             "value": pd.to_numeric(raw_df[val_col].astype(str).str.strip(), errors="coerce"),
         }
     )
@@ -293,110 +301,120 @@ def download_macro_raw(
         else (config.DATA_RAW_DIR / "macro")
     )
     macro_dir.mkdir(parents=True, exist_ok=True)
+    owns_session = session is None
     sess = session or build_retry_session()
+    try:
+        yf.config.network.retries = 5
+        end_exclusive = exclusive_end_date(end_date)
 
-    yf.config.network.retries = 5
-    end_exclusive = exclusive_end_date(end_date)
-
-    # 1. SPY canonical NYSE trading calendar & benchmark
-    spy_path = macro_dir / "spy_daily.parquet"
-    if not (spy_path.is_file() and not force):
-        raw_spy = yf.download(
-            "SPY",
-            start=start_date,
-            end=end_exclusive,
-            auto_adjust=False,
-            actions=True,
-            progress=False,
-            threads=False,
-        )
-        norm_spy = normalize_yfinance_frame(
-            raw_spy,
-            ["SPY"],
-            start_date=start_date,
-            end_date=end_date,
-        )
-        spy_cols = [c for c in OHLCV_COLUMNS if c != "ticker"]
-        spy_df = norm_spy[spy_cols].reset_index(drop=True)
-        if len(spy_df) != expected_trading_days:
-            raise ValueError(
-                f"SPY download returned {len(spy_df)} rows, expected {expected_trading_days}"
-            )
-        spy_df.to_parquet(spy_path, index=False, engine="pyarrow", compression="snappy")
-        spy_fetched_at = config.utc_now_iso()
-    else:
-        spy_df = pd.read_parquet(spy_path)
-        spy_fetched_at = config.utc_now_iso()
-
-    # 2. Yahoo ^VIX with automatic fallback to Yahoo v8 Chart API
-    vix_path = macro_dir / "vix_daily.parquet"
-    vix_method = "yfinance_with_retries_5"
-    vix_url = "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d"
-    if not (vix_path.is_file() and not force):
-        vix_df: pd.DataFrame | None = None
-        try:
-            raw_vix = yf.download(
-                "^VIX",
+        # 1. SPY canonical NYSE trading calendar & benchmark
+        spy_path = macro_dir / "spy_daily.parquet"
+        spy_cached_ok = False
+        if spy_path.is_file() and not force:
+            spy_df = pd.read_parquet(spy_path)
+            spy_cached_ok = len(spy_df) == expected_trading_days
+        if not spy_cached_ok:
+            raw_spy = yf.download(
+                "SPY",
                 start=start_date,
                 end=end_exclusive,
                 auto_adjust=False,
-                actions=False,
+                actions=True,
                 progress=False,
                 threads=False,
             )
-            norm_vix = normalize_yfinance_frame(
-                raw_vix,
-                ["^VIX"],
+            norm_spy = normalize_yfinance_frame(
+                raw_spy,
+                ["SPY"],
                 start_date=start_date,
                 end_date=end_date,
             )
-            if len(norm_vix) == expected_trading_days:
-                vix_df = norm_vix[list(VIX_RAW_COLUMNS)].reset_index(drop=True)
-        except Exception:
-            vix_df = None
+            spy_cols = [c for c in OHLCV_COLUMNS if c != "ticker"]
+            spy_df = norm_spy[spy_cols].reset_index(drop=True)
+            if len(spy_df) != expected_trading_days:
+                raise ValueError(
+                    f"SPY download returned {len(spy_df)} rows, expected {expected_trading_days}"
+                )
+            spy_df.to_parquet(spy_path, index=False, engine="pyarrow", compression="snappy")
+        spy_fetched_at = config.utc_now_iso()
 
-        if vix_df is None or len(vix_df) != expected_trading_days:
-            vix_df, v8_meta = fetch_yahoo_v8_daily(
-                "^VIX",
-                start_date=start_date,
-                end_date=end_date,
-                session=sess,
-            )
-            vix_method = str(v8_meta["method"])
-            vix_url = str(v8_meta["url"])
+        # 2. Yahoo ^VIX with automatic fallback to Yahoo v8 Chart API
+        vix_path = macro_dir / "vix_daily.parquet"
+        vix_method = "yfinance_with_retries_5"
+        vix_url = "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d"
+        vix_cached_ok = False
+        if vix_path.is_file() and not force:
+            vix_df_cached = pd.read_parquet(vix_path)
+            if len(vix_df_cached) == expected_trading_days:
+                vix_df = vix_df_cached
+                vix_cached_ok = True
+        if not vix_cached_ok:
+            vix_df_try: pd.DataFrame | None = None
+            try:
+                raw_vix = yf.download(
+                    "^VIX",
+                    start=start_date,
+                    end=end_exclusive,
+                    auto_adjust=False,
+                    actions=False,
+                    progress=False,
+                    threads=False,
+                )
+                norm_vix = normalize_yfinance_frame(
+                    raw_vix,
+                    ["^VIX"],
+                    start_date=start_date,
+                    end_date=end_date,
+                )
+                if len(norm_vix) == expected_trading_days:
+                    vix_df_try = norm_vix[list(VIX_RAW_COLUMNS)].reset_index(drop=True)
+            except Exception:
+                vix_df_try = None
 
-        if len(vix_df) != expected_trading_days:
-            raise ValueError(
-                f"^VIX download returned {len(vix_df)} rows, expected {expected_trading_days}"
-            )
-        vix_df.to_parquet(vix_path, index=False, engine="pyarrow", compression="snappy")
+            if vix_df_try is None or len(vix_df_try) != expected_trading_days:
+                vix_df_try, v8_meta = fetch_yahoo_v8_daily(
+                    "^VIX",
+                    start_date=start_date,
+                    end_date=end_date,
+                    session=sess,
+                )
+                vix_method = str(v8_meta["method"])
+                vix_url = str(v8_meta["url"])
+
+            if len(vix_df_try) != expected_trading_days:
+                raise ValueError(
+                    f"^VIX download returned {len(vix_df_try)} rows, "
+                    f"expected {expected_trading_days}"
+                )
+            vix_df = vix_df_try
+            vix_df.to_parquet(vix_path, index=False, engine="pyarrow", compression="snappy")
         vix_fetched_at = config.utc_now_iso()
-    else:
-        vix_df = pd.read_parquet(vix_path)
-        vix_fetched_at = config.utc_now_iso()
 
-    # 3. Full FRED CSV downloads (retaining pre-2019 history for backward-only ffill)
-    t10_path = macro_dir / "fred_t10y2y.csv"
-    if not (t10_path.is_file() and not force):
-        resp_t10 = sess.get(FRED_URLS["T10Y2Y"], timeout=30)
-        resp_t10.raise_for_status()
-        t10_path.write_bytes(resp_t10.content)
-        t10_status = int(resp_t10.status_code)
-    else:
-        t10_status = 200
-    t10_fetched_at = config.utc_now_iso()
-    t10_df = parse_fred_csv(t10_path, "T10Y2Y")
+        # 3. Full FRED CSV downloads (retaining pre-2019 history for backward-only ffill)
+        t10_path = macro_dir / "fred_t10y2y.csv"
+        if not (t10_path.is_file() and not force):
+            resp_t10 = sess.get(FRED_URLS["T10Y2Y"], timeout=30)
+            resp_t10.raise_for_status()
+            t10_path.write_bytes(resp_t10.content)
+            t10_status = int(resp_t10.status_code)
+        else:
+            t10_status = 200
+        t10_fetched_at = config.utc_now_iso()
+        t10_df = parse_fred_csv(t10_path, "T10Y2Y")
 
-    vixcls_path = macro_dir / "fred_vixcls.csv"
-    if not (vixcls_path.is_file() and not force):
-        resp_vixcls = sess.get(FRED_URLS["VIXCLS"], timeout=30)
-        resp_vixcls.raise_for_status()
-        vixcls_path.write_bytes(resp_vixcls.content)
-        vixcls_status = int(resp_vixcls.status_code)
-    else:
-        vixcls_status = 200
-    vixcls_fetched_at = config.utc_now_iso()
-    vixcls_df = parse_fred_csv(vixcls_path, "VIXCLS")
+        vixcls_path = macro_dir / "fred_vixcls.csv"
+        if not (vixcls_path.is_file() and not force):
+            resp_vixcls = sess.get(FRED_URLS["VIXCLS"], timeout=30)
+            resp_vixcls.raise_for_status()
+            vixcls_path.write_bytes(resp_vixcls.content)
+            vixcls_status = int(resp_vixcls.status_code)
+        else:
+            vixcls_status = 200
+        vixcls_fetched_at = config.utc_now_iso()
+        vixcls_df = parse_fred_csv(vixcls_path, "VIXCLS")
+    finally:
+        if owns_session:
+            sess.close()
 
     return {
         "spy_daily": {

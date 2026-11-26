@@ -49,6 +49,8 @@ def exclusive_end_date(end_date: str) -> str:
 def _extract_single_ticker_frame(
     raw: pd.DataFrame,
     ticker: str,
+    *,
+    n_tickers: int = 1,
 ) -> pd.DataFrame:
     """Extract a single ticker's flat OHLCV frame from a MultiIndex or flat yfinance DataFrame."""
     if isinstance(raw.columns, pd.MultiIndex):
@@ -61,6 +63,11 @@ def _extract_single_ticker_frame(
         else:
             raise ValueError(f"Ticker {ticker!r} not found in MultiIndex columns {raw.columns}")
     else:
+        if n_tickers > 1:
+            raise ValueError(
+                f"Expected MultiIndex columns when normalizing {n_tickers} tickers, "
+                f"got flat columns {list(raw.columns)}"
+            )
         sub = raw.copy()
     return sub
 
@@ -77,8 +84,9 @@ def normalize_yfinance_frame(
         raise ValueError("Cannot normalize empty yfinance DataFrame")
 
     frames: list[pd.DataFrame] = []
+    n_req = len(tickers)
     for ticker in tickers:
-        sub = _extract_single_ticker_frame(raw, ticker)
+        sub = _extract_single_ticker_frame(raw, ticker, n_tickers=n_req)
         if "Capital Gains" in sub.columns:
             sub = sub.drop(columns=["Capital Gains"])
 
@@ -175,7 +183,14 @@ def download_ohlcv_universe(
 
     if target_path.is_file() and not force:
         cached_df = pd.read_parquet(target_path)
-        if len(cached_df) == len(tickers) * expected_days_per_ticker:
+        req_set = {str(t) for t in tickers}
+        if (
+            len(cached_df) == len(req_set) * expected_days_per_ticker
+            and {"ticker", "date"}.issubset(cached_df.columns)
+            and set(cached_df["ticker"].astype(str).unique()) == req_set
+            and str(cached_df["date"].min()) >= start_date
+            and str(cached_df["date"].max()) <= end_date
+        ):
             return cached_df, {
                 "fetched_at_utc": config.utc_now_iso(),
                 "http_status": 200,

@@ -91,13 +91,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--resume",
         action="store_true",
-        help="Reuse already-saved Stage 1-3 outputs in outputs/phase_b/ instead of recomputing.",
+        help="Reuse already-saved Stage 1-4 outputs in outputs/phase_b/ instead of recomputing.",
     )
     parser.add_argument(
         "--max-train-events",
         type=int,
         default=None,
-        help="Optional fallback cap on Train event-anchored days (default: all 5,032 days).",
+        help="Optional fallback cap on Train event-anchored days (default: all 4,929 days).",
     )
     parser.add_argument(
         "--patchtst-seeds",
@@ -113,6 +113,104 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Output directory for Phase B artifacts (default: outputs/phase_b/).",
     )
     return parser.parse_args(argv)
+
+
+CANONICAL_ARM_ORDER: tuple[str, ...] = (
+    "patchtst_1m",
+    "patchtst_15m",
+    "chronos_2",
+    "chronos_t5_large",
+    "lgbm_plus_finbert",
+    "lgbm_plus_llm_zs",
+    "lgbm_plus_llm_qlora",
+)
+
+
+def _format_patchtst_label(base_label: str, cov80: float) -> str:
+    """Format PatchTST table label matching Chronos semicolon convention."""
+    stem = base_label[:-1] if base_label.endswith(")") else base_label
+    return f"{stem}; 80% cov={100.0 * cov80:.1f}%)"
+
+
+def hydrate_saved_phase_b_state(
+    *,
+    out_dir: Path,
+    run_set: set[str],
+    resolved_llm: str,
+    summary: dict[str, Any],
+    arms_for_ablation: dict[str, dict[str, Any]],
+) -> None:
+    """Preserve saved summary fields and unselected stage arms during subset `--routes` runs."""
+    if "all" in run_set:
+        return
+
+    summary_path = out_dir / "phase_b_summary.json"
+    if summary_path.is_file():
+        prev_summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        for k, v in prev_summary.items():
+            summary.setdefault(k, v)
+
+    if "route_a" not in run_set:
+        for arm_id, lbl in (
+            ("patchtst_1m", "PatchTST (1M, 5-seed)"),
+            ("patchtst_15m", "PatchTST (15M, 5-seed)"),
+        ):
+            pred_p = out_dir / f"{arm_id}_test_predictions.parquet"
+            met_p = out_dir / f"{arm_id}_metrics.json"
+            if pred_p.is_file() and met_p.is_file():
+                met_saved = json.loads(met_p.read_text(encoding="utf-8"))
+                cov80 = float(met_saved["test_nominal_80_coverage"])
+                arms_for_ablation[arm_id] = {
+                    "label": _format_patchtst_label(lbl, cov80),
+                    "test_pred_df": pd.read_parquet(pred_p),
+                    "nominal_80_coverage": cov80,
+                }
+                if arm_id == "patchtst_15m":
+                    summary["patchtst_15m_qlike"] = float(
+                        met_saved["test_metrics_ensemble"]["qlike"]
+                    )
+                    summary["patchtst_15m_coverage_80"] = cov80
+
+    if "chronos" not in run_set:
+        for ch_id in DEFAULT_CHRONOS_MODELS:
+            slug = ch_id.split("/")[-1].replace("-", "_")
+            pred_p = out_dir / f"{slug}_test_predictions.parquet"
+            met_p = out_dir / f"{slug}_metrics.json"
+            if pred_p.is_file() and met_p.is_file():
+                met_saved = json.loads(met_p.read_text(encoding="utf-8"))
+                cov80_c = float(met_saved["test_nominal_80_coverage"])
+                arms_for_ablation[slug] = {
+                    "label": f"{ch_id.split('/')[-1]} (Zero-Shot; 80% cov={100.0 * cov80_c:.1f}%)",
+                    "test_pred_df": pd.read_parquet(pred_p),
+                    "nominal_80_coverage": cov80_c,
+                }
+
+    if "finbert" not in run_set:
+        fb_p = out_dir / "lgbm_plus_finbert_test.parquet"
+        if fb_p.is_file():
+            arms_for_ablation["lgbm_plus_finbert"] = {
+                "label": "LightGBM + FinBERT (110M)",
+                "test_pred_df": pd.read_parquet(fb_p),
+            }
+
+    if "llm" not in run_set:
+        llm_meta_p = out_dir / "llm_run_metadata.json"
+        model_for_label = resolved_llm
+        if llm_meta_p.is_file():
+            llm_meta = json.loads(llm_meta_p.read_text(encoding="utf-8"))
+            model_for_label = str(llm_meta.get("model_id", resolved_llm))
+            summary["llm_model_id"] = model_for_label
+        short_name = model_for_label.split("/")[-1]
+        for arm_key, suffix in (
+            ("lgbm_plus_llm_zs", "Zero-Shot"),
+            ("lgbm_plus_llm_qlora", "4-bit QLoRA"),
+        ):
+            arm_p = out_dir / f"{arm_key}_test.parquet"
+            if arm_p.is_file():
+                arms_for_ablation[arm_key] = {
+                    "label": f"LightGBM + {short_name} ({suffix})",
+                    "test_pred_df": pd.read_parquet(arm_p),
+                }
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -172,6 +270,13 @@ def main(argv: list[str] | None = None) -> int:
         "val_event_days": int(len(ev_splits["val"])),
         "test_event_days": int(len(ev_splits["test"])),
     }
+    hydrate_saved_phase_b_state(
+        out_dir=out_dir,
+        run_set=run_set,
+        resolved_llm=resolved_llm,
+        summary=summary,
+        arms_for_ablation=arms_for_ablation,
+    )
 
     # 1. Route A: PatchTST 1M vs 15M capacity ablation (5 seeds)
     if run_all or "route_a" in run_set:
@@ -192,7 +297,7 @@ def main(argv: list[str] | None = None) -> int:
                     flush=True,
                 )
                 arms_for_ablation[arm_id] = {
-                    "label": f"{lbl} (80% cov={100.0 * cov80:.1f}%)",
+                    "label": _format_patchtst_label(lbl, cov80),
                     "test_pred_df": pred_saved,
                     "nominal_80_coverage": cov80,
                 }
@@ -221,14 +326,15 @@ def main(argv: list[str] | None = None) -> int:
             )
             res_pt["test_pred_df"].to_parquet(pred_p, index=False, compression="zstd")
             _write_json(met_p, {k: v for k, v in res_pt.items() if not k.endswith("_df")})
+            cov80_new = float(res_pt["test_nominal_80_coverage"])
             arms_for_ablation[arm_id] = {
-                "label": f"{lbl} (80% cov={100.0 * res_pt['test_nominal_80_coverage']:.1f}%)",
+                "label": _format_patchtst_label(lbl, cov80_new),
                 "test_pred_df": res_pt["test_pred_df"],
-                "nominal_80_coverage": res_pt["test_nominal_80_coverage"],
+                "nominal_80_coverage": cov80_new,
             }
             if arm_id == "patchtst_15m":
                 summary["patchtst_15m_qlike"] = res_pt["test_metrics_ensemble"]["qlike"]
-                summary["patchtst_15m_coverage_80"] = res_pt["test_nominal_80_coverage"]
+                summary["patchtst_15m_coverage_80"] = cov80_new
             _free_cuda()
 
     # 2. Route B (Chronos Foundation Time-Series Baselines)
@@ -306,38 +412,67 @@ def main(argv: list[str] | None = None) -> int:
 
     # 4. Route B Flagship: LLM Zero-Shot & 4-bit NF4 QLoRA + 2024-Val OOF Fusion
     if run_all or "llm" in run_set:
-        train_bs = max(1, int(args.llm_train_batch_size))
-        grad_accum = max(1, (8 + train_bs - 1) // train_bs)
-        print(
-            f"[PhaseB] Stage 4/4: Route B LLM Zero-Shot & QLoRA ({resolved_llm}, "
-            f"bs={train_bs}x{grad_accum})...",
-            flush=True,
-        )
-        res_llm = run_llm_zero_shot_and_qlora(
-            event_splits=ev_splits,
-            model_id=resolved_llm,
-            allow_weight_download=args.allow_weight_download,
-            epochs=args.llm_epochs,
-            train_batch_size=train_bs,
-            grad_accum_steps=grad_accum,
-            eval_batch_size=16,
-            max_train_events=args.max_train_events,
-        )
-        res_llm["val_scores_df"].to_parquet(out_dir / "llm_val_scores.parquet", index=False)
-        res_llm["test_scores_df"].to_parquet(out_dir / "llm_test_scores.parquet", index=False)
-        _write_json(
-            out_dir / "llm_run_metadata.json",
-            {k: v for k, v in res_llm.items() if not k.endswith("_df")},
-        )
-        summary.update(
-            {
-                "llm_revision": res_llm["revision"],
-                "gpu_name": res_llm["gpu_name"],
-                "peak_vram_gb": res_llm["peak_vram_gb"],
-                "llm_elapsed_sec": res_llm["elapsed_sec"],
-                "llm_trainable_params": res_llm["trainable_params"],
-            }
-        )
+        llm_val_p = out_dir / "llm_val_scores.parquet"
+        llm_test_p = out_dir / "llm_test_scores.parquet"
+        llm_meta_p = out_dir / "llm_run_metadata.json"
+        resumed_llm = False
+        if args.resume and llm_val_p.is_file() and llm_test_p.is_file() and llm_meta_p.is_file():
+            saved_meta = json.loads(llm_meta_p.read_text(encoding="utf-8"))
+            if saved_meta.get("model_id") == resolved_llm:
+                print(
+                    f"[PhaseB] Resumed Stage 4 LLM ({resolved_llm}) from {llm_meta_p.name}",
+                    flush=True,
+                )
+                val_llm_df = pd.read_parquet(llm_val_p)
+                test_llm_df = pd.read_parquet(llm_test_p)
+                summary.update(
+                    {
+                        "llm_revision": saved_meta.get("revision", "unknown"),
+                        "gpu_name": saved_meta.get("gpu_name", gpu_name),
+                        "peak_vram_gb": saved_meta.get("peak_vram_gb", 0.0),
+                        "llm_elapsed_sec": saved_meta.get("elapsed_sec", 0.0),
+                        "llm_trainable_params": saved_meta.get("trainable_params", 0),
+                    }
+                )
+                resumed_llm = True
+
+        if not resumed_llm:
+            train_bs = max(1, int(args.llm_train_batch_size))
+            grad_accum = max(1, (8 + train_bs - 1) // train_bs)
+            print(
+                f"[PhaseB] Stage 4/4: Route B LLM Zero-Shot & QLoRA ({resolved_llm}, "
+                f"bs={train_bs}x{grad_accum})...",
+                flush=True,
+            )
+            res_llm = run_llm_zero_shot_and_qlora(
+                event_splits=ev_splits,
+                model_id=resolved_llm,
+                allow_weight_download=args.allow_weight_download,
+                epochs=args.llm_epochs,
+                train_batch_size=train_bs,
+                grad_accum_steps=grad_accum,
+                eval_batch_size=16,
+                max_train_events=args.max_train_events,
+            )
+            val_llm_df = res_llm["val_scores_df"]
+            test_llm_df = res_llm["test_scores_df"]
+            val_llm_df.to_parquet(llm_val_p, index=False)
+            test_llm_df.to_parquet(llm_test_p, index=False)
+            _write_json(
+                llm_meta_p,
+                {k: v for k, v in res_llm.items() if not k.endswith("_df")},
+            )
+            summary.update(
+                {
+                    "llm_revision": res_llm["revision"],
+                    "gpu_name": res_llm["gpu_name"],
+                    "peak_vram_gb": res_llm["peak_vram_gb"],
+                    "llm_elapsed_sec": res_llm["elapsed_sec"],
+                    "llm_trainable_params": res_llm["trainable_params"],
+                }
+            )
+            _free_cuda()
+
         short_name = resolved_llm.split("/")[-1]
         for col_name, arm_key, label in (
             ("llm_zs_logit", "lgbm_plus_llm_zs", f"LightGBM + {short_name} (Zero-Shot)"),
@@ -346,8 +481,8 @@ def main(argv: list[str] | None = None) -> int:
             fused = fit_2024_val_oof_meta_fusion(
                 val_phase_a=val_a,
                 test_phase_a=test_a,
-                val_text_scores=res_llm["val_scores_df"],
-                test_text_scores=res_llm["test_scores_df"],
+                val_text_scores=val_llm_df,
+                test_text_scores=test_llm_df,
                 score_col=col_name,
                 arm_name=arm_key,
             )
@@ -358,18 +493,24 @@ def main(argv: list[str] | None = None) -> int:
                 "label": label,
                 "test_pred_df": fused["test_pred_df"],
             }
-        _free_cuda()
 
-    # 5. Formal 2025 H3 Ablation Table (QLIKE, Event QLIKE, PR-AUC, ECE, HLN-DM + Holm)
+    # 5. Formal 2025 H3 Ablation Table in canonical arm order
+    ordered_arms: dict[str, dict[str, Any]] = {
+        k: arms_for_ablation[k] for k in CANONICAL_ARM_ORDER if k in arms_for_ablation
+    }
+    for k, v in arms_for_ablation.items():
+        if k not in ordered_arms:
+            ordered_arms[k] = v
+
     ablation = evaluate_phase_b_h3_ablation(
         phase_a_test_df=test_a,
-        phase_b_arms=arms_for_ablation,
+        phase_b_arms=ordered_arms,
         block_len=5,
         n_boot=1000,
         seed=config.RANDOM_SEED,
     )
     comp_df = ablation["comparison_df"]
-    comp_df.to_csv(out_dir / "phase_b_comparison.csv", index=False)
+    comp_df.to_csv(out_dir / "phase_b_comparison.csv", index=False, lineterminator="\n")
     (out_dir / "phase_b_comparison.md").write_text(ablation["markdown_table"], encoding="utf-8")
     (out_dir / "phase_b_comparison.tex").write_text(ablation["latex_table"], encoding="utf-8")
 
@@ -383,6 +524,7 @@ def main(argv: list[str] | None = None) -> int:
     if "lgbm_plus_llm_qlora" in by_arm:
         ql_r = by_arm["lgbm_plus_llm_qlora"]
         base_r = by_arm["phase_a_lgbm"]
+        llm_id_for_note = str(summary.get("llm_model_id", resolved_llm))
         summary.update(
             {
                 "qwen_qlora_qlike_full": float(ql_r["qlike_full"]),
@@ -394,7 +536,7 @@ def main(argv: list[str] | None = None) -> int:
                 "h3_interpretation": (
                     f"Relative to Phase A price-only LightGBM (event-day PR-AUC "
                     f"{base_r['pr_auc_event_days']:.4f}, full QLIKE {base_r['qlike_full']:.4f}), "
-                    f"{resolved_llm} QLoRA achieves event-day PR-AUC "
+                    f"{llm_id_for_note} QLoRA achieves event-day PR-AUC "
                     f"{ql_r['pr_auc_event_days']:.4f} and full QLIKE {ql_r['qlike_full']:.4f} "
                     f"(HLN-DM Holm p={ql_r['dm_qlike_p_holm']:.3f})."
                 ),

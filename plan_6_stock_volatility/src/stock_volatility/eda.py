@@ -401,10 +401,10 @@ def run_eda_pipeline(
     # Extract concise summary indicators for JSON & report rendering
     lev_ov = leverage_df[(leverage_df["scope"] == "overall") & (leverage_df["sector"] == "ALL")]
     lev_map = lev_ov.set_index("ret_bucket")["mean_rv_5d_fwd"].to_dict()
-    mean_rv_neg = float(lev_map["ret_lt_0"])
-    mean_rv_pos = float(lev_map["ret_ge_0"])
-    mean_rv_le_neg3 = float(lev_map["ret_le_neg3"])
-    mean_rv_ge_pos3 = float(lev_map["ret_ge_pos3"])
+    mean_rv_neg = float(lev_map.get("ret_lt_0", float("nan")))
+    mean_rv_pos = float(lev_map.get("ret_ge_0", float("nan")))
+    mean_rv_le_neg3 = float(lev_map.get("ret_le_neg3", float("nan")))
+    mean_rv_ge_pos3 = float(lev_map.get("ret_ge_pos3", float("nan")))
 
     all_cov = coverage_df[coverage_df["sector"] == "ALL"].iloc[0].to_dict()
     reg_all_map = (
@@ -424,10 +424,16 @@ def run_eda_pipeline(
         "leverage_overall": {
             "mean_rv_neg": mean_rv_neg,
             "mean_rv_pos": mean_rv_pos,
-            "ratio_neg_over_pos": float(mean_rv_neg / mean_rv_pos),
+            "ratio_neg_over_pos": (
+                float(mean_rv_neg / mean_rv_pos) if mean_rv_pos > 0.0 else float("nan")
+            ),
             "mean_rv_le_neg3": mean_rv_le_neg3,
             "mean_rv_ge_pos3": mean_rv_ge_pos3,
-            "ratio_le_neg3_over_ge_pos3": float(mean_rv_le_neg3 / mean_rv_ge_pos3),
+            "ratio_le_neg3_over_ge_pos3": (
+                float(mean_rv_le_neg3 / mean_rv_ge_pos3)
+                if mean_rv_ge_pos3 > 0.0
+                else float("nan")
+            ),
         },
         "coverage_all": {
             k: (int(v) if isinstance(v, (int, np.integer)) else float(v))
@@ -439,10 +445,14 @@ def run_eda_pipeline(
         ),
     }
 
-    regimes_df.to_csv(tables_dir / "eda_regimes_by_sector.csv", index=False)
-    leverage_df.to_csv(tables_dir / "eda_leverage_asymmetry.csv", index=False)
-    coverage_df.to_csv(tables_dir / "eda_coverage_consistency.csv", index=False)
-    vix_news_df.to_csv(tables_dir / "eda_vix_news_tail_incidence.csv", index=False)
+    regimes_df.to_csv(tables_dir / "eda_regimes_by_sector.csv", index=False, lineterminator="\n")
+    leverage_df.to_csv(tables_dir / "eda_leverage_asymmetry.csv", index=False, lineterminator="\n")
+    coverage_df.to_csv(
+        tables_dir / "eda_coverage_consistency.csv", index=False, lineterminator="\n"
+    )
+    vix_news_df.to_csv(
+        tables_dir / "eda_vix_news_tail_incidence.csv", index=False, lineterminator="\n"
+    )
 
     md_text = render_eda_summary_markdown(
         generated_at_utc=generated_at_utc,

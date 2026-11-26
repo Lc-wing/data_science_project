@@ -141,13 +141,21 @@ class RateLimiter:
         self._last_call = time.monotonic()
 
 
+def _clean_str(val: Any) -> str:
+    """Convert optional string/scalar to stripped string, treating None and NaN as empty."""
+    if val is None or (isinstance(val, float) and pd.isna(val)) or pd.isna(val):
+        return ""
+    text = str(val).strip()
+    return "" if text.lower() == "nan" else text
+
+
 def normalize_acceptance_datetime(
     raw_value: str | None,
     *,
     fallback_filing_date: str = "",
 ) -> str:
     """Normalize SEC `acceptanceDateTime` to canonical second-precision ISO-8601 UTC."""
-    text = (raw_value or "").strip()
+    text = _clean_str(raw_value)
     if not text:
         if fallback_filing_date:
             return f"{fallback_filing_date}T21:00:00+00:00"
@@ -418,156 +426,160 @@ def download_sec_edgar_all(
     sec_raw.mkdir(parents=True, exist_ok=True)
     sec_cache.mkdir(parents=True, exist_ok=True)
 
+    owns_session = session is None
     sess = session or build_retry_session(user_agent=config.SEC_USER_AGENT)
     limiter = RateLimiter(max_per_sec=7.5)
+    try:
+        # 1. Fetch company_tickers.json
+        tickers_payload, tickers_meta = _fetch_sec_json(
+            SEC_COMPANY_TICKERS_URL,
+            sec_cache / "company_tickers.json",
+            session=sess,
+            limiter=limiter,
+            force=force,
+        )
+        cik_map = resolve_universe_ciks(tickers_payload)
 
-    # 1. Fetch company_tickers.json
-    tickers_payload, tickers_meta = _fetch_sec_json(
-        SEC_COMPANY_TICKERS_URL,
-        sec_cache / "company_tickers.json",
-        session=sess,
-        limiter=limiter,
-        force=force,
-    )
-    cik_map = resolve_universe_ciks(tickers_payload)
-
-    # Write compact committable snapshot data/raw/sec_edgar/company_tickers_60.json
-    company_tickers_60_path = sec_raw / "company_tickers_60.json"
-    company_tickers_60_obj = {
-        "source_url": SEC_COMPANY_TICKERS_URL,
-        "http_status": tickers_meta["http_status"],
-        "raw_byte_size": tickers_meta["raw_bytes"],
-        "raw_sha256": tickers_meta["raw_sha256"],
-        "universe_count": len(cik_map),
-        "predecessor_cik_map": {k: list(v) for k, v in PREDECESSOR_CIK_MAP.items()},
-        "cik_predecessor_linkages": CIK_PREDECESSOR_LINKAGE_METADATA,
-        "tickers": cik_map,
-    }
-    company_tickers_60_path.write_text(
-        json.dumps(company_tickers_60_obj, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
-
-    # 2. Fetch main submissions + overlapping historical archives across all 62 CIKs
-    all_raw_records: list[dict[str, Any]] = []
-    manifest_requests: list[dict[str, Any]] = [
-        {
-            "request_type": "company_tickers",
-            "ticker": "ALL_60",
-            "cik": "",
-            "filename": "company_tickers.json",
-            "url": SEC_COMPANY_TICKERS_URL,
+        # Write compact committable snapshot data/raw/sec_edgar/company_tickers_60.json
+        company_tickers_60_path = sec_raw / "company_tickers_60.json"
+        company_tickers_60_obj = {
+            "source_url": SEC_COMPANY_TICKERS_URL,
             "http_status": tickers_meta["http_status"],
             "raw_byte_size": tickers_meta["raw_bytes"],
             "raw_sha256": tickers_meta["raw_sha256"],
-            "filingFrom": "",
-            "filingTo": "",
-            "total_rows": len(tickers_payload),
-            "target_rows_2019_2025": 60,
+            "universe_count": len(cik_map),
+            "predecessor_cik_map": {k: list(v) for k, v in PREDECESSOR_CIK_MAP.items()},
+            "cik_predecessor_linkages": CIK_PREDECESSOR_LINKAGE_METADATA,
+            "tickers": cik_map,
         }
-    ]
+        company_tickers_60_path.write_text(
+            json.dumps(company_tickers_60_obj, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
 
-    total_ciks_queried = 0
-    total_archives_listed = 0
-    overlapping_archives_fetched = 0
-    filings_from_recent_raw = 0
-    filings_from_archives_raw = 0
+        # 2. Fetch main submissions + overlapping historical archives across all 62 CIKs
+        all_raw_records: list[dict[str, Any]] = []
+        manifest_requests: list[dict[str, Any]] = [
+            {
+                "request_type": "company_tickers",
+                "ticker": "ALL_60",
+                "cik": "",
+                "filename": "company_tickers.json",
+                "url": SEC_COMPANY_TICKERS_URL,
+                "http_status": tickers_meta["http_status"],
+                "raw_byte_size": tickers_meta["raw_bytes"],
+                "raw_sha256": tickers_meta["raw_sha256"],
+                "filingFrom": "",
+                "filingTo": "",
+                "total_rows": len(tickers_payload),
+                "target_rows_2019_2025": 60,
+            }
+        ]
 
-    for ticker, _, _ in config.UNIVERSE_60:
-        info = cik_map[ticker]
-        for role_idx, cik_10 in enumerate(info["all_ciks"]):
-            role = "primary" if role_idx == 0 else "predecessor"
-            total_ciks_queried += 1
-            main_filename = f"CIK{cik_10}.json"
-            main_url = SEC_SUBMISSIONS_URL_TEMPLATE.format(filename=main_filename)
-            main_payload, main_meta = _fetch_sec_json(
-                main_url,
-                sec_cache / main_filename,
-                session=sess,
-                limiter=limiter,
-                force=force,
-            )
+        total_ciks_queried = 0
+        total_archives_listed = 0
+        overlapping_archives_fetched = 0
+        filings_from_recent_raw = 0
+        filings_from_archives_raw = 0
 
-            recent_block = main_payload.get("filings", {}).get("recent", {})
-            recent_total_rows = len(recent_block.get("accessionNumber") or [])
-            recent_Dates = [str(d) for d in (recent_block.get("filingDate") or []) if d]
-            recent_from = min(recent_Dates) if recent_Dates else ""
-            recent_to = max(recent_Dates) if recent_Dates else ""
-
-            recent_recs = parse_submissions_block(
-                recent_block,
-                ticker=ticker,
-                cik=cik_10,
-                source_file=main_filename,
-                start_date=filing_start_date,
-                end_date=filing_end_date,
-            )
-            filings_from_recent_raw += len(recent_recs)
-            all_raw_records.extend(recent_recs)
-
-            manifest_requests.append(
-                {
-                    "request_type": f"submissions_main_{role}",
-                    "ticker": ticker,
-                    "cik": cik_10,
-                    "filename": main_filename,
-                    "url": main_url,
-                    "http_status": main_meta["http_status"],
-                    "raw_byte_size": main_meta["raw_bytes"],
-                    "raw_sha256": main_meta["raw_sha256"],
-                    "filingFrom": recent_from,
-                    "filingTo": recent_to,
-                    "total_rows": recent_total_rows,
-                    "target_rows_2019_2025": len(recent_recs),
-                }
-            )
-
-            files_meta = main_payload.get("filings", {}).get("files") or []
-            total_archives_listed += len(files_meta)
-            overlapping = select_overlapping_archives(
-                files_meta,
-                window_start=window_start,
-                window_end=window_end,
-            )
-            for arch_meta in overlapping:
-                overlapping_archives_fetched += 1
-                arch_name = str(arch_meta["name"]).strip()
-                arch_url = SEC_SUBMISSIONS_URL_TEMPLATE.format(filename=arch_name)
-                arch_payload, arch_http_meta = _fetch_sec_json(
-                    arch_url,
-                    sec_cache / arch_name,
+        for ticker, _, _ in config.UNIVERSE_60:
+            info = cik_map[ticker]
+            for role_idx, cik_10 in enumerate(info["all_ciks"]):
+                role = "primary" if role_idx == 0 else "predecessor"
+                total_ciks_queried += 1
+                main_filename = f"CIK{cik_10}.json"
+                main_url = SEC_SUBMISSIONS_URL_TEMPLATE.format(filename=main_filename)
+                main_payload, main_meta = _fetch_sec_json(
+                    main_url,
+                    sec_cache / main_filename,
                     session=sess,
                     limiter=limiter,
                     force=force,
                 )
-                arch_total_rows = len(arch_payload.get("accessionNumber") or [])
-                arch_recs = parse_submissions_block(
-                    arch_payload,
+
+                recent_block = main_payload.get("filings", {}).get("recent", {})
+                recent_total_rows = len(recent_block.get("accessionNumber") or [])
+                recent_Dates = [str(d) for d in (recent_block.get("filingDate") or []) if d]
+                recent_from = min(recent_Dates) if recent_Dates else ""
+                recent_to = max(recent_Dates) if recent_Dates else ""
+
+                recent_recs = parse_submissions_block(
+                    recent_block,
                     ticker=ticker,
                     cik=cik_10,
-                    source_file=arch_name,
+                    source_file=main_filename,
                     start_date=filing_start_date,
                     end_date=filing_end_date,
                 )
-                filings_from_archives_raw += len(arch_recs)
-                all_raw_records.extend(arch_recs)
+                filings_from_recent_raw += len(recent_recs)
+                all_raw_records.extend(recent_recs)
 
                 manifest_requests.append(
                     {
-                        "request_type": f"submissions_archive_{role}",
+                        "request_type": f"submissions_main_{role}",
                         "ticker": ticker,
                         "cik": cik_10,
-                        "filename": arch_name,
-                        "url": arch_url,
-                        "http_status": arch_http_meta["http_status"],
-                        "raw_byte_size": arch_http_meta["raw_bytes"],
-                        "raw_sha256": arch_http_meta["raw_sha256"],
-                        "filingFrom": str(arch_meta.get("filingFrom", "")),
-                        "filingTo": str(arch_meta.get("filingTo", "")),
-                        "total_rows": arch_total_rows,
-                        "target_rows_2019_2025": len(arch_recs),
+                        "filename": main_filename,
+                        "url": main_url,
+                        "http_status": main_meta["http_status"],
+                        "raw_byte_size": main_meta["raw_bytes"],
+                        "raw_sha256": main_meta["raw_sha256"],
+                        "filingFrom": recent_from,
+                        "filingTo": recent_to,
+                        "total_rows": recent_total_rows,
+                        "target_rows_2019_2025": len(recent_recs),
                     }
                 )
+
+                files_meta = main_payload.get("filings", {}).get("files") or []
+                total_archives_listed += len(files_meta)
+                overlapping = select_overlapping_archives(
+                    files_meta,
+                    window_start=window_start,
+                    window_end=window_end,
+                )
+                for arch_meta in overlapping:
+                    overlapping_archives_fetched += 1
+                    arch_name = str(arch_meta["name"]).strip()
+                    arch_url = SEC_SUBMISSIONS_URL_TEMPLATE.format(filename=arch_name)
+                    arch_payload, arch_http_meta = _fetch_sec_json(
+                        arch_url,
+                        sec_cache / arch_name,
+                        session=sess,
+                        limiter=limiter,
+                        force=force,
+                    )
+                    arch_total_rows = len(arch_payload.get("accessionNumber") or [])
+                    arch_recs = parse_submissions_block(
+                        arch_payload,
+                        ticker=ticker,
+                        cik=cik_10,
+                        source_file=arch_name,
+                        start_date=filing_start_date,
+                        end_date=filing_end_date,
+                    )
+                    filings_from_archives_raw += len(arch_recs)
+                    all_raw_records.extend(arch_recs)
+
+                    manifest_requests.append(
+                        {
+                            "request_type": f"submissions_archive_{role}",
+                            "ticker": ticker,
+                            "cik": cik_10,
+                            "filename": arch_name,
+                            "url": arch_url,
+                            "http_status": arch_http_meta["http_status"],
+                            "raw_byte_size": arch_http_meta["raw_bytes"],
+                            "raw_sha256": arch_http_meta["raw_sha256"],
+                            "filingFrom": str(arch_meta.get("filingFrom", "")),
+                            "filingTo": str(arch_meta.get("filingTo", "")),
+                            "total_rows": arch_total_rows,
+                            "target_rows_2019_2025": len(arch_recs),
+                        }
+                    )
+    finally:
+        if owns_session:
+            sess.close()
 
     unique_records = deduplicate_filings(all_raw_records)
     duplicate_count = len(all_raw_records) - len(unique_records)
@@ -645,23 +657,23 @@ def build_events_raw_from_snapshot(
 
     rows: list[dict[str, Any]] = []
     for rec in snap_df.to_dict(orient="records"):
-        ticker = str(rec["ticker"]).strip()
-        cik_raw = str(rec["cik"]).strip()
+        ticker = _clean_str(rec["ticker"])
+        cik_raw = _clean_str(rec["cik"])
         cik_10 = f"{int(cik_raw):010d}" if cik_raw.isdigit() else cik_raw
-        acc_num = str(rec["accession_number"]).strip()
-        form = str(rec["form"]).strip()
-        f_date = str(rec["filing_date"]).strip()
-        r_date = str(rec.get("report_date", "") or "").strip()
+        acc_num = _clean_str(rec["accession_number"])
+        form = _clean_str(rec["form"])
+        f_date = _clean_str(rec["filing_date"])
+        r_date = _clean_str(rec.get("report_date", ""))
 
-        raw_acc_dt = str(
-            rec.get("acceptance_datetime_raw") or rec.get("acceptance_datetime_utc") or ""
-        ).strip()
+        raw_acc_dt = _clean_str(rec.get("acceptance_datetime_raw")) or _clean_str(
+            rec.get("acceptance_datetime_utc")
+        )
         acc_dt_utc = normalize_acceptance_datetime(raw_acc_dt, fallback_filing_date=f_date)
 
         raw_items = rec.get("items") if "items" in rec else rec.get("items_raw", "")
         norm_items = normalize_sec_items(raw_items)
         item_descs = describe_filing_items(form, norm_items)
-        p_desc = str(rec.get("primary_doc_description", "") or "").strip()
+        p_desc = _clean_str(rec.get("primary_doc_description", ""))
         headline = build_headline_text(
             ticker=ticker,
             form=form,

@@ -2,15 +2,32 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
+from pathlib import Path
 
 from stock_volatility.regression import run_h1_regression_pipeline
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parse CLI arguments for Step 04 H1 Panel HAR-RV Regression."""
+    parser = argparse.ArgumentParser(
+        description="Plan 6 M3 Step 04: H1 Stock-FE Extended Panel HAR-RV with Driscoll-Kraay SE."
+    )
+    parser.add_argument(
+        "--project-root",
+        type=Path,
+        default=None,
+        help="Optional Plan 6 project root override (defaults to plan_6_stock_volatility/).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
     """Run deterministic M3 H1 panel regression pipeline from frozen data/frozen/ bundle."""
-    payload = run_h1_regression_pipeline()
+    args = parse_args(argv)
+    payload = run_h1_regression_pipeline(project_root=args.project_root)
     compact = {
         "milestone": payload["milestone"],
         "generated_at_utc": payload["generated_at_utc"],

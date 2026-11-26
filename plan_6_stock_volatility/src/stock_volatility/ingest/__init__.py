@@ -151,7 +151,11 @@ class ProvenanceLog:
 
     def save(self, path: Path | None = None) -> Path:
         """Write deterministic JSON provenance file to disk."""
-        out_path = Path(path) if path is not None else config.PROVENANCE_PATH
+        out_path = (
+            Path(path)
+            if path is not None
+            else (self.project_root / "data" / "raw" / "data_provenance.json")
+        )
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(
             json.dumps(self.to_dict(), indent=2, ensure_ascii=False) + "\n",
@@ -167,10 +171,15 @@ class ProvenanceLog:
         project_root: Path | None = None,
     ) -> ProvenanceLog:
         """Load an existing provenance manifest from JSON."""
-        in_path = Path(path) if path is not None else config.PROVENANCE_PATH
+        root = Path(project_root) if project_root is not None else config.PROJECT_ROOT
+        in_path = (
+            Path(path)
+            if path is not None
+            else (root / "data" / "raw" / "data_provenance.json")
+        )
         payload = json.loads(in_path.read_text(encoding="utf-8"))
         return cls(
-            project_root=project_root,
+            project_root=root,
             generated_at_utc=payload.get("generated_at_utc"),
             news_source_decision=payload.get("news_source_decision", {}),
             ticker_replacements=payload.get("ticker_replacements", []),

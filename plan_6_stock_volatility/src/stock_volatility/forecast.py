@@ -181,8 +181,14 @@ def select_calibrator_on_val_oof(
     val_y: np.ndarray,
 ) -> tuple[str, Callable[[np.ndarray], np.ndarray], list[dict[str, Any]]]:
     """Select calibrator via 4-quarter out-of-fold Val CV, then refit winner on full 2024 Val."""
+    if len(val_y) < 4:
+        raise ValueError(f"Need at least 4 validation rows for OOF calibration, got {len(val_y)}")
     quarters = pd.to_datetime(pd.Series(val_dates)).dt.to_period("Q").astype(str).to_numpy()
     unique_qs = sorted(np.unique(quarters).tolist())
+    if len(unique_qs) < 2:
+        mid = len(val_y) // 2
+        quarters = np.where(np.arange(len(val_y)) < mid, "H1", "H2")
+        unique_qs = ["H1", "H2"]
     candidates = ("isotonic", "platt_sigmoid", "temperature_scaling")
 
     raw_brier = float(brier_score_loss(val_y, val_raw_probs))

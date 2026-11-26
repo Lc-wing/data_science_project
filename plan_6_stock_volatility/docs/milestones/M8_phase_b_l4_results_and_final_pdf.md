@@ -55,11 +55,11 @@ All predictions evaluated on identical 2025 Holdout (`N = 14,700` stock-days; `8
 | `outputs/phase_b/llm_run_metadata.json` | Output | Exact `google/gemma-4-12B-it` QLoRA telemetry (`15.336 GB` peak VRAM, `65,568,768` trainable params, `6,914.6s`) |
 | `outputs/phase_b/phase_b_comparison.{csv,md,tex}` | Output | Unified 8-arm 2025 Holdout comparison table (`$895$` scorable event days; honest `---` for volatility-only Chronos arms) |
 | `outputs/phase_b/*_metrics.json`, `outputs/phase_b/*.parquet` | Output | All real Colab L4 prediction & score artifacts (`2.27 MB` total across 20 files, zero model weights) |
-| `report/final_report.tex` | Report | Integrated CS482 Final Report LaTeX source (Phase A Sections 1–5 + Phase B Section 6 + Table 2) |
-| `report/CS482_GroupX_StockVolatilityLLM.pdf` | Report | Final deterministic CS482 submission PDF (`8` pp, `4.70` A4 main pp, `61/61` claims, `PASS`) |
+| `report/final_report.tex`, `report/final_references.bib` | Report | Unified 5-section CS482 Final Report LaTeX source (Phase B merged into `3 Data Analysis` + Table 2 + `18` verified citations) |
+| `report/CS482_GroupX_StockVolatilityLLM.pdf` | Report | Final deterministic CS482 submission PDF (`8` pp, `4.46` A4 main pp, `61/61` claims, `PASS`) |
 | `report/phase_b_audit.md` | Audit | Automated 9-gate + 61-claim traceability audit report (`VERDICT: PASS`) |
-| `src/stock_volatility/phase_b/{fusion_and_eval,report_integration}.py` | Code | Dynamic `$895$` event caption, volatility-only Chronos `---` formatting, Section 5 present-tense handoff, Section 6 `[!htb]` Table 2 placement & overfull-hbox fix |
-| `scripts/colab_phase_b.py` | CLI | Consistent Chronos `80% cov` table labels |
+| `src/stock_volatility/phase_b/{fusion_and_eval,report_integration}.py` | Code | Dynamic `$895$` event caption, volatility-only Chronos `---` formatting, unified 5-section CS482 rubric layout, `18`-entry `final_references.bib` & AI Usage Declaration |
+| `scripts/colab_phase_b.py` | CLI | Consistent PatchTST/Chronos `80% cov` table labels, Stage 1–4 `--resume`, and subset `--routes` state hydration |
 | `tests/test_phase_b.py` | Test | Added `test_committed_m8_phase_b_outputs_final_pdf_and_milestone_doc` (`7` Phase B tests; `104` repo tests total) |
 | `docs/milestones/M8_phase_b_l4_results_and_final_pdf.md` | Doc | This M8 final delivery & AI execution record |
 | `docs/milestones/README.md`, `README.md`, `../README.md` | Doc | Updated milestone ledger with M7 SHA `1b6827f` and M8 final completion |
@@ -77,7 +77,7 @@ All predictions evaluated on identical 2025 Holdout (`N = 14,700` stock-days; `8
 ### 4.2 Post-Colab Forensic Audit & Visual PDF QA (产出审计与排版目视精修)
 1. **Dynamic Event-Day Caption Fix**: Caught that `phase_b_comparison.tex` hardcoded `$899$` while only `895` 2025 pre-close event days have complete `t+1..t+5` forward targets; updated `evaluate_phase_b_h3_ablation()` to compute `int(ev_mask.sum())` dynamically and deterministically refreshed `phase_b_comparison.{csv,md,tex}` directly from the exact Colab `.parquet` predictions.
 2. **Honest Volatility-Only Formatting for Chronos**: Fixed `fusion_and_eval.py` so univariate volatility-only `chronos-2` & `chronos-t5-large` report `—` / `---` instead of echoing Phase A LightGBM's tail classification metrics, and excluded them from Brier Holm family adjustment.
-3. **Visual PDF Inspection (`pdftoppm` + `view_file`)**: Rendered all pages of `report/CS482_GroupX_StockVolatilityLLM.pdf` and caught/fixed three publication issues: (a) Table 2 floating above Section 6 heading (`[!t]` -> `[!htb]`), (b) slight right-margin overfull `\hbox` on `\texttt{google/gemma-4-12B-it}`, and (c) lingering Phase A draft future-tense phrasing in Section 5 (`Phase B will evaluate...` -> `Section 6 evaluates...`).
+3. **Unified 5-Section CS482 Rubric Layout & Visual PDF Inspection (`pdftoppm` + `view_file`)**: Merged Phase B directly into `3 Data Analysis`, `4 Method Evaluation`, and `5 Results and Discussion` (`4.46` A4 main pages across `5` main-text pages, single-column 11pt 1.5× line spacing, `18` verified bibliography entries in `report/final_references.bib`, and explicit AI Usage Declaration & Separate Contribution Statement) and visually inspected every rendered page (`0` overfull boxes, `0` heading/table inversions).
 
 ---
 
@@ -86,7 +86,7 @@ All predictions evaluated on identical 2025 Holdout (`N = 14,700` stock-days; `8
 ```bash
 cd plan_6_stock_volatility
 MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run --no-sync python scripts/07_integrate_phase_b_report.py
-# Verdict: PASS | 8 total pages | 5 main pages occupied | 4.70 A4 main pp | 61/61 claims verified
+# Verdict: PASS | 8 total pages | 5 main pages occupied | 4.46 A4 main pp | 61/61 claims verified
 
 MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run --no-sync ruff check .
 # All checks passed! (exit 0)
@@ -107,7 +107,7 @@ git check-ignore -v --no-index \
 ## 6. Final Delivery Sign-Off Checklist (最终交付验收清单)
 
 - [x] Real Colab L4 Phase B outputs (`outputs/phase_b/`, `2.27 MB`, zero model weights, zero fabrication) committed & verified
-- [x] Final CS482 submission PDF (`report/CS482_GroupX_StockVolatilityLLM.pdf`) visually inspected & passed `9/9` automated audit gates (`4.70` A4 main pp, `61/61` claims, `0` forbidden words)
+- [x] Final CS482 submission PDF (`report/CS482_GroupX_StockVolatilityLLM.pdf`) visually inspected & passed `9/9` automated audit gates (`4.46` A4 main pp, `61/61` claims, `0` forbidden words)
 - [x] Dual-content M8 milestone record complete and linked from `docs/milestones/README.md`, `plan_6_stock_volatility/README.md`, and root `README.md`
 - [x] `data/frozen/FREEZE_MANIFEST.json` (`6/6` SHA-256), `plan_2_tourism_hotel/`, `plan_5_spatial_equity/`, and `plans/` untouched (`0` diffs)
 - [x] All `104/104` pytest tests and `ruff check .` passed fresh after final edits; `0` secrets; all blobs `< 25 MB`

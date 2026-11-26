@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
 from typing import Any
-
-import pandas as pd
 
 from stock_volatility import config
 from stock_volatility.baselines import run_baselines_all_folds
@@ -29,6 +28,8 @@ def run_h2_forecast_backtest_pipeline(
     outputs_metrics_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Verify frozen manifest and run complete M4 baselines, LightGBM, evaluation & TreeSHAP."""
+    import pandas as pd
+
     root = Path(project_root) if project_root is not None else config.PROJECT_ROOT
     frozen_dir = root / "data" / "frozen"
     manifest = verify_freeze_manifest(frozen_dir=frozen_dir, project_root=root)
@@ -91,14 +92,28 @@ def run_h2_forecast_backtest_pipeline(
     test_pred_df.to_parquet(
         tables_dir / "h2_test_predictions.parquet", index=False, compression="zstd"
     )
-    base_res["garch_convergence_df"].to_csv(tables_dir / "h2_garch_convergence.csv", index=False)
-    eval_res["metrics_df"].to_csv(tables_dir / "h2_test_metrics.csv", index=False)
-    eval_res["by_sector_df"].to_csv(tables_dir / "h2_test_by_sector.csv", index=False)
-    eval_res["by_event_df"].to_csv(tables_dir / "h2_test_by_event_day.csv", index=False)
-    eval_res["dm_df"].to_csv(tables_dir / "h2_dm_tests.csv", index=False)
-    eval_res["cal_curve_df"].to_csv(tables_dir / "h2_calibration_curve.csv", index=False)
-    shap_res["importance_df"].to_csv(tables_dir / "shap_importance.csv", index=False)
-    shap_res["regime_df"].to_csv(tables_dir / "shap_regime_summary.csv", index=False)
+    base_res["garch_convergence_df"].to_csv(
+        tables_dir / "h2_garch_convergence.csv", index=False, lineterminator="\n"
+    )
+    eval_res["metrics_df"].to_csv(
+        tables_dir / "h2_test_metrics.csv", index=False, lineterminator="\n"
+    )
+    eval_res["by_sector_df"].to_csv(
+        tables_dir / "h2_test_by_sector.csv", index=False, lineterminator="\n"
+    )
+    eval_res["by_event_df"].to_csv(
+        tables_dir / "h2_test_by_event_day.csv", index=False, lineterminator="\n"
+    )
+    eval_res["dm_df"].to_csv(tables_dir / "h2_dm_tests.csv", index=False, lineterminator="\n")
+    eval_res["cal_curve_df"].to_csv(
+        tables_dir / "h2_calibration_curve.csv", index=False, lineterminator="\n"
+    )
+    shap_res["importance_df"].to_csv(
+        tables_dir / "shap_importance.csv", index=False, lineterminator="\n"
+    )
+    shap_res["regime_df"].to_csv(
+        tables_dir / "shap_regime_summary.csv", index=False, lineterminator="\n"
+    )
 
     _write_json(metrics_dir / "h2_baselines.json", base_res["baselines_summary"])
     _write_json(metrics_dir / "h2_lgbm_selection.json", lgbm_res["selection_payload"])
@@ -117,9 +132,24 @@ def run_h2_forecast_backtest_pipeline(
     }
 
 
-def main() -> int:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """Parse CLI arguments for Step 05 H2 Out-of-Sample Backtest."""
+    parser = argparse.ArgumentParser(
+        description="Plan 6 M4 Step 05: H2 Out-of-sample baselines, LightGBM, HLN-DM & TreeSHAP."
+    )
+    parser.add_argument(
+        "--project-root",
+        type=Path,
+        default=None,
+        help="Optional Plan 6 project root override (defaults to plan_6_stock_volatility/).",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
     """Run deterministic M4 forecasting, evaluation & TreeSHAP pipeline."""
-    summary = run_h2_forecast_backtest_pipeline()
+    args = parse_args(argv)
+    summary = run_h2_forecast_backtest_pipeline(project_root=args.project_root)
     print(json.dumps(summary, indent=2))
     return 0
 

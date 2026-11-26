@@ -48,11 +48,18 @@ def run_chronos_volatility_forecasts(
     else:
         from chronos import ChronosPipeline
 
-        pipeline = ChronosPipeline.from_pretrained(
-            model_id,
-            device_map="cuda",
-            torch_dtype=torch.bfloat16,
-        )
+        try:
+            pipeline = ChronosPipeline.from_pretrained(
+                model_id,
+                device_map="cuda",
+                dtype=torch.bfloat16,
+            )
+        except TypeError:
+            pipeline = ChronosPipeline.from_pretrained(
+                model_id,
+                device_map="cuda",
+                torch_dtype=torch.bfloat16,
+            )
 
     # Collect strictly <= t context windows for every scorable 2025 test (ticker, date)
     contexts: list[np.ndarray] = []

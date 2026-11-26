@@ -47,7 +47,8 @@ Do not set `STOCK_VOL_E2E_IN_SELF_TEST=1` manually; that environment variable is
 | Tier 4 | `tests/e2e/test_tier4_real_world_scenarios.py` | 5 | Subprocess `--check`, isolated clone `run_phase_a.py --report-only --project-root` bit-identical SHA-256 parity across all 11 M5 files (including 3 PDFs), frozen tamper abort, raw provenance tamper abort, and M6 doc / gitignore checks |
 | Tier 5 | `tests/e2e/test_tier5_adversarial.py` | 9 | 8 named single-fault adversarial mutations injected into isolated clones (each required to fail cleanly with exit `1`, `0` errors, and exact diagnostic clause) + white-box PDF auditor hardening unit test |
 | **E2E Total** | `tests/e2e/` | **31** | **0 failed, 0 errors, 0 skipped** |
-| **Repo Total** | `tests/` (M0–M6) | **97** | **66 M0–M5 tests + 31 M6 E2E/adversarial tests (0 failed, 0 skipped)** |
+| **Phase A Total** | `tests/` (M0–M6) | **97** | **66 M0–M5 tests + 31 M6 E2E/adversarial tests (0 failed, 0 skipped)** |
+| **Full Repo Total** | `tests/` (M0–M8) | **104** | **97 Phase A tests + 7 Phase B (`tests/test_phase_b.py`) tests (0 failed, 0 skipped)** |
 
 ## Tier 5 Named Single-Fault Adversarial Matrix
 

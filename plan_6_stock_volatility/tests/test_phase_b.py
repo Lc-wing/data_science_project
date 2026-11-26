@@ -37,12 +37,19 @@ def test_phase_b_data_contract_windows_and_zero_target_leakage_prompts(
     assert len(panel_df) == 105_600
     assert len(events_df) == 105_600
 
+    import stock_volatility.phase_b as pb_pkg
+
+    assert hasattr(pb_pkg, "patchtst")
+    assert hasattr(pb_pkg, "route_b_llm")
+    with pytest.raises(AttributeError):
+        _ = pb_pkg.nonexistent_submodule
+
     # 1. Event-anchored datasets strictly exclude embargo and non-event days
     ev_splits = build_event_anchored_datasets(panel_df, events_df)
     assert set(ev_splits.keys()) == {"train", "val", "test"}
-    assert 4800 <= len(ev_splits["train"]) <= 5032
+    assert len(ev_splits["train"]) == 4929
     assert len(ev_splits["val"]) == 880
-    assert 850 <= len(ev_splits["test"]) <= 899
+    assert len(ev_splits["test"]) == 895
     assert (ev_splits["train"]["date"] <= config.TRAIN_END).all()
     assert (ev_splits["val"]["date"] >= config.VAL_START).all()
     assert (ev_splits["val"]["date"] <= config.VAL_END).all()
@@ -170,6 +177,8 @@ def test_route_b_qwen35_loader_lora_filter_yes_no_log_odds_and_gpu_guards(
     block_network: None,
 ) -> None:
     """Verify Qwen3.5 & Gemma4Unified routing, text-only LoRA filter, L4 selector & GPU gates."""
+    from types import SimpleNamespace
+
     from stock_volatility.phase_b.route_b_llm import (
         DEFAULT_L4_LLM_MODEL,
         DEFAULT_LLM_MODEL,
@@ -177,7 +186,25 @@ def test_route_b_qwen35_loader_lora_filter_yes_no_log_odds_and_gpu_guards(
         detect_model_loader_kind,
         filter_text_lora_target_modules,
         require_cuda_and_download_flag,
+        resolve_hf_model_revision,
         select_default_llm_for_vram,
+    )
+
+    assert (
+        resolve_hf_model_revision("google/gemma-4-12B-it", SimpleNamespace(_commit_hash="43c9d014"))
+        == "43c9d014"
+    )
+    assert (
+        resolve_hf_model_revision(
+            "google/gemma-4-12B-it",
+            SimpleNamespace(_commit_hash=None),
+            SimpleNamespace(config=SimpleNamespace(_commit_hash="37561816e66b")),
+        )
+        == "37561816e66b"
+    )
+    assert (
+        resolve_hf_model_revision("nonexistent-org/nonexistent-model-xyz", SimpleNamespace())
+        == "unknown"
     )
 
     assert DEFAULT_LLM_MODEL == "Qwen/Qwen3.8-27B"
@@ -446,6 +473,67 @@ def test_colab_cli_guard_notebook_and_m7_milestone_docs() -> None:
     assert proc.returncode != 0
     assert "allow-weight-download" in (proc.stdout + proc.stderr)
 
+    # Every CLI script must support --help cleanly without running pipelines or touching disk
+    for script_name in (
+        "01_download_and_audit.py",
+        "02_build_panel_and_freeze.py",
+        "03_eda.py",
+        "04_panel_har_rv.py",
+        "05_forecast_backtest.py",
+        "06_write_report.py",
+        "07_integrate_phase_b_report.py",
+        "run_phase_a.py",
+        "colab_phase_b.py",
+    ):
+        hp = subprocess.run(
+            [sys.executable, str(config.PROJECT_ROOT / "scripts" / script_name), "--help"],
+            cwd=config.PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=20,
+        )
+        assert hp.returncode == 0, f"{script_name} --help failed: {hp.stderr}"
+
+    # Contradictory --report-only --refreeze must be rejected cleanly
+    bad_flags = subprocess.run(
+        [
+            sys.executable,
+            str(config.PROJECT_ROOT / "scripts" / "run_phase_a.py"),
+            "--report-only",
+            "--refreeze",
+        ],
+        cwd=config.PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=20,
+    )
+    assert bad_flags.returncode != 0
+
+    # Subset --routes hydration must preserve saved unselected arms & PatchTST summary fields
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("colab_phase_b_mod", cli)
+    assert spec is not None and spec.loader is not None
+    colab_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(colab_mod)
+    assert (
+        colab_mod._format_patchtst_label("PatchTST (15M, 5-seed)", 0.683)
+        == "PatchTST (15M, 5-seed; 80% cov=68.3%)"
+    )
+    hyd_summary: dict[str, object] = {}
+    hyd_arms: dict[str, dict[str, object]] = {}
+    colab_mod.hydrate_saved_phase_b_state(
+        out_dir=config.PROJECT_ROOT / "outputs" / "phase_b",
+        run_set={"finbert", "llm"},
+        resolved_llm="google/gemma-4-12B-it",
+        summary=hyd_summary,
+        arms_for_ablation=hyd_arms,
+    )
+    assert "patchtst_15m_qlike" in hyd_summary
+    assert {"patchtst_1m", "patchtst_15m", "chronos_2", "chronos_t5_large"}.issubset(hyd_arms)
+
     nb_path = config.PROJECT_ROOT / "notebooks" / "phase_b_colab.ipynb"
     assert nb_path.is_file()
     nb = json.loads(nb_path.read_text(encoding="utf-8"))
@@ -456,6 +544,21 @@ def test_colab_cli_guard_notebook_and_m7_milestone_docs() -> None:
     assert "Qwen/Qwen3.8-27B" in nb_src
     assert "google/gemma-4-12B-it" in nb_src
     assert "transformers>=5.10" in nb_src
+    assert '(cwd / ENTRY).exists() and (cwd.parent / ".git").exists()' in nb_src
+
+    zip_chk = subprocess.run(
+        [
+            "git",
+            "check-ignore",
+            "-q",
+            "--no-index",
+            "plan_6_stock_volatility/phase_b_gpu_outputs.zip",
+        ],
+        cwd=config.PROJECT_ROOT.parent,
+        check=False,
+        timeout=10,
+    )
+    assert zip_chk.returncode == 0, "phase_b_gpu_outputs.zip should be gitignored"
 
     phase_b_md = config.PROJECT_ROOT / "PHASE_B.md"
     m7_doc = config.PROJECT_ROOT / "docs" / "milestones" / "M7_phase_b_colab_and_dl_pipeline.md"

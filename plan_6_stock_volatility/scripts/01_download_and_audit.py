@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 
 from stock_volatility.ingest.audit import (
     run_download_and_audit_pipeline,
@@ -36,6 +37,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "snapshots."
         ),
     )
+    parser.add_argument(
+        "--project-root",
+        type=Path,
+        default=None,
+        help="Optional Plan 6 project root override (defaults to plan_6_stock_volatility/).",
+    )
     args = parser.parse_args(argv)
     if args.skip_download and args.force_download:
         parser.error("Cannot specify both --skip-download and --force-download")
@@ -46,9 +53,12 @@ def main(argv: list[str] | None = None) -> int:
     """Run M1 download+audit or offline `--skip-download` audit replay."""
     args = parse_args(argv)
     if args.skip_download:
-        summary = run_skip_download_pipeline()
+        summary = run_skip_download_pipeline(project_root=args.project_root)
     else:
-        summary = run_download_and_audit_pipeline(force_download=bool(args.force_download))
+        summary = run_download_and_audit_pipeline(
+            force_download=bool(args.force_download),
+            project_root=args.project_root,
+        )
     print(json.dumps(summary, indent=2))
     return 0
 

@@ -6,7 +6,7 @@ import bisect
 import json
 import re
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -73,16 +73,27 @@ EVENTS_PHASE_B_COLUMNS: tuple[str, ...] = (
 )
 
 
+def _clean_str(val: Any, default: str = "") -> str:
+    """Convert optional scalar to clean string, treating None and NaN as default."""
+    if val is None or pd.isna(val):
+        return default
+    text = str(val).strip()
+    if not text or text.lower() == "nan":
+        return default
+    return str(val)
+
+
 def _normalize_headline_key(text: str) -> str:
     """Return a whitespace-collapsed lowercase key for intra-day headline deduplication."""
-    return re.sub(r"\s+", " ", str(text or "").strip().lower())
+    return re.sub(r"\s+", " ", _clean_str(text).strip().lower())
 
 
 def _has_item_202(items_csv: str) -> bool:
     """Return True iff comma-separated SEC Form 8-K items include Item 2.02 (earnings)."""
-    if not items_csv:
+    clean = _clean_str(items_csv)
+    if not clean:
         return False
-    return "2.02" in {tok.strip() for tok in str(items_csv).split(",") if tok.strip()}
+    return "2.02" in {tok.strip() for tok in clean.split(",") if tok.strip()}
 
 
 def align_events_to_trading_days(
@@ -124,10 +135,12 @@ def align_events_to_trading_days(
     early_close_shifted_examples: list[dict[str, str]] = []
 
     for row in events_raw_df.to_dict(orient="records"):
-        utc_str = str(row["acceptance_datetime_utc"]).strip()
+        utc_str = _clean_str(row["acceptance_datetime_utc"]).strip()
         if utc_str.endswith("Z"):
             utc_str = f"{utc_str[:-1]}+00:00"
         dt_utc = datetime.fromisoformat(utc_str)
+        if dt_utc.tzinfo is None:
+            dt_utc = dt_utc.replace(tzinfo=UTC)
         dt_et = dt_utc.astimezone(tz)
         et_date = dt_et.strftime("%Y-%m-%d")
         tz_abbr = dt_et.tzname() or "ET"
@@ -157,9 +170,9 @@ def align_events_to_trading_days(
                     stats["shifted_due_to_early_close"] += 1
                     early_close_shifted_examples.append(
                         {
-                            "ticker": str(row["ticker"]),
-                            "form": str(row["form"]),
-                            "accession_number": str(row["accession_number"]),
+                            "ticker": _clean_str(row["ticker"]),
+                            "form": _clean_str(row["form"]),
+                            "accession_number": _clean_str(row["accession_number"]),
                             "acceptance_datetime_et": dt_et.isoformat(timespec="seconds"),
                             "aligned_date": aligned_date,
                         }
@@ -178,12 +191,12 @@ def align_events_to_trading_days(
 
         records.append(
             {
-                "ticker": str(row["ticker"]),
-                "cik": str(row["cik"]),
-                "accession_number": str(row["accession_number"]),
-                "form": str(row["form"]),
-                "filing_date": str(row["filing_date"]),
-                "report_date": str(row.get("report_date", "") or ""),
+                "ticker": _clean_str(row["ticker"]),
+                "cik": _clean_str(row["cik"]),
+                "accession_number": _clean_str(row["accession_number"]),
+                "form": _clean_str(row["form"]),
+                "filing_date": _clean_str(row["filing_date"]),
+                "report_date": _clean_str(row.get("report_date", "")),
                 "acceptance_datetime_utc": utc_str,
                 "acceptance_datetime_et": dt_et.isoformat(timespec="seconds"),
                 "et_date": et_date,
@@ -192,11 +205,11 @@ def align_events_to_trading_days(
                 "is_early_close_day": bool(is_early),
                 "shifted_due_to_early_close": bool(shifted_early),
                 "shift_reason": shift_reason,
-                "items": str(row.get("items", "") or ""),
-                "item_descriptions": str(row.get("item_descriptions", "") or ""),
-                "primary_doc_description": str(row.get("primary_doc_description", "") or ""),
-                "headline_text": str(row["headline_text"]),
-                "news_source": str(row.get("news_source", "sec_edgar") or "sec_edgar"),
+                "items": _clean_str(row.get("items", "")),
+                "item_descriptions": _clean_str(row.get("item_descriptions", "")),
+                "primary_doc_description": _clean_str(row.get("primary_doc_description", "")),
+                "headline_text": _clean_str(row["headline_text"]),
+                "news_source": _clean_str(row.get("news_source"), default="sec_edgar"),
             }
         )
 

@@ -76,6 +76,13 @@ def fit_stock_fe_driscoll_kraay(
 
     n_obs, k_params = X_dm.shape
     n_entities = int(work[entity_col].nunique())
+    if n_obs <= k_params + n_entities:
+        raise ValueError(
+            f"Insufficient degrees of freedom: n_obs={n_obs} <= k_params+n_entities="
+            f"{k_params + n_entities}"
+        )
+    if cov_mode == "newey_west_entity" and n_entities < 2:
+        raise ValueError("newey_west_entity requires at least 2 entities")
     dates = sorted(work[time_col].unique().tolist())
     n_dates = len(dates)
     lag_l = int(maxlags) if maxlags is not None else driscoll_kraay_bandwidth(n_dates)
@@ -125,7 +132,7 @@ def fit_stock_fe_driscoll_kraay(
         raise ValueError(f"Unsupported cov_mode: {cov_mode!r}")
 
     se = np.sqrt(np.maximum(np.diag(cov_mat), 0.0))
-    t_stat = beta / se
+    t_stat = np.where(se > 0.0, beta / np.where(se > 0.0, se, 1.0), np.nan)
     p_val = 2.0 * stats.t.sf(np.abs(t_stat), df=df_t)
     t_crit = float(stats.t.ppf(0.975, df=df_t))
     ci_lo = beta - t_crit * se
@@ -426,15 +433,17 @@ def render_h1_summary_markdown(
     payload: dict[str, Any],
     main_df: pd.DataFrame,
     sens_df: pd.DataFrame,
+    date_range: tuple[str, str] = ("2019-02-01", "2025-12-23"),
 ) -> str:
     """Render associational H1 Panel HAR-RV report Markdown (strictly non-causal wording)."""
     m = payload["main_model"]
+    d_min, d_max = date_range
     lines: list[str] = [
         "# Milestone M3 — H1 Stock-FE Extended Panel HAR-RV Regression",
         "",
         f"- **Provenance Timestamp (UTC)**: `{generated_at_utc}`",
         f"- **Sample**: `{m['n_obs']}` stock-days (`{m['n_entities']}` stocks × `{m['n_dates']}` "
-        f"consecutive NYSE trading days, `2019-02-01`..`2025-12-23`)",
+        f"consecutive NYSE trading days, `{d_min}`..`{d_max}`)",
         f"- **Estimator**: Within-entity Stock-FE OLS with Bartlett Driscoll–Kraay SE "
         f"(bandwidth `L = {m['bartlett_bandwidth_L']}`, `df = {m['df_t']}`); "
         f"Within $R^2 = {m['within_r2']:.4f}$",
@@ -669,13 +678,16 @@ def run_h1_regression_pipeline(
         }
     )
 
-    main_df.to_csv(tables_dir / "h1_panel_har_rv_main.csv", index=False)
-    sens_df.to_csv(tables_dir / "h1_panel_har_rv_sensitivities.csv", index=False)
+    main_df.to_csv(tables_dir / "h1_panel_har_rv_main.csv", index=False, lineterminator="\n")
+    sens_df.to_csv(
+        tables_dir / "h1_panel_har_rv_sensitivities.csv", index=False, lineterminator="\n"
+    )
     md_text = render_h1_summary_markdown(
         generated_at_utc=generated_at_utc,
         payload=payload,
         main_df=main_df,
         sens_df=sens_df,
+        date_range=(str(full_df["date"].min()), str(full_df["date"].max())),
     )
     (tables_dir / "h1_summary.md").write_text(md_text, encoding="utf-8")
     (metrics_dir / "h1_regression.json").write_text(

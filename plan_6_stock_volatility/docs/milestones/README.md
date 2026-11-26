@@ -1,14 +1,14 @@
-# Plan 6 Phase A — Milestone Delivery Ledger & AI Execution Log Convention (里程碑交付台账与 AI 执行记录规范)
+# Plan 6 Phase A & Phase B — Milestone Delivery Ledger & AI Execution Log Convention (里程碑交付台账与 AI 执行记录规范)
 
 > **Delivery Inspection Purpose (最终交付检查说明)**
 >
-> Per the user's delivery inspection mandate, every milestone (`M0` through `M6`) in Plan 6 Phase A (`plan_6_stock_volatility/`) is documented as a Git-tracked Markdown file in `plan_6_stock_volatility/docs/milestones/`. Each document records:
+> Per the user's delivery inspection mandate, every milestone (`M0` through `M8`) in Plan 6 (`plan_6_stock_volatility/`) is documented as a Git-tracked Markdown file in `plan_6_stock_volatility/docs/milestones/`. Each document records:
 > 1. **Part A — Milestone Content & Deliverables (里程碑交付内容与技术实现):** Exact files created or modified, data contracts, schemas, cryptographic SHA-256 checksums, and quantitative metrics.
 > 2. **Part B — What the AI Agents Did in This Milestone (本里程碑内 AI 完成的工作全记录):** Chronological multi-agent exploration and live upstream API probes, data/engineering traps discovered and resolved, Test-Driven Development (TDD) implementation, automated test suite results, and verdicts from the 5-way independent verification gate (Forensic Auditor + 2 Reviewers + 2 Challengers).
 
 ---
 
-## 1. Milestone Delivery Ledger (M0–M6 里程碑交付状态总表)
+## 1. Milestone Delivery Ledger (M0–M8 里程碑交付状态总表)
 
 | Milestone | Document | Title & Scope (里程碑范围) | Status | Baseline / Commit SHA | Verification Gate |
 | --- | --- | --- | --- | --- | --- |
@@ -20,13 +20,13 @@
 | **M5** | [`M5_figures_table1_and_cs482_report.md`](M5_figures_table1_and_cs482_report.md) | 300-DPI Figure 1 & Figure 2, Unified Table 1, Audited CS482 Phase A Draft PDF (`4.00` A4 main pp), and `run_phase_a.py` Offline Replay CLI (300-DPI 双图、主表、CS482 报告 PDF 与一键复现 CLI) | `COMPLETED & PUSHED` | `63dc8ec46dddd910241de6c5ba968f9de308bcc3` | `VERIFIED PASS` (`ruff`: 0 errors; `pytest`: `66/66` passed; PDF audit `PASS` `9/9` gates, `51/51` claims, A4 `4.00` main pp, `0` forbidden terms; bit-identical `SOURCE_DATE_EPOCH` PDFs; `0` sibling diffs; `0` secrets) |
 | **M6** | [`M6_e2e_and_adversarial_hardening.md`](M6_e2e_and_adversarial_hardening.md) | Opaque-Box E2E Tiers 1–4 Pass, Tier 5 White-Box Adversarial Hardening (8 Single-Fault Mutations + Auditor/CLI Hardening), `TEST_READY.md` & Final Phase A Delivery Sign-Off (端到端四层黑盒验证、第五层白盒对抗加固与阶段 A 最终交付验收) | `COMPLETED & PUSHED` | `547b286e6e85185830608eb3bf0a574669409dc5` | `VERIFIED PASS` (`ruff`: 0 errors; `pytest tests/e2e`: `31/31` passed; full `pytest`: `97/97` passed; full offline `run_phase_a.py --skip-download` bit-identical `0` diffs; `0` sibling diffs; `0` secrets) |
 | **M7** | [`M7_phase_b_colab_and_dl_pipeline.md`](M7_phase_b_colab_and_dl_pipeline.md) | Phase B Engineering Package: PyTorch Route A `PatchTST` (1M/15M), Route B `FinBERT` + `Qwen/Qwen3.8-27B` / `google/gemma-4-12B-it` 4-bit QLoRA + `Chronos`, 2024-Val OOF Fusion, Colab L4/A100 CLI/Notebook, `PHASE_B.md` & Post-Colab PDF Merger (阶段 B 工程包、L4/A100 套件与报告整合管线) | `COMPLETED & PUSHED` | `1b6827f3beab5611854d5ab880844e924140c0c4` *(initial M7 `f931857` + L4/batched QLoRA upgrades)* | `VERIFIED PASS` (`ruff`: 0 errors; `pytest`: `103/103` passed; `0` frozen/sibling diffs; `0` secrets) |
-| **M8** | [`M8_phase_b_l4_results_and_final_pdf.md`](M8_phase_b_l4_results_and_final_pdf.md) | Colab Single-L4 Execution Results (`outputs/phase_b/`: `PatchTST 1M/15M`, `Chronos-2 / T5-Large`, `FinBERT 110M`, `google/gemma-4-12B-it` Zero-Shot & 4-bit QLoRA) & Final Audited CS482 Submission PDF (`report/CS482_GroupX_StockVolatilityLLM.pdf`) Sign-Off (阶段 B Colab L4 实测结果与 CS482 最终提交版 PDF 整合验收) | `COMPLETED & PUSHED` | Parent: `1b6827f3beab5611854d5ab880844e924140c0c4` (`M8` commit on `origin/main`) | `VERIFIED PASS` (`ruff`: 0 errors; `pytest`: `104/104` passed; Final PDF audit `PASS` `9/9` gates, A4 `<=5.0` main pp, `100%` claims verified, `0` forbidden terms; `0` frozen/sibling diffs) |
+| **M8** | [`M8_phase_b_l4_results_and_final_pdf.md`](M8_phase_b_l4_results_and_final_pdf.md) | Colab Single-L4 Execution Results (`outputs/phase_b/`: `PatchTST 1M/15M`, `Chronos-2 / T5-Large`, `FinBERT 110M`, `google/gemma-4-12B-it` Zero-Shot & 4-bit QLoRA) & Unified 5-Section CS482 Submission PDF (`report/CS482_GroupX_StockVolatilityLLM.pdf`, `4.46` A4 main pp) Sign-Off (阶段 B Colab L4 实测结果与 CS482 五节统一提交版 PDF 整合验收) | `COMPLETED & PUSHED` | `c1a2139a64969add89a38a06d9e477a5cdfdee41` *(initial M8 `8e8bead` + 5-section unification)* | `VERIFIED PASS` (`ruff`: 0 errors; `pytest`: `104/104` passed; Final PDF audit `PASS` `9/9` gates, A4 `4.46` main pp, `61/61` claims verified, `0` forbidden terms; `0` frozen/sibling diffs) |
 
 ---
 
 ## 2. Mandatory Per-Milestone Documentation Policy (每个里程碑的强制记录规范)
 
-Before any milestone (`M0` through `M6`) is committed and pushed to GitHub `origin/main`, the milestone worker and verification gate MUST enforce the following 6 rules:
+Before any milestone (`M0` through `M8`) is committed and pushed to GitHub `origin/main`, the milestone worker and verification gate MUST enforce the following 6 rules:
 
 1. **Dual-Content Requirement (双重记录要求):**
    Every milestone report (`docs/milestones/M<N>_*.md`) MUST document both:
@@ -45,9 +45,9 @@ Before any milestone (`M0` through `M6`) is committed and pushed to GitHub `orig
 
 ---
 
-## 3. Mandatory Milestone Markdown Template for M2–M6 (后续里程碑 M2–M6 标准 Markdown 模板)
+## 3. Standard Milestone Markdown Template (M2–M8 标准 Markdown 模板)
 
-All future milestones (`M2` through `M6`) must copy and populate the following standard template:
+All milestones (`M2` through `M8`) copy and populate the following standard template:
 
 ```markdown
 # Milestone M<N>: <English Title> (里程碑 M<N>：<中文标题>)

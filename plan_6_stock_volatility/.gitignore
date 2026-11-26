@@ -31,10 +31,11 @@ catboost_info/
 *.ckpt
 *.gguf
 
-# Raw multi-GB archives (never commit raw bulk dumps)
+# Raw multi-GB & Colab export archives (never commit bulk dumps or packaged zips)
 data/raw/*.zip
 data/raw/*.tar.gz
 data/raw/*.tgz
+phase_b_*_outputs.zip
 
 # LaTeX build intermediates (keep .tex, .bib, compiled .pdf, and audit .md)
 *.aux

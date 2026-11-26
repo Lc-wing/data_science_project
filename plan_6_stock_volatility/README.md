@@ -12,7 +12,7 @@ This folder is a self-contained `uv` project (`stock-volatility` / `src/stock_vo
 
 ## Progress & Milestones (Phase A & Phase B)
 
-Phase A (M0–M6) is 100% CPU-reproducible and freezes the aligned panel, purged splits, and corporate-event text dataset (`data/frozen/`). Phase B (M7–M8) delivers the PyTorch Route A (`PatchTST`) + single-A100 Colab Route B (`ProsusAI/finbert`, `Qwen/Qwen3.8-27B` Zero-Shot & 4-bit NF4 QLoRA, `amazon/chronos-2` / `chronos-t5-large`) pipeline, 2024-Val OOF meta-fusion & H3 evaluation, and post-Colab CS482 final PDF merger (see [`PHASE_B.md`](PHASE_B.md)).
+Phase A (M0–M6) is 100% CPU-reproducible and freezes the aligned panel, purged splits, and corporate-event text dataset (`data/frozen/`). Phase B (M7–M8) delivers the PyTorch Route A (`PatchTST`) + Colab single-GPU Route B (`ProsusAI/finbert`, `google/gemma-4-12B-it` [L4 24GB] / `Qwen/Qwen3.8-27B` [A100 40–80GB] Zero-Shot & 4-bit NF4 QLoRA, `amazon/chronos-2` / `chronos-t5-large`) pipeline, 2024-Val OOF meta-fusion & H3 evaluation, and unified 5-section CS482 final PDF (`report/CS482_GroupX_StockVolatilityLLM.pdf`; see [`PHASE_B.md`](PHASE_B.md)).
 
 | Milestone | Scope | Status | Delivery & AI Execution Doc |
 | --- | --- | --- | --- |
@@ -24,7 +24,7 @@ Phase A (M0–M6) is 100% CPU-reproducible and freezes the aligned panel, purged
 | M5 | 300-DPI Figure 1 & Figure 2, Table 1, audited CS482 Phase A Draft PDF (`4.00` A4 main pp), and one-command replay CLI | done (`63dc8ec`) | [`docs/milestones/M5_figures_table1_and_cs482_report.md`](docs/milestones/M5_figures_table1_and_cs482_report.md) |
 | M6 | Opaque-box E2E Tiers 1–4 verification, Tier 5 white-box adversarial hardening & final Phase A sign-off | done (`547b286`) | [`docs/milestones/M6_e2e_and_adversarial_hardening.md`](docs/milestones/M6_e2e_and_adversarial_hardening.md) / [`TEST_READY.md`](TEST_READY.md) |
 | M7 | Phase B Engineering Package: PyTorch `PatchTST` (1M/15M), `FinBERT`/`Chronos`/`google/gemma-4-12B-it`/`Qwen/Qwen3.8-27B` QLoRA Colab L4/A100 CLI & notebook, 2024-Val OOF meta-fusion, H3 evaluator, post-Colab CS482 PDF merger (`<= 5.0` A4 pp) | done (`1b6827f`) | [`docs/milestones/M7_phase_b_colab_and_dl_pipeline.md`](docs/milestones/M7_phase_b_colab_and_dl_pipeline.md) / [`PHASE_B.md`](PHASE_B.md) |
-| M8 | Colab single-L4 execution (`outputs/phase_b/`: `PatchTST`, `Chronos`, `FinBERT`, `google/gemma-4-12B-it` QLoRA) & final audited CS482 submission PDF (`report/CS482_GroupX_StockVolatilityLLM.pdf`) | done | [`docs/milestones/M8_phase_b_l4_results_and_final_pdf.md`](docs/milestones/M8_phase_b_l4_results_and_final_pdf.md) / [`report/CS482_GroupX_StockVolatilityLLM.pdf`](report/CS482_GroupX_StockVolatilityLLM.pdf) |
+| M8 | Colab single-L4 execution (`outputs/phase_b/`: `PatchTST`, `Chronos`, `FinBERT`, `google/gemma-4-12B-it` QLoRA) & unified 5-section CS482 submission PDF (`report/CS482_GroupX_StockVolatilityLLM.pdf`, `4.46` A4 main pp) | done (`c1a2139`) | [`docs/milestones/M8_phase_b_l4_results_and_final_pdf.md`](docs/milestones/M8_phase_b_l4_results_and_final_pdf.md) / [`report/CS482_GroupX_StockVolatilityLLM.pdf`](report/CS482_GroupX_StockVolatilityLLM.pdf) |
 
 See [`docs/milestones/README.md`](docs/milestones/README.md) for the master milestone delivery ledger, the mandatory per-milestone AI execution recording policy, and the standard template for Milestones M0–M8.
 
@@ -105,28 +105,29 @@ MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/run_phase_a.py --skip-dow
 
 ### M6 5-Tier E2E & White-Box Adversarial Hardening Suite
 
-Run the standalone 5-tier E2E & single-fault adversarial hardening suite (31 tests across Tiers 1–5; see [`TEST_READY.md`](TEST_READY.md)) or the full 103-test repository suite:
+Run the standalone 5-tier E2E & single-fault adversarial hardening suite (31 tests across Tiers 1–5; see [`TEST_READY.md`](TEST_READY.md)) or the full 104-test repository suite:
 
 ```bash
 MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run pytest tests/e2e --project-root . -v
 MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run pytest -v
 ```
 
-### M7–M8 Phase B (PatchTST, FinBERT, Chronos, `Qwen/Qwen3.8-27B` QLoRA) & Final PDF Merger
+### M7–M8 Phase B (PatchTST, FinBERT, Chronos, `google/gemma-4-12B-it` / `Qwen/Qwen3.8-27B` QLoRA) & Final PDF Merger
 
-Phase B is split into CPU-verified code/tests (M7) and single-A100 Colab execution + final PDF merge (M8). See [`PHASE_B.md`](PHASE_B.md) and [`notebooks/phase_b_colab.ipynb`](notebooks/phase_b_colab.ipynb) for full GPU setup instructions:
+Phase B comprises CPU-verified code/tests (M7) and single-GPU Colab L4/A100 execution + final 5-section CS482 PDF integration (M8). See [`PHASE_B.md`](PHASE_B.md) and [`notebooks/phase_b_colab.ipynb`](notebooks/phase_b_colab.ipynb) for full GPU setup instructions:
 
 ```bash
-# Local CPU verification of Phase B package (zero weight downloads):
+# Local CPU verification of Phase B package & committed L4 results (zero weight downloads):
 MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run pytest tests/test_phase_b.py -v
 
-# On Colab single-A100 GPU (explicit opt-in required to download HF weights):
+# On Colab single-GPU L4 (24GB) or A100 (40/80GB) (explicit opt-in required for HF weights):
 python scripts/colab_phase_b.py \
   --allow-weight-download \
-  --llm-model Qwen/Qwen3.8-27B \
+  --resume \
+  --llm-model auto \
   --routes all
 
-# Post-Colab local CPU report merge into report/CS482_GroupX_StockVolatilityLLM.pdf:
+# Post-Colab local CPU report build into report/CS482_GroupX_StockVolatilityLLM.pdf:
 MPLBACKEND=Agg OMP_NUM_THREADS=1 uv run python scripts/07_integrate_phase_b_report.py
 ```
 
