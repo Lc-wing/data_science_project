@@ -54,8 +54,10 @@ def events_phase_b_df(project_root: Path) -> pd.DataFrame:
 
 @pytest.fixture(scope="session")
 def test_pred_df(project_root: Path) -> pd.DataFrame:
-    """Load `outputs/tables/h2_test_predictions.parquet` once per E2E session."""
-    return pd.read_parquet(project_root / "outputs" / "tables" / "h2_test_predictions.parquet")
+    """Load `outputs/predictions/h2_test_predictions.parquet` once per E2E session."""
+    return pd.read_parquet(
+        project_root / "outputs" / "predictions" / "h2_test_predictions.parquet"
+    )
 
 
 def clone_project_for_mutation(src_root: Path, dst_root: Path) -> Path:
@@ -73,6 +75,7 @@ def clone_project_for_mutation(src_root: Path, dst_root: Path) -> Path:
         "outputs/tables",
         "outputs/metrics",
         "outputs/figures",
+        "outputs/predictions",
         "report",
         "docs/milestones",
     ):

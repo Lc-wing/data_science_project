@@ -14,8 +14,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from stock_volatility import config
+from stock_volatility.analysis.panel_har_rv import CORE_HAR_COLS, NON_REF_SECTORS
 from stock_volatility.evaluation import RV_FLOOR
-from stock_volatility.regression import CORE_HAR_COLS, NON_REF_SECTORS
 
 MODEL_FEATURES: tuple[str, ...] = (
     "rv_d",

@@ -24,8 +24,8 @@ def test_t3_01_freeze_manifest_sha256_matches_disk_and_pdf_prefix(
     verify_freeze_manifest(frozen_dir=project_root / "data" / "frozen", project_root=project_root)
 
     panel_sha12 = freeze_manifest["files"]["data/frozen/panel_daily.parquet"]["sha256"][:12]
-    tex = (project_root / "report" / "phase_a_draft.tex").read_text(encoding="utf-8")
-    assert panel_sha12 in tex, f"Panel SHA-256 prefix {panel_sha12} missing from phase_a_draft.tex"
+    tex = (project_root / "report" / "report.tex").read_text(encoding="utf-8")
+    assert panel_sha12 in tex, f"Panel SHA-256 prefix {panel_sha12} missing from report.tex"
 
     reader = PdfReader(str(project_root / "report" / config.REPORT_PDF_NAME))
     cover_txt = reader.pages[0].extract_text() or ""
@@ -121,14 +121,14 @@ def test_t3_03_table1_csv_md_tex_numeric_consistency(project_root: Path) -> None
         assert tok in t1_tex, f"Value {tok!r} missing from Table 1 LaTeX"
 
 
-def test_t3_04_all_51_report_claims_trace_to_pdf_and_audit(project_root: Path) -> None:
-    """Verify every one of the 51 programmatically collected claims appears in PDF and audit."""
+def test_t3_04_all_report_claims_trace_to_pdf_and_audit(project_root: Path) -> None:
+    """Verify every one of the 61 programmatically collected claims appears in PDF and audit."""
     claims = collect_report_claims(project_root)
-    assert len(claims) == 51
+    assert len(claims) == 61
 
     reader = PdfReader(str(project_root / "report" / config.REPORT_PDF_NAME))
     norm_pdf = re.sub(r"\s+", " ", "\n".join(p.extract_text() or "" for p in reader.pages))
-    audit_md = (project_root / "report" / "phase_a_audit.md").read_text(encoding="utf-8")
+    audit_md = (project_root / "report" / "report_audit.md").read_text(encoding="utf-8")
 
     missing_pdf: list[str] = []
     missing_audit: list[str] = []
@@ -141,4 +141,4 @@ def test_t3_04_all_51_report_claims_trace_to_pdf_and_audit(project_root: Path) -
             missing_audit.append(f"{key}={val}")
 
     assert not missing_pdf, f"Claims missing from compiled PDF: {missing_pdf}"
-    assert not missing_audit, f"Claims missing from phase_a_audit.md: {missing_audit}"
+    assert not missing_audit, f"Claims missing from report_audit.md: {missing_audit}"

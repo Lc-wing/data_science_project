@@ -10,9 +10,9 @@ import pandas as pd
 import torch
 
 from stock_volatility import config
+from stock_volatility.analysis.dl.patchtst import nominal_interval_coverage
+from stock_volatility.analysis.dl.qlora_llm import require_cuda_and_download_flag
 from stock_volatility.evaluation import regression_metrics
-from stock_volatility.phase_b.patchtst import nominal_interval_coverage
-from stock_volatility.phase_b.route_b_llm import require_cuda_and_download_flag
 
 DEFAULT_CHRONOS_MODELS: tuple[str, ...] = (
     "amazon/chronos-2",

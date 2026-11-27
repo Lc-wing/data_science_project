@@ -19,7 +19,7 @@ from stock_volatility import config
 
 def test_holm_bonferroni_adjustment_exact_values(block_network: None) -> None:
     """Verify step-down Holm-Bonferroni adjusted p-values match textbook values."""
-    from stock_volatility.regression import holm_bonferroni_adjust
+    from stock_volatility.analysis.panel_har_rv import holm_bonferroni_adjust
 
     raw = [0.01, 0.04, 0.03, 0.005]
     # Sorted: 0.005 (*4=0.02), 0.01 (*3=0.03), 0.03 (*2=0.06), 0.04 (*1=0.04 -> max=0.06)
@@ -29,7 +29,7 @@ def test_holm_bonferroni_adjustment_exact_values(block_network: None) -> None:
 
 def test_driscoll_kraay_se_matches_statsmodels_hac_groupsum(block_network: None) -> None:
     """Verify Stock-FE Driscoll-Kraay SE matches statsmodels hac-groupsum up to exact FE dof."""
-    from stock_volatility.regression import fit_stock_fe_driscoll_kraay
+    from stock_volatility.analysis.panel_har_rv import fit_stock_fe_driscoll_kraay
 
     rng = np.random.default_rng(42)
     n_entities, n_dates = 10, 60
@@ -81,7 +81,7 @@ def test_h1_pipeline_runs_offline_and_is_deterministic(
     tmp_path: Path, block_network: None
 ) -> None:
     """Verify run_h1_regression_pipeline runs offline from frozen panel deterministically."""
-    from stock_volatility.regression import run_h1_regression_pipeline
+    from stock_volatility.analysis.panel_har_rv import run_h1_regression_pipeline
 
     out_tables = tmp_path / "tables"
     out_metrics = tmp_path / "metrics"

@@ -1,4 +1,4 @@
-"""Phase B Calibration, 2024-Val OOF Cross-Modal Fusion, and 2025 H3 Ablation Evaluation."""
+"""Section 3.3 Calibration, 2024-Val OOF Cross-Modal Fusion & 2025 H3 Ablation Evaluation."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from scipy.special import expit, logit
 from sklearn.linear_model import LogisticRegression, Ridge
 
 from stock_volatility import config
+from stock_volatility.analysis.panel_har_rv import holm_bonferroni_adjust
 from stock_volatility.evaluation import (
     classification_metrics,
     date_block_bootstrap_ci,
@@ -18,7 +19,6 @@ from stock_volatility.evaluation import (
     qlike_loss_array,
     regression_metrics,
 )
-from stock_volatility.regression import holm_bonferroni_adjust
 
 
 def fit_temperature_scaler(logits_val: np.ndarray, y_val: np.ndarray) -> float:
@@ -55,14 +55,14 @@ def _assign_quarters(dates: pd.Series) -> np.ndarray:
 
 def fit_2024_val_oof_meta_fusion(
     *,
-    val_phase_a: pd.DataFrame,
-    test_phase_a: pd.DataFrame,
+    val_base_df: pd.DataFrame,
+    test_base_df: pd.DataFrame,
     val_text_scores: pd.DataFrame,
     test_text_scores: pd.DataFrame,
     score_col: str,
     arm_name: str,
 ) -> dict[str, Any]:
-    """Fuse Phase A LightGBM predictions with event-day text/LLM logits strictly via 2024 Val OOF.
+    """Fuse Global LightGBM predictions with event-day text/LLM logits strictly via 2024 Val OOF.
 
     Why 2024 Val OOF meta-fusion:
     - QLoRA adapters were trained on 2019-2023 Train, so Train-split LLM scores are in-sample.
@@ -72,13 +72,13 @@ def fit_2024_val_oof_meta_fusion(
       single-shot untouched.
     - Non-event trading days receive deterministic neutral score `0.0` paired with `has_news`.
     """
-    val_df = val_phase_a.merge(
+    val_df = val_base_df.merge(
         val_text_scores[["ticker", "date", score_col]],
         on=["ticker", "date"],
         how="left",
         validate="one_to_one",
     ).copy()
-    test_df = test_phase_a.merge(
+    test_df = test_base_df.merge(
         test_text_scores[["ticker", "date", score_col]],
         on=["ticker", "date"],
         how="left",
@@ -106,7 +106,7 @@ def fit_2024_val_oof_meta_fusion(
     test_ev_mask = test_has_ev == 1.0
     test_z_cal = np.where(test_ev_mask, (test_raw_z - ev_mean) / (ev_std * max(temp, 0.25)), 0.0)
 
-    # Feature matrix for meta-fusion: [base_phase_a_signal, text_z_cal, has_news]
+    # Feature matrix for meta-fusion: [base_lgbm_signal, text_z_cal, has_news]
     x_cls_val = np.column_stack(
         [_safe_logit(val_df["p_tail_lgbm_cal"].to_numpy()), val_z_cal, val_has_ev]
     )
@@ -198,16 +198,16 @@ def _fmt_p(p: float) -> str:
     return f"{p:.3f}"
 
 
-def evaluate_phase_b_h3_ablation(
+def evaluate_h3_dl_ablation(
     *,
-    phase_a_test_df: pd.DataFrame,
-    phase_b_arms: dict[str, dict[str, Any]],
+    base_test_df: pd.DataFrame,
+    dl_arms: dict[str, dict[str, Any]],
     block_len: int = 5,
     n_boot: int = 1000,
     seed: int = config.RANDOM_SEED,
 ) -> dict[str, Any]:
-    """Evaluate Phase A LightGBM vs all Phase B arms on 2025 Full, Event-Day & Earnings subsets."""
-    base = phase_a_test_df.sort_values(["date", "ticker"], kind="mergesort").reset_index(drop=True)
+    """Evaluate Global LightGBM vs all H3 DL/LLM arms on 2025 Full, Event-Day & Earnings subsets."""
+    base = base_test_df.sort_values(["date", "ticker"], kind="mergesort").reset_index(drop=True)
     dates = base["date"].to_numpy()
     rv_true = base["rv_5d_fwd"].to_numpy(dtype=float)
     y_tail = base["y_tail"].to_numpy(dtype=int)
@@ -275,7 +275,7 @@ def evaluate_phase_b_h3_ablation(
 
     rows: list[dict[str, Any]] = [
         {
-            **_eval_arm("phase_a_lgbm", "Phase A LightGBM (Price-Only)", base_rv, base_p),
+            **_eval_arm("global_lgbm", "Global LightGBM (Price-Only)", base_rv, base_p),
             "dm_qlike_stat": float("nan"),
             "dm_qlike_p_raw": float("nan"),
             "dm_qlike_p_holm": float("nan"),
@@ -290,7 +290,7 @@ def evaluate_phase_b_h3_ablation(
     dm_b_raw: list[float] = []
     arm_rows_tmp: list[dict[str, Any]] = []
 
-    for arm_id, spec in phase_b_arms.items():
+    for arm_id, spec in dl_arms.items():
         merged = base[["ticker", "date"]].merge(
             spec["test_pred_df"], on=["ticker", "date"], how="left", validate="one_to_one"
         )
@@ -301,7 +301,7 @@ def evaluate_phase_b_h3_ablation(
         )
         rec = _eval_arm(arm_id, str(spec["label"]), rv_hat, p_hat, spec.get("nominal_80_coverage"))
 
-        # Multi-step h=5 HLN-DM tests against Phase A LightGBM (d_t = L(arm) - L(phase_a_lgbm))
+        # Multi-step h=5 HLN-DM tests against Global LightGBM (d_t = L(arm) - L(global_lgbm))
         d_ql = pd.Series(qlike_loss_array(rv_true, rv_hat) - base_ql_arr).groupby(dates).mean()
         dm_q = hln_dm_test(d_ql.to_numpy(), horizon=config.HORIZON_DAYS)
         rec["dm_qlike_stat"] = dm_q["dm_hln_stat"]
@@ -339,19 +339,19 @@ def evaluate_phase_b_h3_ablation(
     n_ev_fmt = f"{int(ev_mask.sum()):,}".replace(",", "{,}")
 
     md_lines = [
-        "# Phase B Extension — 2025 Holdout Multimodal & Deep Time-Series Ablation (H3)",
+        "# Table 2: 2025 Holdout Deep Time-Series & Event-Anchored LLM Ablation (H3)",
         "",
         "| Model | 2025 Full QLIKE | Event-Day QLIKE | Tail PR-AUC (Event) | ECE | "
         "HLN-DM Holm p (Q / B vs LGBM) |",
         "| --- | ---: | ---: | ---: | ---: | ---: |",
     ]
     tex_lines = [
-        r"\begin{table}[!t]",
+        r"\begin{table}[!htb]",
         r"\centering",
-        rf"\caption{{Phase B Extension: 2025 Single-Shot Holdout Ablation ($N={n_full_fmt}$ full; "
-        rf"${n_ev_fmt}$ scorable pre-close event days; $h=5$ HLN-DM Holm $p$-values "
-        r"vs.\ Phase A LightGBM; ``---'' indicates volatility-only models).}",
-        r"\label{tab:phase_b_summary}",
+        rf"\caption{{2025 Single-Shot Holdout Deep Time-Series and Event-Anchored LLM Ablation "
+        rf"(H3; $N={n_full_fmt}$ full; ${n_ev_fmt}$ scorable pre-close event days; $h=5$ HLN-DM "
+        r"Holm $p$-values vs.\ Global LightGBM; ``---'' indicates volatility-only models).}",
+        r"\label{tab:h3_summary}",
         r"\scriptsize",
         r"\setlength{\tabcolsep}{3.5pt}",
         r"\begin{tabular}{lccccc}",
@@ -362,7 +362,7 @@ def evaluate_phase_b_h3_ablation(
     ]
 
     for r in rows:
-        if r["arm_id"] == "phase_a_lgbm":
+        if r["arm_id"] == "global_lgbm":
             dm_md = dm_tex = "Ref."
         else:
             pq_s = _fmt_p(r["dm_qlike_p_holm"])

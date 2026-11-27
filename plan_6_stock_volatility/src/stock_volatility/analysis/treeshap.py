@@ -10,7 +10,7 @@ import pandas as pd
 import shap
 
 from stock_volatility import config
-from stock_volatility.baselines import MODEL_FEATURES
+from stock_volatility.analysis.baselines import MODEL_FEATURES
 
 
 def _extract_positive_class_shap(

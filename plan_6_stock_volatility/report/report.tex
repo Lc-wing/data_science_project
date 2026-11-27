@@ -232,7 +232,7 @@ Ridge/Logistic meta-fusion are fit strictly inside 2024 Val and frozen for
 single-shot 2025 Test evaluation. Uncertainty is quantified via 5-day
 date-block bootstrap 95\% CIs ($B=1{,}000$) and $h=5$ Bartlett-PSD
 HLN-modified Diebold--Mariano tests~\cite{harvey1997} with Holm adjustment
-(Tables~\ref{tab:main_summary}--\ref{tab:phase_b_summary}).
+(Tables~\ref{tab:main_summary}--\ref{tab:h3_summary}).
 
 \begin{table}[!t]
 \centering
@@ -268,15 +268,15 @@ Panel HAR-RV (+ Logistic) & 0.2383 [0.158,0.380] & 0.0957 & 0.1422 [0.104,0.191]
 
 \begin{table}[!htb]
 \centering
-\caption{2025 Single-Shot Holdout Deep Time-Series and Event-Anchored LLM Ablation (H3) ($N=14{,}700$ full; $895$ scorable pre-close event days; $h=5$ HLN-DM Holm $p$-values vs.\ Phase A LightGBM; ``---'' indicates volatility-only models).}
-\label{tab:phase_b_summary}
+\caption{2025 Single-Shot Holdout Deep Time-Series and Event-Anchored LLM Ablation (H3; $N=14{,}700$ full; $895$ scorable pre-close event days; $h=5$ HLN-DM Holm $p$-values vs.\ Global LightGBM; ``---'' indicates volatility-only models).}
+\label{tab:h3_summary}
 \scriptsize
 \setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{lccccc}
 \toprule
 Model (Parameters) & Full QLIKE & Event QLIKE & Tail PR-AUC (Ev.) & ECE & DM Holm $p$ (Q/B) \\
 \midrule
-Phase A LightGBM (Price-Only) & 0.2306 & 0.1980 & 0.1231 (0.1076) & 0.0102 & Ref. \\
+Global LightGBM (Price-Only) & 0.2306 & 0.1980 & 0.1231 (0.1076) & 0.0102 & Ref. \\
 PatchTST (1M, 5-seed; 80\% cov=63.1\%) & 0.3142 & 0.2800 & 0.0964 (0.0887) & 0.4407 & <0.0001 / <0.0001 \\
 PatchTST (15M, 5-seed; 80\% cov=68.3\%) & 0.2819 & 0.2473 & 0.1129 (0.1027) & 0.4349 & <0.001 / <0.0001 \\
 chronos-2 (Zero-Shot; 80\% cov=89.2\%) & 0.3505 & 0.3181 & --- & --- & 0.006 / --- \\
@@ -341,7 +341,7 @@ Figure~\ref{fig:shap_cal}B), yet Logistic HAR-RV leads overall PR-AUC
 80\% coverage (63.1\% $\to$ 68.3\%), and \texttt{chronos-2} (0.3505)
 outperforms \texttt{chronos-t5-large} (0.5848), yet all four deep/foundation
 time-series baselines still trail tabular LightGBM (Holm $p \le 0.006$;
-Table~\ref{tab:phase_b_summary}). In contrast, 2024-Val OOF text fusion
+Table~\ref{tab:h3_summary}). In contrast, 2024-Val OOF text fusion
 significantly reduces 2025 full-universe QLIKE across all three text arms (to
 0.2251--0.2252; \texttt{google/gemma-4-12B-it} QLoRA event-day QLIKE 0.2008,
 $h=5$ HLN-DM Holm $p=0.020$, ECE 0.0102). On the 895 scorable event days,
@@ -379,7 +379,7 @@ investment advice}.
 {\small
 \setstretch{1.08}
 \bibliographystyle{plainnat}
-\bibliography{final_references}
+\bibliography{references}
 }
 
 \clearpage
@@ -403,7 +403,7 @@ Implemented and executed the Colab single-GPU deep learning pipeline
 (\texttt{PatchTST} 1M/15M, \texttt{Chronos-2}/\texttt{T5-Large},
 \texttt{FinBERT}, \texttt{google/gemma-4-12B-it} Zero-Shot \& 4-bit NF4 QLoRA), 2024-Val
 OOF meta-fusion, Table~2, and automated final PDF claim/formatting verification
-(\texttt{phase\_b\_audit.md}).
+(\texttt{report\_audit.md}).
 \end{itemize}
 
 \section*{AI Usage Declaration \& Academic Integrity}
@@ -418,12 +418,12 @@ and verified all data, code, references, and analytical results: raw Yahoo,
 FRED, and SEC EDGAR snapshots are sealed under SHA-256
 (\texttt{FREEZE\_MANIFEST.json}); Driscoll--Kraay SEs were cross-checked
 against \texttt{statsmodels}; all 300/300 GJR-GARCH fits, Colab NVIDIA L4 GPU
-training runs (\texttt{scripts/colab\_phase\_b.py}), bootstrap CIs, HLN-DM
-tests, TreeSHAP additivity checks ($< 10^{-7}$), and all 61 reported numbers
-were executed and audited programmatically via deterministic pipelines
-(\texttt{scripts/run\_phase\_a.py},
-\texttt{scripts/07\_integrate\_phase\_b\_report.py}) and a 104-test pytest
-suite. All citations were verified directly against original scholarly venues.
+training runs (\texttt{scripts/06\_dl\_and\_llm\_gpu.py}), bootstrap CIs,
+HLN-DM tests, TreeSHAP additivity checks ($< 10^{-7}$), and all 61 reported
+numbers were executed and audited programmatically via deterministic pipelines
+(\texttt{scripts/run\_pipeline.py},
+\texttt{scripts/07\_build\_report.py}) and a 104-test pytest suite. All
+citations were verified directly against original scholarly venues.
 \textbf{Student Responsibility.} The group assumes full responsibility for
 the accuracy and academic integrity of this report. Every member can fully
 explain their assigned methods, code, and conclusions; no plagiarism,

@@ -1,4 +1,4 @@
-"""Phase B frozen data loader, 60-day PatchTST sequence builder & zero-leakage prompt builder."""
+"""Frozen sequence/text dataset loader, 60-day PatchTST windows & zero-leakage prompt builder."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ import pandas as pd
 from stock_volatility import config
 from stock_volatility.panel.freeze import verify_freeze_manifest
 
-# 14 strictly <= t continuous predictors used by Route A PatchTST (standardized on Train only)
-PHASE_B_CONT_FEATURES: tuple[str, ...] = (
+# 14 strictly <= t continuous predictors used by multivariate PatchTST (standardized on Train only)
+DL_CONT_FEATURES: tuple[str, ...] = (
     "rv_d",
     "rv_w",
     "rv_m",
@@ -35,8 +35,8 @@ TICKER_TO_ID: dict[str, int] = {t: i for i, t in enumerate(config.UNIVERSE_TICKE
 SECTOR_TO_ID: dict[str, int] = {s: i for i, s in enumerate(config.SECTORS)}
 
 
-def load_frozen_phase_b_inputs(project_root: Path | None = None) -> dict[str, Any]:
-    """Verify `FREEZE_MANIFEST.json` SHA-256 hashes and load frozen Phase A -> Phase B inputs."""
+def load_frozen_dl_inputs(project_root: Path | None = None) -> dict[str, Any]:
+    """Verify `FREEZE_MANIFEST.json` SHA-256 hashes and load frozen panel + event-text inputs."""
     root = Path(project_root) if project_root is not None else config.PROJECT_ROOT
     frozen_dir = root / "data" / "frozen"
     manifest = verify_freeze_manifest(frozen_dir=frozen_dir, project_root=root)
@@ -51,7 +51,7 @@ def load_frozen_phase_b_inputs(project_root: Path | None = None) -> dict[str, An
         "project_root": root,
         "manifest": manifest,
         "panel_df": panel_df,
-        "events_phase_b_df": events_df,
+        "events_df": events_df,
         "feature_manifest": feature_manifest,
         "split_metadata": split_metadata,
         "analysis_spec": analysis_spec,
@@ -140,7 +140,7 @@ def build_patchtst_windows(
     feature_manifest: dict[str, Any],
     *,
     lookback: int = 60,
-    cont_features: tuple[str, ...] = PHASE_B_CONT_FEATURES,
+    cont_features: tuple[str, ...] = DL_CONT_FEATURES,
 ) -> dict[str, dict[str, np.ndarray]]:
     """Construct strictly `<= t` lookback windows standardized ONLY with Train statistics.
 

@@ -17,7 +17,7 @@ from stock_volatility import config
 
 def test_quarterly_expanding_folds_enforce_strict_5d_purge(block_network: None) -> None:
     """Verify Val + 2025 Q1..Q4 expanding folds maintain >= 5d purge and exclude embargoes."""
-    from stock_volatility.baselines import build_quarterly_expanding_folds
+    from stock_volatility.analysis.baselines import build_quarterly_expanding_folds
 
     panel = pd.read_parquet(config.DATA_FROZEN_DIR / "panel_daily.parquet")
     val_fold, test_folds = build_quarterly_expanding_folds(panel)
@@ -50,7 +50,7 @@ def test_quarterly_expanding_folds_enforce_strict_5d_purge(block_network: None) 
 
 def test_duan_smearing_and_gjr_garch_5d_forecast_formulas(block_network: None) -> None:
     """Verify Duan smearing back-transform and closed-form 5-day GJR-GARCH recursion."""
-    from stock_volatility.baselines import (
+    from stock_volatility.analysis.baselines import (
         duan_smearing_backtransform,
         gjr_garch_5d_annualized_vol,
     )
@@ -84,8 +84,8 @@ def test_duan_smearing_and_gjr_garch_5d_forecast_formulas(block_network: None) -
 
 def test_probability_calibrators_reduce_ece_on_miscalibrated_probs(block_network: None) -> None:
     """Verify Platt, Temperature Scaling, and Isotonic calibrators improve calibration."""
+    from stock_volatility.analysis.lgbm import fit_and_apply_calibrator
     from stock_volatility.evaluation import expected_calibration_error
-    from stock_volatility.forecast import fit_and_apply_calibrator
 
     rng = np.random.default_rng(42)
     logits = rng.normal(-2.2, 1.0, size=2000)
@@ -110,8 +110,8 @@ def test_probability_calibrators_reduce_ece_on_miscalibrated_probs(block_network
 
 def test_committed_m4_predictions_garch_and_selection_artifacts(block_network: None) -> None:
     """Verify committed M4 prediction parquets, GARCH convergence log, and Val selection JSON."""
-    val_pred_path = config.OUTPUTS_TABLES_DIR / "h2_val_predictions.parquet"
-    test_pred_path = config.OUTPUTS_TABLES_DIR / "h2_test_predictions.parquet"
+    val_pred_path = config.OUTPUTS_PREDICTIONS_DIR / "h2_val_predictions.parquet"
+    test_pred_path = config.OUTPUTS_PREDICTIONS_DIR / "h2_test_predictions.parquet"
     garch_conv_path = config.OUTPUTS_TABLES_DIR / "h2_garch_convergence.csv"
     baselines_json_path = config.OUTPUTS_METRICS_DIR / "h2_baselines.json"
     selection_json_path = config.OUTPUTS_METRICS_DIR / "h2_lgbm_selection.json"

@@ -1,8 +1,8 @@
-# Final Submission — CS482 Unified 5-Section Report Automated Audit
+# CS482 Final Submission — Unified 5-Section Report Automated Audit
 
 - Overall Audit Verdict: **PASS**
 - Provenance Timestamp (UTC): `2026-11-22T14:04:28+00:00`
-- Target PDF: `report/CS482_GroupX_StockVolatilityLLM.pdf` (`439,600 B`)
+- Target PDF: `report/CS482_GroupX_StockVolatilityLLM.pdf` (`439,782 B`)
 - Page Geometry (`pdfinfo`): `595.28 x 841.89 pts` (A4 = `595.28 x 841.89 pts`, pass=`True`)
 - Total PDF Pages: `8` (Cover: `1`, Main Text pages occupied: `5`, Back Matter: `2`)
 - Main Text Length: `4.46` A4 pages (CS482 required range: `[3.00, 5.00]` A4 pages, cover/references/declarations excluded)
@@ -78,13 +78,13 @@
 | `SHAP_BG_N` | `1,000` | `outputs/metrics/shap_audit.json` | `background_n` |
 | `SHAP_RVM_CLF_PCT` | `24.4` | `outputs/metrics/shap_audit.json` | `top_features_classifier_prob[0].share_pct` |
 | `SHAP_VIX_CLF_PCT` | `11.9` | `outputs/metrics/shap_audit.json` | `top_features_classifier_prob[1].share_pct` |
-| `PB_PEAK_VRAM` | `15.3` | `outputs/phase_b/phase_b_summary.json` | `peak_vram_gb` |
-| `PB_PATCHTST_QLIKE` | `0.2819` | `outputs/phase_b/phase_b_summary.json` | `patchtst_15m_qlike` |
-| `PB_PATCHTST_COV80` | `68.3` | `outputs/phase_b/phase_b_summary.json` | `100*patchtst_15m_coverage_80` |
-| `PB_FINBERT_PRAUC_EV` | `0.1398` | `outputs/phase_b/phase_b_summary.json` | `finbert_pr_auc_event` |
-| `PB_LLM_ZS_PRAUC_EV` | `0.1108` | `outputs/phase_b/phase_b_summary.json` | `qwen_zs_pr_auc_event` |
-| `PB_LLM_QLIKE_FULL` | `0.2252` | `outputs/phase_b/phase_b_summary.json` | `qwen_qlora_qlike_full` |
-| `PB_LLM_QLIKE_EV` | `0.2008` | `outputs/phase_b/phase_b_summary.json` | `qwen_qlora_qlike_event` |
-| `PB_LLM_PRAUC_FULL` | `0.1224` | `outputs/phase_b/phase_b_summary.json` | `qwen_qlora_pr_auc_full` |
-| `PB_LLM_PRAUC_EV` | `0.1076` | `outputs/phase_b/phase_b_summary.json` | `qwen_qlora_pr_auc_event` |
-| `PB_LLM_ECE` | `0.0102` | `outputs/phase_b/phase_b_summary.json` | `qwen_qlora_ece` |
+| `H3_PEAK_VRAM` | `15.3` | `outputs/metrics/h3_dl_summary.json` | `peak_vram_gb` |
+| `H3_PATCHTST_QLIKE` | `0.2819` | `outputs/metrics/h3_dl_summary.json` | `patchtst_15m_qlike` |
+| `H3_PATCHTST_COV80` | `68.3` | `outputs/metrics/h3_dl_summary.json` | `100*patchtst_15m_coverage_80` |
+| `H3_FINBERT_PRAUC_EV` | `0.1398` | `outputs/metrics/h3_dl_summary.json` | `finbert_pr_auc_event` |
+| `H3_LLM_ZS_PRAUC_EV` | `0.1108` | `outputs/metrics/h3_dl_summary.json` | `qwen_zs_pr_auc_event` |
+| `H3_LLM_QLIKE_FULL` | `0.2252` | `outputs/metrics/h3_dl_summary.json` | `qwen_qlora_qlike_full` |
+| `H3_LLM_QLIKE_EV` | `0.2008` | `outputs/metrics/h3_dl_summary.json` | `qwen_qlora_qlike_event` |
+| `H3_LLM_PRAUC_FULL` | `0.1224` | `outputs/metrics/h3_dl_summary.json` | `qwen_qlora_pr_auc_full` |
+| `H3_LLM_PRAUC_EV` | `0.1076` | `outputs/metrics/h3_dl_summary.json` | `qwen_qlora_pr_auc_event` |
+| `H3_LLM_ECE` | `0.0102` | `outputs/metrics/h3_dl_summary.json` | `qwen_qlora_ece` |

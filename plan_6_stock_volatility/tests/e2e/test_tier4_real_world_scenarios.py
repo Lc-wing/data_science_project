@@ -46,15 +46,15 @@ def test_t4_02_isolated_clone_report_only_replay_is_bit_identical(
         "outputs/tables/table1_summary.md",
         "outputs/tables/table1_summary.tex",
         "report/references.bib",
-        "report/phase_a_draft.tex",
+        "report/report.tex",
         f"report/{config.REPORT_PDF_NAME}",
-        "report/phase_a_audit.md",
+        "report/report_audit.md",
     ):
         target = clone_root / rel
         if target.is_file():
             target.unlink()
 
-    script = config.PROJECT_ROOT / "scripts" / "run_phase_a.py"
+    script = config.PROJECT_ROOT / "scripts" / "run_pipeline.py"
     env = dict(os.environ, MPLBACKEND="Agg", OMP_NUM_THREADS="1")
     proc = subprocess.run(
         [sys.executable, str(script), "--report-only", "--project-root", str(clone_root)],
@@ -68,10 +68,10 @@ def test_t4_02_isolated_clone_report_only_replay_is_bit_identical(
     assert proc.returncode == 0, f"Isolated --report-only failed:\n{proc.stdout}\n{proc.stderr}"
     payload = json.loads(proc.stdout)
     assert payload["verdict"] == "PASS"
-    assert payload["claims_verified"] == 51
-    assert payload["main_pages_occupied"] == 4
+    assert payload["claims_verified"] == 61
+    assert payload["main_pages_occupied"] == 5
 
-    # Verify bit-for-bit SHA-256 identity across all 11 M5 artifacts (including all 3 PDFs)
+    # Verify bit-for-bit SHA-256 identity across all 11 report & figure artifacts
     for rel in (
         "outputs/figures/fig1_volatility_regimes_and_forecasts.png",
         "outputs/figures/fig1_volatility_regimes_and_forecasts.pdf",
@@ -81,9 +81,9 @@ def test_t4_02_isolated_clone_report_only_replay_is_bit_identical(
         "outputs/tables/table1_summary.md",
         "outputs/tables/table1_summary.tex",
         "report/references.bib",
-        "report/phase_a_draft.tex",
+        "report/report.tex",
         f"report/{config.REPORT_PDF_NAME}",
-        "report/phase_a_audit.md",
+        "report/report_audit.md",
     ):
         assert config.sha256_file(clone_root / rel) == config.sha256_file(project_root / rel), (
             f"Non-deterministic replay diff detected on {rel}"
@@ -95,12 +95,12 @@ def test_t4_03_tampered_frozen_artifact_blocks_replay_cli(
     tmp_path: Path,
     clone_project: Any,
 ) -> None:
-    """Scenario 3: Corrupting 1 byte in frozen data forces `run_phase_a.py` to abort non-zero."""
+    """Scenario 3: Corrupting 1 byte in frozen data forces `run_pipeline.py` to abort non-zero."""
     clone_root = clone_project(project_root, tmp_path / "tampered_frozen_clone")
     spec_path = clone_root / "data" / "frozen" / "analysis_spec.json"
     spec_path.write_text(spec_path.read_text(encoding="utf-8") + " ", encoding="utf-8")
 
-    script = config.PROJECT_ROOT / "scripts" / "run_phase_a.py"
+    script = config.PROJECT_ROOT / "scripts" / "run_pipeline.py"
     env = dict(os.environ, MPLBACKEND="Agg", OMP_NUM_THREADS="1")
     proc = subprocess.run(
         [sys.executable, str(script), "--report-only", "--project-root", str(clone_root)],

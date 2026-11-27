@@ -1,8 +1,9 @@
-"""One-command Colab L4/A100 Phase B Runner (PatchTST + Chronos + FinBERT + Gemma-4 / Qwen QLoRA).
+"""Step 06 Colab Single-GPU Deep Learning & LLM Runner (PatchTST + Chronos + FinBERT + QLoRA).
 
 Refuses to download weights or touch CUDA unless BOTH `--allow-weight-download` is passed AND
-`torch.cuda.is_available()` is True. Reads Phase A `data/frozen/` read-only (verified via
-`FREEZE_MANIFEST.json`) and writes all Phase B outputs under `outputs/phase_b/`.
+`torch.cuda.is_available()` is True. Reads `data/frozen/` read-only (verified via
+`FREEZE_MANIFEST.json`) and writes H3 predictions, metrics, and Table 2 directly under unified
+`outputs/{predictions,metrics,tables}/`.
 """
 
 from __future__ import annotations
@@ -18,29 +19,29 @@ import pandas as pd
 import torch
 
 from stock_volatility import config
-from stock_volatility.phase_b.data_contract import (
+from stock_volatility.analysis.dl.chronos import (
+    DEFAULT_CHRONOS_MODELS,
+    run_chronos_volatility_forecasts,
+)
+from stock_volatility.analysis.dl.datasets import (
     build_event_anchored_datasets,
     build_patchtst_windows,
-    load_frozen_phase_b_inputs,
+    load_frozen_dl_inputs,
 )
-from stock_volatility.phase_b.fusion_and_eval import (
-    evaluate_phase_b_h3_ablation,
+from stock_volatility.analysis.dl.finbert import (
+    DEFAULT_FINBERT_MODEL,
+    extract_finbert_event_scores,
+)
+from stock_volatility.analysis.dl.fusion import (
+    evaluate_h3_dl_ablation,
     fit_2024_val_oof_meta_fusion,
 )
-from stock_volatility.phase_b.patchtst import (
+from stock_volatility.analysis.dl.patchtst import (
     PATCHTST_1M_CONFIG,
     PATCHTST_15M_CONFIG,
     train_and_predict_patchtst,
 )
-from stock_volatility.phase_b.route_b_chronos import (
-    DEFAULT_CHRONOS_MODELS,
-    run_chronos_volatility_forecasts,
-)
-from stock_volatility.phase_b.route_b_finbert import (
-    DEFAULT_FINBERT_MODEL,
-    extract_finbert_event_scores,
-)
-from stock_volatility.phase_b.route_b_llm import (
+from stock_volatility.analysis.dl.qlora_llm import (
     DEFAULT_L4_LLM_MODEL,
     DEFAULT_LLM_MODEL,
     require_cuda_and_download_flag,
@@ -50,9 +51,9 @@ from stock_volatility.phase_b.route_b_llm import (
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    """Parse CLI options for Colab single-GPU (L4 24GB or A100 40GB/80GB) Phase B execution."""
+    """Parse CLI options for Colab single-GPU (L4 24GB or A100 40–80GB) H3 DL/LLM execution."""
     parser = argparse.ArgumentParser(
-        description="Plan 6 Phase B Colab GPU Runner (PatchTST + FinBERT + LLM QLoRA + Chronos)."
+        description="Step 06 Colab GPU Runner (PatchTST + Chronos + FinBERT + 4-bit QLoRA LLM)."
     )
     parser.add_argument(
         "--allow-weight-download",
@@ -77,9 +78,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--routes",
         nargs="+",
-        choices=("all", "route_a", "finbert", "llm", "chronos"),
+        choices=("all", "patchtst", "finbert", "llm", "chronos"),
         default=["all"],
-        help="Subsets of Phase B to run (default: all).",
+        help="Subsets of H3 deep learning / LLM stages to run (default: all).",
     )
     parser.add_argument("--llm-epochs", type=int, default=1, help="QLoRA fine-tuning epochs.")
     parser.add_argument(
@@ -91,7 +92,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--resume",
         action="store_true",
-        help="Reuse already-saved Stage 1-4 outputs in outputs/phase_b/ instead of recomputing.",
+        help="Reuse already-saved Stage 1-4 outputs under outputs/ instead of recomputing.",
     )
     parser.add_argument(
         "--max-train-events",
@@ -104,13 +105,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         type=int,
         nargs="+",
         default=[42, 43, 44, 45, 46],
-        help="Random seeds for Route A PatchTST (default: 42 43 44 45 46).",
+        help="Random seeds for multivariate PatchTST ensemble (default: 42 43 44 45 46).",
     )
     parser.add_argument(
-        "--out-dir",
+        "--outputs-dir",
         type=Path,
         default=None,
-        help="Output directory for Phase B artifacts (default: outputs/phase_b/).",
+        help="Root outputs dir with predictions/, metrics/, tables/ (default: outputs/).",
     )
     return parser.parse_args(argv)
 
@@ -132,9 +133,9 @@ def _format_patchtst_label(base_label: str, cov80: float) -> str:
     return f"{stem}; 80% cov={100.0 * cov80:.1f}%)"
 
 
-def hydrate_saved_phase_b_state(
+def hydrate_saved_h3_state(
     *,
-    out_dir: Path,
+    outputs_root: Path,
     run_set: set[str],
     resolved_llm: str,
     summary: dict[str, Any],
@@ -144,19 +145,21 @@ def hydrate_saved_phase_b_state(
     if "all" in run_set:
         return
 
-    summary_path = out_dir / "phase_b_summary.json"
+    preds_dir = outputs_root / "predictions"
+    metrics_dir = outputs_root / "metrics"
+    summary_path = metrics_dir / "h3_dl_summary.json"
     if summary_path.is_file():
         prev_summary = json.loads(summary_path.read_text(encoding="utf-8"))
         for k, v in prev_summary.items():
             summary.setdefault(k, v)
 
-    if "route_a" not in run_set:
+    if "patchtst" not in run_set:
         for arm_id, lbl in (
             ("patchtst_1m", "PatchTST (1M, 5-seed)"),
             ("patchtst_15m", "PatchTST (15M, 5-seed)"),
         ):
-            pred_p = out_dir / f"{arm_id}_test_predictions.parquet"
-            met_p = out_dir / f"{arm_id}_metrics.json"
+            pred_p = preds_dir / f"{arm_id}_test_predictions.parquet"
+            met_p = metrics_dir / f"{arm_id}_metrics.json"
             if pred_p.is_file() and met_p.is_file():
                 met_saved = json.loads(met_p.read_text(encoding="utf-8"))
                 cov80 = float(met_saved["test_nominal_80_coverage"])
@@ -174,8 +177,8 @@ def hydrate_saved_phase_b_state(
     if "chronos" not in run_set:
         for ch_id in DEFAULT_CHRONOS_MODELS:
             slug = ch_id.split("/")[-1].replace("-", "_")
-            pred_p = out_dir / f"{slug}_test_predictions.parquet"
-            met_p = out_dir / f"{slug}_metrics.json"
+            pred_p = preds_dir / f"{slug}_test_predictions.parquet"
+            met_p = metrics_dir / f"{slug}_metrics.json"
             if pred_p.is_file() and met_p.is_file():
                 met_saved = json.loads(met_p.read_text(encoding="utf-8"))
                 cov80_c = float(met_saved["test_nominal_80_coverage"])
@@ -186,7 +189,7 @@ def hydrate_saved_phase_b_state(
                 }
 
     if "finbert" not in run_set:
-        fb_p = out_dir / "lgbm_plus_finbert_test.parquet"
+        fb_p = preds_dir / "lgbm_plus_finbert_test.parquet"
         if fb_p.is_file():
             arms_for_ablation["lgbm_plus_finbert"] = {
                 "label": "LightGBM + FinBERT (110M)",
@@ -194,7 +197,7 @@ def hydrate_saved_phase_b_state(
             }
 
     if "llm" not in run_set:
-        llm_meta_p = out_dir / "llm_run_metadata.json"
+        llm_meta_p = metrics_dir / "llm_run_metadata.json"
         model_for_label = resolved_llm
         if llm_meta_p.is_file():
             llm_meta = json.loads(llm_meta_p.read_text(encoding="utf-8"))
@@ -205,7 +208,7 @@ def hydrate_saved_phase_b_state(
             ("lgbm_plus_llm_zs", "Zero-Shot"),
             ("lgbm_plus_llm_qlora", "4-bit QLoRA"),
         ):
-            arm_p = out_dir / f"{arm_key}_test.parquet"
+            arm_p = preds_dir / f"{arm_key}_test.parquet"
             if arm_p.is_file():
                 arms_for_ablation[arm_key] = {
                     "label": f"LightGBM + {short_name} ({suffix})",
@@ -225,11 +228,11 @@ def _free_cuda() -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Execute Colab GPU Phase B training, OOF fusion, H3 ablation & export artifacts."""
+    """Execute Colab GPU H3 deep learning & LLM training, OOF fusion, and Table 2 export."""
     args = parse_args(argv)
     require_cuda_and_download_flag(
         allow_weight_download=args.allow_weight_download,
-        component="colab_phase_b",
+        component="06_dl_and_llm_gpu",
     )
 
     gpu_name = str(torch.cuda.get_device_name(0))
@@ -238,30 +241,36 @@ def main(argv: list[str] | None = None) -> int:
         select_default_llm_for_vram(vram_gb) if args.llm_model == "auto" else args.llm_model
     )
     print(
-        f"[PhaseB] GPU={gpu_name} ({vram_gb:.1f} GB VRAM) | LLM={resolved_llm} "
+        f"[H3-GPU] GPU={gpu_name} ({vram_gb:.1f} GB VRAM) | LLM={resolved_llm} "
         f"| resume={args.resume}",
         flush=True,
     )
 
     root = config.PROJECT_ROOT
-    out_dir = args.out_dir.resolve() if args.out_dir is not None else (root / "outputs" / "phase_b")
-    out_dir.mkdir(parents=True, exist_ok=True)
+    outputs_root = (
+        args.outputs_dir.resolve() if args.outputs_dir is not None else (root / "outputs")
+    )
+    preds_dir = outputs_root / "predictions"
+    metrics_dir = outputs_root / "metrics"
+    tables_dir = outputs_root / "tables"
+    for d in (preds_dir, metrics_dir, tables_dir):
+        d.mkdir(parents=True, exist_ok=True)
 
     run_set = set(args.routes)
     run_all = "all" in run_set
 
-    bundle = load_frozen_phase_b_inputs(root)
+    bundle = load_frozen_dl_inputs(root)
     panel_df = bundle["panel_df"]
-    events_df = bundle["events_phase_b_df"]
+    events_df = bundle["events_df"]
     feat_m = bundle["feature_manifest"]
-    val_a = pd.read_parquet(root / "outputs" / "tables" / "h2_val_predictions.parquet")
-    test_a = pd.read_parquet(root / "outputs" / "tables" / "h2_test_predictions.parquet")
+    val_base = pd.read_parquet(root / "outputs" / "predictions" / "h2_val_predictions.parquet")
+    test_base = pd.read_parquet(root / "outputs" / "predictions" / "h2_test_predictions.parquet")
     ev_splits = build_event_anchored_datasets(panel_df, events_df)
 
     arms_for_ablation: dict[str, dict[str, Any]] = {}
     summary: dict[str, Any] = {
         "schema_version": "1.0.0",
-        "milestone": "PhaseB",
+        "milestone": "H3",
         "gpu_name": gpu_name,
         "gpu_vram_gb": round(vram_gb, 2),
         "llm_model_id": resolved_llm,
@@ -270,29 +279,29 @@ def main(argv: list[str] | None = None) -> int:
         "val_event_days": int(len(ev_splits["val"])),
         "test_event_days": int(len(ev_splits["test"])),
     }
-    hydrate_saved_phase_b_state(
-        out_dir=out_dir,
+    hydrate_saved_h3_state(
+        outputs_root=outputs_root,
         run_set=run_set,
         resolved_llm=resolved_llm,
         summary=summary,
         arms_for_ablation=arms_for_ablation,
     )
 
-    # 1. Route A: PatchTST 1M vs 15M capacity ablation (5 seeds)
-    if run_all or "route_a" in run_set:
+    # 1. Stage 1: Multivariate PatchTST 1M vs 15M capacity ablation (5 seeds)
+    if run_all or "patchtst" in run_set:
         windows: dict[str, Any] | None = None
         for cfg_obj, arm_id, lbl in (
             (PATCHTST_1M_CONFIG, "patchtst_1m", "PatchTST (1M, 5-seed)"),
             (PATCHTST_15M_CONFIG, "patchtst_15m", "PatchTST (15M, 5-seed)"),
         ):
-            pred_p = out_dir / f"{arm_id}_test_predictions.parquet"
-            met_p = out_dir / f"{arm_id}_metrics.json"
+            pred_p = preds_dir / f"{arm_id}_test_predictions.parquet"
+            met_p = metrics_dir / f"{arm_id}_metrics.json"
             if args.resume and pred_p.is_file() and met_p.is_file():
                 met_saved = json.loads(met_p.read_text(encoding="utf-8"))
                 pred_saved = pd.read_parquet(pred_p)
                 cov80 = float(met_saved["test_nominal_80_coverage"])
                 print(
-                    f"[PhaseB] Resumed {arm_id} from {pred_p.name} "
+                    f"[H3-GPU] Resumed {arm_id} from {pred_p.name} "
                     f"(QLIKE={met_saved['test_metrics_ensemble']['qlike']:.4f})",
                     flush=True,
                 )
@@ -309,10 +318,10 @@ def main(argv: list[str] | None = None) -> int:
                 continue
 
             if windows is None:
-                print("[PhaseB] Stage 1/4: Route A PatchTST (1M & 15M, 5 seeds)...", flush=True)
+                print("[H3-GPU] Stage 1/4: PatchTST (1M & 15M, 5 seeds)...", flush=True)
                 windows = build_patchtst_windows(panel_df, feat_m, lookback=60)
                 print(
-                    f"[PhaseB] Windows built: Train={len(windows['train']['x_seq']):,}, "
+                    f"[H3-GPU] Windows built: Train={len(windows['train']['x_seq']):,}, "
                     f"Val={len(windows['val']['x_seq']):,}, Test={len(windows['test']['x_seq']):,}",
                     flush=True,
                 )
@@ -337,17 +346,17 @@ def main(argv: list[str] | None = None) -> int:
                 summary["patchtst_15m_coverage_80"] = cov80_new
             _free_cuda()
 
-    # 2. Route B (Chronos Foundation Time-Series Baselines)
+    # 2. Stage 2: Chronos Foundation Time-Series Baselines
     if run_all or "chronos" in run_set:
         for ch_id in DEFAULT_CHRONOS_MODELS:
             slug = ch_id.split("/")[-1].replace("-", "_")
-            pred_p = out_dir / f"{slug}_test_predictions.parquet"
-            met_p = out_dir / f"{slug}_metrics.json"
+            pred_p = preds_dir / f"{slug}_test_predictions.parquet"
+            met_p = metrics_dir / f"{slug}_metrics.json"
             if args.resume and pred_p.is_file() and met_p.is_file():
                 met_saved = json.loads(met_p.read_text(encoding="utf-8"))
                 pred_saved = pd.read_parquet(pred_p)
                 print(
-                    f"[PhaseB] Resumed {slug} from {pred_p.name} "
+                    f"[H3-GPU] Resumed {slug} from {pred_p.name} "
                     f"(QLIKE={met_saved['test_metrics']['qlike']:.4f})",
                     flush=True,
                 )
@@ -359,7 +368,7 @@ def main(argv: list[str] | None = None) -> int:
                 }
                 continue
 
-            print(f"[PhaseB] Stage 2/4: Route B Chronos ({ch_id})...", flush=True)
+            print(f"[H3-GPU] Stage 2/4: Chronos ({ch_id})...", flush=True)
             res_ch = run_chronos_volatility_forecasts(
                 panel_df=panel_df,
                 model_id=ch_id,
@@ -375,29 +384,31 @@ def main(argv: list[str] | None = None) -> int:
             }
             _free_cuda()
 
-    # 3. Route B (FinBERT 110M Baseline + 2024-Val OOF Fusion)
+    # 3. Stage 3: FinBERT 110M Baseline + 2024-Val OOF Fusion
     if run_all or "finbert" in run_set:
-        fb_test_p = out_dir / "lgbm_plus_finbert_test.parquet"
+        fb_test_p = preds_dir / "lgbm_plus_finbert_test.parquet"
         if args.resume and fb_test_p.is_file():
-            print(f"[PhaseB] Resumed lgbm_plus_finbert from {fb_test_p.name}", flush=True)
+            print(f"[H3-GPU] Resumed lgbm_plus_finbert from {fb_test_p.name}", flush=True)
             arms_for_ablation["lgbm_plus_finbert"] = {
                 "label": "LightGBM + FinBERT (110M)",
                 "test_pred_df": pd.read_parquet(fb_test_p),
             }
         else:
-            print(f"[PhaseB] Stage 3/4: Route B FinBERT ({args.finbert_model})...", flush=True)
+            print(f"[H3-GPU] Stage 3/4: FinBERT ({args.finbert_model})...", flush=True)
             res_fb = extract_finbert_event_scores(
                 event_splits=ev_splits,
                 model_id=args.finbert_model,
                 allow_weight_download=args.allow_weight_download,
             )
-            res_fb["val_scores_df"].to_parquet(out_dir / "finbert_val_scores.parquet", index=False)
+            res_fb["val_scores_df"].to_parquet(
+                preds_dir / "finbert_val_scores.parquet", index=False
+            )
             res_fb["test_scores_df"].to_parquet(
-                out_dir / "finbert_test_scores.parquet", index=False
+                preds_dir / "finbert_test_scores.parquet", index=False
             )
             fused_fb = fit_2024_val_oof_meta_fusion(
-                val_phase_a=val_a,
-                test_phase_a=test_a,
+                val_base_df=val_base,
+                test_base_df=test_base,
                 val_text_scores=res_fb["val_scores_df"],
                 test_text_scores=res_fb["test_scores_df"],
                 score_col="finbert_neg_logit",
@@ -410,17 +421,17 @@ def main(argv: list[str] | None = None) -> int:
             }
             _free_cuda()
 
-    # 4. Route B Flagship: LLM Zero-Shot & 4-bit NF4 QLoRA + 2024-Val OOF Fusion
+    # 4. Stage 4: LLM Zero-Shot & 4-bit NF4 QLoRA + 2024-Val OOF Fusion
     if run_all or "llm" in run_set:
-        llm_val_p = out_dir / "llm_val_scores.parquet"
-        llm_test_p = out_dir / "llm_test_scores.parquet"
-        llm_meta_p = out_dir / "llm_run_metadata.json"
+        llm_val_p = preds_dir / "llm_val_scores.parquet"
+        llm_test_p = preds_dir / "llm_test_scores.parquet"
+        llm_meta_p = metrics_dir / "llm_run_metadata.json"
         resumed_llm = False
         if args.resume and llm_val_p.is_file() and llm_test_p.is_file() and llm_meta_p.is_file():
             saved_meta = json.loads(llm_meta_p.read_text(encoding="utf-8"))
             if saved_meta.get("model_id") == resolved_llm:
                 print(
-                    f"[PhaseB] Resumed Stage 4 LLM ({resolved_llm}) from {llm_meta_p.name}",
+                    f"[H3-GPU] Resumed Stage 4 LLM ({resolved_llm}) from {llm_meta_p.name}",
                     flush=True,
                 )
                 val_llm_df = pd.read_parquet(llm_val_p)
@@ -440,7 +451,7 @@ def main(argv: list[str] | None = None) -> int:
             train_bs = max(1, int(args.llm_train_batch_size))
             grad_accum = max(1, (8 + train_bs - 1) // train_bs)
             print(
-                f"[PhaseB] Stage 4/4: Route B LLM Zero-Shot & QLoRA ({resolved_llm}, "
+                f"[H3-GPU] Stage 4/4: LLM Zero-Shot & QLoRA ({resolved_llm}, "
                 f"bs={train_bs}x{grad_accum})...",
                 flush=True,
             )
@@ -479,15 +490,15 @@ def main(argv: list[str] | None = None) -> int:
             ("llm_qlora_logit", "lgbm_plus_llm_qlora", f"LightGBM + {short_name} (4-bit QLoRA)"),
         ):
             fused = fit_2024_val_oof_meta_fusion(
-                val_phase_a=val_a,
-                test_phase_a=test_a,
+                val_base_df=val_base,
+                test_base_df=test_base,
                 val_text_scores=val_llm_df,
                 test_text_scores=test_llm_df,
                 score_col=col_name,
                 arm_name=arm_key,
             )
             fused["test_pred_df"].to_parquet(
-                out_dir / f"{arm_key}_test.parquet", index=False, compression="zstd"
+                preds_dir / f"{arm_key}_test.parquet", index=False, compression="zstd"
             )
             arms_for_ablation[arm_key] = {
                 "label": label,
@@ -502,19 +513,20 @@ def main(argv: list[str] | None = None) -> int:
         if k not in ordered_arms:
             ordered_arms[k] = v
 
-    ablation = evaluate_phase_b_h3_ablation(
-        phase_a_test_df=test_a,
-        phase_b_arms=ordered_arms,
+    ablation = evaluate_h3_dl_ablation(
+        base_test_df=test_base,
+        dl_arms=ordered_arms,
         block_len=5,
         n_boot=1000,
         seed=config.RANDOM_SEED,
     )
     comp_df = ablation["comparison_df"]
-    comp_df.to_csv(out_dir / "phase_b_comparison.csv", index=False, lineterminator="\n")
-    (out_dir / "phase_b_comparison.md").write_text(ablation["markdown_table"], encoding="utf-8")
-    (out_dir / "phase_b_comparison.tex").write_text(ablation["latex_table"], encoding="utf-8")
+    comp_df.to_csv(tables_dir / "table2_h3_ablation.csv", index=False, lineterminator="\n")
+    (tables_dir / "table2_h3_ablation.md").write_text(
+        ablation["markdown_table"], encoding="utf-8"
+    )
+    (tables_dir / "table2_h3_ablation.tex").write_text(ablation["latex_table"], encoding="utf-8")
 
-    # Populate report-ready summary keys from verified comparison rows
     by_arm = comp_df.set_index("arm_id").to_dict(orient="index")
     if "lgbm_plus_finbert" in by_arm:
         summary["finbert_qlike_event"] = float(by_arm["lgbm_plus_finbert"]["qlike_event_days"])
@@ -523,7 +535,7 @@ def main(argv: list[str] | None = None) -> int:
         summary["qwen_zs_pr_auc_event"] = float(by_arm["lgbm_plus_llm_zs"]["pr_auc_event_days"])
     if "lgbm_plus_llm_qlora" in by_arm:
         ql_r = by_arm["lgbm_plus_llm_qlora"]
-        base_r = by_arm["phase_a_lgbm"]
+        base_r = by_arm["global_lgbm"]
         llm_id_for_note = str(summary.get("llm_model_id", resolved_llm))
         summary.update(
             {
@@ -534,7 +546,7 @@ def main(argv: list[str] | None = None) -> int:
                 "qwen_qlora_ece": float(ql_r["ece"]),
                 "qwen_qlora_dm_p_holm": float(ql_r["dm_qlike_p_holm"]),
                 "h3_interpretation": (
-                    f"Relative to Phase A price-only LightGBM (event-day PR-AUC "
+                    f"Relative to price-only Global LightGBM (event-day PR-AUC "
                     f"{base_r['pr_auc_event_days']:.4f}, full QLIKE {base_r['qlike_full']:.4f}), "
                     f"{llm_id_for_note} QLoRA achieves event-day PR-AUC "
                     f"{ql_r['pr_auc_event_days']:.4f} and full QLIKE {ql_r['qlike_full']:.4f} "
@@ -543,7 +555,7 @@ def main(argv: list[str] | None = None) -> int:
             }
         )
 
-    _write_json(out_dir / "phase_b_summary.json", summary)
+    _write_json(metrics_dir / "h3_dl_summary.json", summary)
     print(ablation["markdown_table"])
     return 0
 

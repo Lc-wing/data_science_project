@@ -108,7 +108,7 @@ def _apply_named_fault(mutated_root: Path, fault_id: str) -> None:
         plt.close(fig)
 
     elif fault_id == "claim_dropped_from_audit":
-        p = mutated_root / "report" / "phase_a_audit.md"
+        p = mutated_root / "report" / "report_audit.md"
         txt = p.read_text(encoding="utf-8")
         p.write_text(txt.replace("`LGBM_QLIKE` | `0.2306`", "`LGBM_QLIKE` | `0.9999`"), "utf-8")
 
@@ -195,8 +195,8 @@ _TIER5_SPECS: tuple[tuple[str, tuple[Path, ...], str, tuple[str, ...], int], ...
     (
         "claim_dropped_from_audit",
         (_TIER3,),
-        "test_t3_04_all_51_report_claims_trace_to_pdf_and_audit",
-        ("Claims missing from phase_a_audit.md", "LGBM_QLIKE"),
+        "test_t3_04_all_report_claims_trace_to_pdf_and_audit",
+        ("Claims missing from report_audit.md", "LGBM_QLIKE"),
         1,
     ),
 )

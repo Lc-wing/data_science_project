@@ -35,7 +35,7 @@ catboost_info/
 data/raw/*.zip
 data/raw/*.tar.gz
 data/raw/*.tgz
-phase_b_*_outputs.zip
+*_gpu_outputs.zip
 
 # LaTeX build intermediates (keep .tex, .bib, compiled .pdf, and audit .md)
 *.aux

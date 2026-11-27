@@ -7,7 +7,7 @@ import json
 import sys
 from pathlib import Path
 
-from stock_volatility.regression import run_h1_regression_pipeline
+from stock_volatility.analysis.panel_har_rv import run_h1_regression_pipeline
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

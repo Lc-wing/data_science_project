@@ -163,8 +163,8 @@ def test_t1_05_m4_h2_backtest_calibration_dm_and_shap_artifacts(
 ) -> None:
     """F13-F16: Verify all 14 M4 forecasting, calibration, HLN-DM, and TreeSHAP artifacts."""
     for rel in (
-        "outputs/tables/h2_val_predictions.parquet",
-        "outputs/tables/h2_test_predictions.parquet",
+        "outputs/predictions/h2_val_predictions.parquet",
+        "outputs/predictions/h2_test_predictions.parquet",
         "outputs/tables/h2_garch_convergence.csv",
         "outputs/tables/h2_test_metrics.csv",
         "outputs/tables/h2_test_by_sector.csv",
@@ -181,7 +181,9 @@ def test_t1_05_m4_h2_backtest_calibration_dm_and_shap_artifacts(
         p = project_root / rel
         assert p.is_file() and p.stat().st_size > 100, f"Missing M4 output: {rel}"
 
-    val_pred = pd.read_parquet(project_root / "outputs" / "tables" / "h2_val_predictions.parquet")
+    val_pred = pd.read_parquet(
+        project_root / "outputs" / "predictions" / "h2_val_predictions.parquet"
+    )
     assert len(val_pred) == 14_760
     assert len(test_pred_df) == 14_700
 
@@ -208,8 +210,8 @@ def test_t1_05_m4_h2_backtest_calibration_dm_and_shap_artifacts(
     assert shap_m["classifier_classes"] == [0, 1]
 
 
-def test_t1_06_m5_figures_table1_and_cs482_report_artifacts(project_root: Path) -> None:
-    """F17-F19: Verify M5 300-DPI Figure 1 & 2, Table 1, BibTeX, LaTeX, PDF, and audit report."""
+def test_t1_06_figures_tables_and_unified_cs482_report_artifacts(project_root: Path) -> None:
+    """F17-F20: Verify 300-DPI Figure 1 & 2, Table 1 & 2, BibTeX, LaTeX, PDF, and 61-claim audit."""
     for rel in (
         "outputs/figures/fig1_volatility_regimes_and_forecasts.png",
         "outputs/figures/fig1_volatility_regimes_and_forecasts.pdf",
@@ -218,15 +220,19 @@ def test_t1_06_m5_figures_table1_and_cs482_report_artifacts(project_root: Path) 
         "outputs/tables/table1_summary.csv",
         "outputs/tables/table1_summary.md",
         "outputs/tables/table1_summary.tex",
+        "outputs/tables/table2_h3_ablation.csv",
+        "outputs/tables/table2_h3_ablation.md",
+        "outputs/tables/table2_h3_ablation.tex",
+        "outputs/metrics/h3_dl_summary.json",
         "report/references.bib",
-        "report/phase_a_draft.tex",
+        "report/report.tex",
         f"report/{config.REPORT_PDF_NAME}",
-        "report/phase_a_audit.md",
+        "report/report_audit.md",
     ):
         p = project_root / rel
-        assert p.is_file() and p.stat().st_size > 500, f"Missing M5 artifact: {rel}"
+        assert p.is_file() and p.stat().st_size > 500, f"Missing report/table artifact: {rel}"
 
-    audit_md = (project_root / "report" / "phase_a_audit.md").read_text(encoding="utf-8")
+    audit_md = (project_root / "report" / "report_audit.md").read_text(encoding="utf-8")
     assert "Overall Audit Verdict: **PASS**" in audit_md
-    assert "Numeric Claims Verified: `51/51`" in audit_md
+    assert "Numeric Claims Verified: `61/61`" in audit_md
     assert "Forbidden Wording / Artifact Hits: `0`" in audit_md

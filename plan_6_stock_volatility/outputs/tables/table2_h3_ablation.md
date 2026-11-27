@@ -1,8 +1,8 @@
-# Phase B Extension — 2025 Holdout Multimodal & Deep Time-Series Ablation (H3)
+# Table 2: 2025 Holdout Deep Time-Series & Event-Anchored LLM Ablation (H3)
 
 | Model | 2025 Full QLIKE | Event-Day QLIKE | Tail PR-AUC (Event) | ECE | HLN-DM Holm p (Q / B vs LGBM) |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Phase A LightGBM (Price-Only) | `0.2306` | `0.1980` | `0.1231 (0.1076)` | `0.0102` | `Ref.` |
+| Global LightGBM (Price-Only) | `0.2306` | `0.1980` | `0.1231 (0.1076)` | `0.0102` | `Ref.` |
 | PatchTST (1M, 5-seed; 80% cov=63.1%) | `0.3142` | `0.2800` | `0.0964 (0.0887)` | `0.4407` | `<0.0001 / <0.0001` |
 | PatchTST (15M, 5-seed; 80% cov=68.3%) | `0.2819` | `0.2473` | `0.1129 (0.1027)` | `0.4349` | `<0.001 / <0.0001` |
 | chronos-2 (Zero-Shot; 80% cov=89.2%) | `0.3505` | `0.3181` | `—` | `—` | `0.006 / —` |

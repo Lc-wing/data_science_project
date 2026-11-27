@@ -12,7 +12,7 @@ from scipy import stats
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 
 from stock_volatility import config
-from stock_volatility.regression import holm_bonferroni_adjust
+from stock_volatility.analysis.panel_har_rv import holm_bonferroni_adjust
 
 RV_FLOOR: float = 1e-4
 

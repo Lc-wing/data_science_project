@@ -15,7 +15,7 @@ import torch
 import torch.nn.functional as F
 
 from stock_volatility import config
-from stock_volatility.phase_b.data_contract import build_event_prompt
+from stock_volatility.analysis.dl.datasets import build_event_prompt
 
 DEFAULT_LLM_MODEL: str = "Qwen/Qwen3.8-27B"
 DEFAULT_L4_LLM_MODEL: str = "google/gemma-4-12B-it"

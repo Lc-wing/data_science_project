@@ -7,7 +7,7 @@ import json
 import sys
 from pathlib import Path
 
-from stock_volatility.eda import run_eda_pipeline
+from stock_volatility.analysis.eda import run_eda_pipeline
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

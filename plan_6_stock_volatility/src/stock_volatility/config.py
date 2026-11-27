@@ -22,6 +22,7 @@ OUTPUTS_DIR: Path = PROJECT_ROOT / "outputs"
 OUTPUTS_TABLES_DIR: Path = OUTPUTS_DIR / "tables"
 OUTPUTS_METRICS_DIR: Path = OUTPUTS_DIR / "metrics"
 OUTPUTS_FIGURES_DIR: Path = OUTPUTS_DIR / "figures"
+OUTPUTS_PREDICTIONS_DIR: Path = OUTPUTS_DIR / "predictions"
 REPORT_DIR: Path = PROJECT_ROOT / "report"
 
 PROVENANCE_PATH: Path = DATA_RAW_DIR / "data_provenance.json"
@@ -52,7 +53,7 @@ SEC_USER_AGENT: str = os.environ.get(
     "SEC_EDGAR_USER_AGENT",
     "CS482-Academic-Research Plan6-StockVolatility (cs482-research@example.edu)",
 )
-REPORT_PDF_NAME: str = "CS482_GroupX_StockVolatilityLLM_PhaseA_Draft.pdf"
+REPORT_PDF_NAME: str = "CS482_GroupX_StockVolatilityLLM.pdf"
 
 # Deterministic 60-stock cross-sector universe (5 GICS sectors x 12 pre-2019 liquid S&P 500 names)
 SECTORS: tuple[str, ...] = (
@@ -148,6 +149,7 @@ def ensure_project_dirs(root: Path | None = None) -> tuple[Path, ...]:
         base / "outputs" / "tables",
         base / "outputs" / "metrics",
         base / "outputs" / "figures",
+        base / "outputs" / "predictions",
         base / "report",
     )
     for directory in dirs:

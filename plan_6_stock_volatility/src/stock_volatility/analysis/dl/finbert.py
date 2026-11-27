@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from stock_volatility.phase_b.route_b_llm import (
+from stock_volatility.analysis.dl.qlora_llm import (
     require_cuda_and_download_flag,
     resolve_hf_model_revision,
 )

@@ -72,7 +72,7 @@ def _make_synthetic_panel() -> pd.DataFrame:
 
 def test_eda_tables_pure_functions_and_vix_train_only_threshold(block_network: None) -> None:
     """Verify EDA builders compute exact numerators/denominators and Train-only VIX median."""
-    from stock_volatility.eda import (
+    from stock_volatility.analysis.eda import (
         compute_coverage_consistency,
         compute_leverage_asymmetry,
         compute_regimes_by_sector,
@@ -116,7 +116,7 @@ def test_eda_pipeline_writes_deterministic_outputs_to_tmp(
     tmp_path: Path, block_network: None
 ) -> None:
     """Verify run_eda_pipeline runs offline from frozen panel and writes all 6 outputs."""
-    from stock_volatility.eda import run_eda_pipeline
+    from stock_volatility.analysis.eda import run_eda_pipeline
 
     out_tables = tmp_path / "tables"
     out_metrics = tmp_path / "metrics"

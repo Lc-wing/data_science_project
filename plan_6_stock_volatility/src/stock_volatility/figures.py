@@ -528,10 +528,11 @@ def generate_all_figures(
     fig_dir = Path(outputs_figures_dir) if outputs_figures_dir else (root / "outputs" / "figures")
     tables_dir = root / "outputs" / "tables"
     metrics_dir = root / "outputs" / "metrics"
+    preds_dir = root / "outputs" / "predictions"
 
     panel_df = pd.read_parquet(root / "data" / "frozen" / "panel_daily.parquet")
     leverage_df = pd.read_csv(tables_dir / "eda_leverage_asymmetry.csv")
-    test_pred_df = pd.read_parquet(tables_dir / "h2_test_predictions.parquet")
+    test_pred_df = pd.read_parquet(preds_dir / "h2_test_predictions.parquet")
     shap_imp_df = pd.read_csv(tables_dir / "shap_importance.csv")
     shap_regime_df = pd.read_csv(tables_dir / "shap_regime_summary.csv")
     shap_audit = json.loads((metrics_dir / "shap_audit.json").read_text(encoding="utf-8"))

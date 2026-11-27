@@ -1,11 +1,14 @@
-"""Comprehensive offline CPU TDD test suite for Plan 6 Milestone M7 (Phase B package)."""
+"""Comprehensive offline CPU test suite for Section 3.3 Deep Learning & Event-Anchored LLMs."""
 
 from __future__ import annotations
 
+import importlib.util
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
@@ -16,33 +19,35 @@ from pypdf import PdfReader
 from stock_volatility import config
 
 
-def test_phase_b_data_contract_windows_and_zero_target_leakage_prompts(
+def test_dl_datasets_windows_and_zero_target_leakage_prompts(
     block_network: None,
 ) -> None:
     """Verify frozen manifest check, 60-day PatchTST windows, and zero-leakage event prompts."""
-    from stock_volatility.phase_b.data_contract import (
-        PHASE_B_CONT_FEATURES,
+    from stock_volatility.analysis.dl.datasets import (
+        DL_CONT_FEATURES,
         build_event_anchored_datasets,
         build_event_prompt,
         build_patchtst_windows,
-        load_frozen_phase_b_inputs,
+        load_frozen_dl_inputs,
     )
 
-    bundle = load_frozen_phase_b_inputs(config.PROJECT_ROOT)
+    bundle = load_frozen_dl_inputs(config.PROJECT_ROOT)
     panel_df = bundle["panel_df"]
-    events_df = bundle["events_phase_b_df"]
+    events_df = bundle["events_df"]
     feat_m = bundle["feature_manifest"]
 
-    assert len(PHASE_B_CONT_FEATURES) == 14
+    assert len(DL_CONT_FEATURES) == 14
     assert len(panel_df) == 105_600
     assert len(events_df) == 105_600
 
-    import stock_volatility.phase_b as pb_pkg
+    import stock_volatility.analysis as analysis_pkg
+    import stock_volatility.analysis.dl as dl_pkg
 
-    assert hasattr(pb_pkg, "patchtst")
-    assert hasattr(pb_pkg, "route_b_llm")
+    assert hasattr(analysis_pkg, "dl")
+    assert hasattr(dl_pkg, "patchtst")
+    assert hasattr(dl_pkg, "qlora_llm")
     with pytest.raises(AttributeError):
-        _ = pb_pkg.nonexistent_submodule
+        _ = dl_pkg.nonexistent_submodule
 
     # 1. Event-anchored datasets strictly exclude embargo and non-event days
     ev_splits = build_event_anchored_datasets(panel_df, events_df)
@@ -76,7 +81,7 @@ def test_phase_b_data_contract_windows_and_zero_target_leakage_prompts(
     windows = build_patchtst_windows(sub_panel, feat_m, lookback=60)
     assert set(windows.keys()) == {"train", "val", "test"}
     x_tr = windows["train"]["x_seq"]
-    assert x_tr.ndim == 3 and x_tr.shape[1] == 60 and x_tr.shape[2] == len(PHASE_B_CONT_FEATURES)
+    assert x_tr.ndim == 3 and x_tr.shape[1] == 60 and x_tr.shape[2] == len(DL_CONT_FEATURES)
     assert np.isfinite(x_tr).all()
     assert (windows["val"]["dates"] >= config.VAL_START).all()
     assert (windows["test"]["dates"] >= config.TEST_START).all()
@@ -88,7 +93,7 @@ def test_patchtst_1m_and_15m_param_counts_pinball_coverage_and_training(
     block_network: None,
 ) -> None:
     """Verify real PyTorch PatchTST 1M/15M capacities, Pinball loss, gradients & mini training."""
-    from stock_volatility.phase_b.patchtst import (
+    from stock_volatility.analysis.dl.patchtst import (
         PATCHTST_1M_CONFIG,
         PATCHTST_15M_CONFIG,
         MultivariatePatchTST,
@@ -132,11 +137,13 @@ def test_patchtst_1m_and_15m_param_counts_pinball_coverage_and_training(
     assert grad_norm > 0.0
 
     # Coverage helper exact checks
-    assert nominal_interval_coverage(np.array([1.0, 2.0, 3.0, 4.0]),
-                                     np.array([0.5, 2.5, 2.5, 3.5]),
-                                     np.array([1.5, 3.5, 3.5, 4.5])) == pytest.approx(0.75)
+    assert nominal_interval_coverage(
+        np.array([1.0, 2.0, 3.0, 4.0]),
+        np.array([0.5, 2.5, 2.5, 3.5]),
+        np.array([1.5, 3.5, 3.5, 4.5]),
+    ) == pytest.approx(0.75)
 
-    # Mini end-to-end training smoke test on synthetic windows (1 tiny epoch, 2 seeds on CPU)
+    # Mini end-to-end training smoke test on synthetic windows (2 tiny epochs, 2 seeds on CPU)
     rng = np.random.default_rng(42)
 
     def _mk_split(n: int, start_date: str) -> dict[str, np.ndarray]:
@@ -173,13 +180,11 @@ def test_patchtst_1m_and_15m_param_counts_pinball_coverage_and_training(
     assert 0.0 <= res["test_nominal_80_coverage"] <= 1.0
 
 
-def test_route_b_qwen35_loader_lora_filter_yes_no_log_odds_and_gpu_guards(
+def test_qlora_llm_loader_lora_filter_yes_no_log_odds_and_gpu_guards(
     block_network: None,
 ) -> None:
     """Verify Qwen3.5 & Gemma4Unified routing, text-only LoRA filter, L4 selector & GPU gates."""
-    from types import SimpleNamespace
-
-    from stock_volatility.phase_b.route_b_llm import (
+    from stock_volatility.analysis.dl.qlora_llm import (
         DEFAULT_L4_LLM_MODEL,
         DEFAULT_LLM_MODEL,
         compute_yes_no_log_odds,
@@ -221,7 +226,6 @@ def test_route_b_qwen35_loader_lora_filter_yes_no_log_odds_and_gpu_guards(
     )
     assert detect_model_loader_kind("qwen3", ["Qwen3ForCausalLM"]) == "causal_lm"
 
-    # Real Qwen3.8-27B & Gemma-4-12B-it layer names: must exclude vision, audio, and mtp!
     sample_modules = [
         "model.visual.blocks.0.attn.qkv",
         "model.visual.merger.linear_fc1",
@@ -254,12 +258,10 @@ def test_route_b_qwen35_loader_lora_filter_yes_no_log_odds_and_gpu_guards(
     assert "model.language_model.layers.0.linear_attn.in_proj_qkv" in targets
     assert "model.language_model.layers.3.self_attn.q_proj" in targets
 
-    # YES/NO log-odds math check
     logits = torch.tensor([[1.0, 2.5, 0.5, -0.5], [0.0, -1.0, 0.2, 3.0]], dtype=torch.float32)
     z = compute_yes_no_log_odds(logits, yes_token_id=1, no_token_id=3)
     np.testing.assert_allclose(z.numpy(), np.array([3.0, -4.0]), atol=1e-6)
 
-    # Hard GPU + download-flag gates must block execution cleanly on CPU VM
     with pytest.raises(RuntimeError, match="allow-weight-download"):
         require_cuda_and_download_flag(allow_weight_download=False, component="qwen3_8_27b")
     if not torch.cuda.is_available():
@@ -271,67 +273,64 @@ def test_2024_val_oof_temperature_scaling_meta_fusion_and_h3_evaluation(
     block_network: None,
 ) -> None:
     """Verify Temperature Scaling, 2024-Val OOF fusion, and 2025 H3 ablation + HLN-DM + Holm."""
-    from stock_volatility.phase_b.fusion_and_eval import (
+    from stock_volatility.analysis.dl.fusion import (
         apply_temperature_scaling,
-        evaluate_phase_b_h3_ablation,
+        evaluate_h3_dl_ablation,
         fit_2024_val_oof_meta_fusion,
         fit_temperature_scaler,
     )
 
-    # 1. Temperature scaling must reduce calibration error on overconfident synthetic logits
     rng = np.random.default_rng(42)
     z_true = rng.normal(-2.0, 1.0, size=1000)
     p_true = 1.0 / (1.0 + np.exp(-z_true))
     y_sim = rng.binomial(1, p_true)
-    z_overconf = z_true * 3.0  # severely overconfident logits
+    z_overconf = z_true * 3.0
     temp = fit_temperature_scaler(z_overconf, y_sim)
     assert temp > 1.5, f"Expected T > 1.5 for overconfident logits, got {temp:.3f}"
     p_cal = apply_temperature_scaling(z_overconf, temp)
     assert np.all((p_cal > 0.0) & (p_cal < 1.0))
 
-    # 2. 2024-Val OOF meta-fusion on real Phase A Val/Test frames + synthetic event scores
-    val_a = pd.read_parquet(config.OUTPUTS_TABLES_DIR / "h2_val_predictions.parquet")
-    test_a = pd.read_parquet(config.OUTPUTS_TABLES_DIR / "h2_test_predictions.parquet")
+    val_base = pd.read_parquet(config.OUTPUTS_PREDICTIONS_DIR / "h2_val_predictions.parquet")
+    test_base = pd.read_parquet(config.OUTPUTS_PREDICTIONS_DIR / "h2_test_predictions.parquet")
 
     def _add_synth_scores(df: pd.DataFrame, seed: int) -> pd.DataFrame:
         r = np.random.default_rng(seed)
         out = df[["ticker", "date", "has_news"]].copy()
         is_ev = out["has_news"].to_numpy() == 1
         y = df["y_tail"].to_numpy(dtype=float)
-        # Neutral 0.0 on non-event days; noisy signal on event days
         finb = np.where(is_ev, 0.4 * (y - 0.1) + r.normal(0.0, 0.5, len(df)), 0.0)
         qwen = np.where(is_ev, 0.9 * (y - 0.1) + r.normal(0.0, 0.5, len(df)), 0.0)
         out["finbert_logit"] = finb
         out["qwen_qlora_logit"] = qwen
         return out
 
-    val_s = _add_synth_scores(val_a, seed=101)
-    test_s = _add_synth_scores(test_a, seed=202)
+    val_s = _add_synth_scores(val_base, seed=101)
+    test_s = _add_synth_scores(test_base, seed=202)
 
     fused_finb = fit_2024_val_oof_meta_fusion(
-        val_phase_a=val_a,
-        test_phase_a=test_a,
+        val_base_df=val_base,
+        test_base_df=test_base,
         val_text_scores=val_s[["ticker", "date", "finbert_logit"]],
         test_text_scores=test_s[["ticker", "date", "finbert_logit"]],
         score_col="finbert_logit",
         arm_name="lgbm_plus_finbert",
     )
     fused_qwen = fit_2024_val_oof_meta_fusion(
-        val_phase_a=val_a,
-        test_phase_a=test_a,
+        val_base_df=val_base,
+        test_base_df=test_base,
         val_text_scores=val_s[["ticker", "date", "qwen_qlora_logit"]],
         test_text_scores=test_s[["ticker", "date", "qwen_qlora_logit"]],
         score_col="qwen_qlora_logit",
         arm_name="lgbm_plus_qwen_qlora",
     )
-    assert len(fused_qwen["test_pred_df"]) == len(test_a)
+    assert len(fused_qwen["test_pred_df"]) == len(test_base)
     assert fused_qwen["val_temperature"] > 0.0
     assert (fused_qwen["test_pred_df"]["rv_hat"] > 0.0).all()
     assert fused_qwen["test_pred_df"]["p_tail"].between(0.0, 1.0).all()
 
-    ablation = evaluate_phase_b_h3_ablation(
-        phase_a_test_df=test_a,
-        phase_b_arms={
+    ablation = evaluate_h3_dl_ablation(
+        base_test_df=test_base,
+        dl_arms={
             "lgbm_plus_finbert": {
                 "label": "LightGBM + FinBERT (110M)",
                 "test_pred_df": fused_finb["test_pred_df"],
@@ -345,7 +344,7 @@ def test_2024_val_oof_temperature_scaling_meta_fusion_and_h3_evaluation(
         seed=42,
     )
     comp_df = ablation["comparison_df"]
-    assert len(comp_df) == 3  # Phase A LightGBM ref + 2 Phase B arms
+    assert len(comp_df) == 3  # Global LightGBM ref + 2 DL/LLM arms
     assert {
         "qlike_full",
         "qlike_event_days",
@@ -359,27 +358,14 @@ def test_2024_val_oof_temperature_scaling_meta_fusion_and_h3_evaluation(
     assert "LightGBM + Qwen3.8-27B" in ablation["markdown_table"]
 
 
-def test_post_colab_report_integration_refuses_missing_and_builds_valid_pdf_in_tmp(
+def test_unified_report_builder_refuses_missing_h3_and_builds_valid_pdf_in_tmp(
     tmp_path: Path,
     block_network: None,
 ) -> None:
-    """Verify report integration refuses fabricated/missing outputs and builds <=5pp A4 PDF."""
-    import shutil
+    """Verify unified report builder refuses missing H3 outputs and compiles <=5pp A4 PDF."""
+    from stock_volatility.report import run_report_build_and_audit
 
-    from stock_volatility.phase_b.report_integration import (
-        FINAL_REPORT_PDF_NAME,
-        build_and_audit_phase_b_report,
-    )
-
-    # 1. Must refuse to run when Phase B artifacts are absent
-    with pytest.raises(FileNotFoundError, match="phase_b_summary.json"):
-        build_and_audit_phase_b_report(
-            project_root=config.PROJECT_ROOT,
-            phase_b_dir=tmp_path / "missing_phase_b",
-        )
-
-    # 2. Clone project into tmp_path and inject clearly-labeled synthetic Phase B summary
-    clone_root = tmp_path / "phase_b_report_clone"
+    clone_root = tmp_path / "unified_report_clone"
     for rel_dir in ("data/frozen", "outputs/tables", "outputs/metrics", "outputs/figures"):
         shutil.copytree(config.PROJECT_ROOT / rel_dir, clone_root / rel_dir)
     (clone_root / "data" / "raw").mkdir(parents=True, exist_ok=True)
@@ -387,18 +373,22 @@ def test_post_colab_report_integration_refuses_missing_and_builds_valid_pdf_in_t
         config.DATA_RAW_DIR / "universe_60.csv", clone_root / "data" / "raw" / "universe_60.csv"
     )
 
-    pb_dir = clone_root / "outputs" / "phase_b"
-    pb_dir.mkdir(parents=True, exist_ok=True)
+    # 1. Must refuse to fabricate H3 metrics when h3_dl_summary.json is absent
+    (clone_root / "outputs" / "metrics" / "h3_dl_summary.json").unlink()
+    with pytest.raises(FileNotFoundError, match="h3_dl_summary.json"):
+        run_report_build_and_audit(project_root=clone_root, regenerate_figures=False)
+
+    # 2. Inject synthetic H3 summary (with HF revision) & Table 2 and verify clean <=5pp A4 build
     synth_summary = {
         "schema_version": "1.0.0",
-        "milestone": "PhaseB-SyntheticTest",
+        "milestone": "H3-SyntheticTest",
         "llm_model_id": "Qwen/Qwen3.8-27B",
         "llm_revision": "37561816e66b",
         "gpu_name": "NVIDIA A100-SXM4-40GB (Synthetic Fixture)",
         "peak_vram_gb": 25.4,
-        "train_event_days": 5032,
+        "train_event_days": 4929,
         "val_event_days": 880,
-        "test_event_days": 899,
+        "test_event_days": 895,
         "patchtst_15m_qlike": 0.2365,
         "patchtst_15m_coverage_80": 0.812,
         "finbert_qlike_event": 0.2410,
@@ -410,21 +400,15 @@ def test_post_colab_report_integration_refuses_missing_and_builds_valid_pdf_in_t
         "qwen_qlora_pr_auc_event": 0.1625,
         "qwen_qlora_ece": 0.0115,
         "qwen_qlora_dm_p_holm": 0.084,
-        "h3_interpretation": (
-            "On 2025 event-anchored days, Qwen3.8-27B QLoRA improves tail-risk PR-AUC "
-            "relative to price-only LightGBM and FinBERT while full-universe QLIKE differences "
-            "remain modest (Holm p = 0.084)."
-        ),
     }
-    (pb_dir / "phase_b_summary.json").write_text(
+    (clone_root / "outputs" / "metrics" / "h3_dl_summary.json").write_text(
         json.dumps(synth_summary, indent=2) + "\n", encoding="utf-8"
     )
     synth_tex = (
-        r"\begin{table}[!t]" "\n"
+        r"\begin{table}[!htb]" "\n"
         r"\centering" "\n"
-        r"\caption{Phase B Extension: 2025 Holdout Multimodal \& Deep Time-Series Ablation (H3).}"
-        "\n"
-        r"\label{tab:phase_b_summary}" "\n"
+        r"\caption{2025 Holdout Deep Time-Series and Event-Anchored LLM Ablation (H3).}" "\n"
+        r"\label{tab:h3_summary}" "\n"
         r"\scriptsize" "\n"
         r"\setlength{\tabcolsep}{3.5pt}" "\n"
         r"\begin{tabular}{lccccc}" "\n"
@@ -432,7 +416,7 @@ def test_post_colab_report_integration_refuses_missing_and_builds_valid_pdf_in_t
         r"Model (Parameters) & Full QLIKE & Event QLIKE & Tail PR-AUC & ECE & DM Holm $p$ \\"
         "\n"
         r"\midrule" "\n"
-        r"Phase A LightGBM (Price-Only) & 0.2306 & 0.2440 & 0.1231 & 0.0102 & Ref. \\" "\n"
+        r"Global LightGBM (Price-Only) & 0.2306 & 0.2440 & 0.1231 & 0.0102 & Ref. \\" "\n"
         r"PatchTST (15M, 5-seed; 80\% cov=81.2\%) & 0.2365 & 0.2480 & 0.1190 & 0.0140 & 0.210 \\"
         "\n"
         r"LightGBM + FinBERT (110M) & 0.2301 & 0.2410 & 0.1260 & 0.0110 & 0.420 \\" "\n"
@@ -442,15 +426,16 @@ def test_post_colab_report_integration_refuses_missing_and_builds_valid_pdf_in_t
         r"\end{tabular}" "\n"
         r"\end{table}" "\n"
     )
-    (pb_dir / "phase_b_comparison.tex").write_text(synth_tex, encoding="utf-8")
-
-    res = build_and_audit_phase_b_report(project_root=clone_root)
-    assert res["verdict"] == "PASS", f"Phase B final report audit failed: {res}"
-    assert 4.0 <= res["main_text_pages_est"] <= 5.0, (
-        f"Final PDF main text {res['main_text_pages_est']} outside [4.0, 5.0] CS482 budget"
+    (clone_root / "outputs" / "tables" / "table2_h3_ablation.tex").write_text(
+        synth_tex, encoding="utf-8"
     )
+
+    res = run_report_build_and_audit(project_root=clone_root, regenerate_figures=False)
+    assert res["verdict"] == "PASS", f"Unified final report audit failed: {res}"
+    assert res["claims_verified"] == 62  # 51 H1/H2 + 10 H3 + H3_LLM_REV
+    assert 4.0 <= res["main_text_pages_est"] <= 5.0
     assert res["main_pages_occupied"] <= 5
-    pdf_path = clone_root / "report" / FINAL_REPORT_PDF_NAME
+    pdf_path = clone_root / "report" / config.REPORT_PDF_NAME
     assert pdf_path.is_file()
     reader = PdfReader(str(pdf_path))
     for page in reader.pages:
@@ -458,9 +443,9 @@ def test_post_colab_report_integration_refuses_missing_and_builds_valid_pdf_in_t
         assert abs(float(page.mediabox.height) - 841.89) < 1.5
 
 
-def test_colab_cli_guard_notebook_and_m7_milestone_docs() -> None:
-    """Verify Colab CLI refuses CPU/no-flag run, notebook JSON is valid, and M7 docs tracked."""
-    cli = config.PROJECT_ROOT / "scripts" / "colab_phase_b.py"
+def test_gpu_cli_guard_notebook_and_m7_milestone_docs() -> None:
+    """Verify GPU CLI refuses CPU/no-flag run, notebook JSON is valid, and M7 docs tracked."""
+    cli = config.PROJECT_ROOT / "scripts" / "06_dl_and_llm_gpu.py"
     assert cli.is_file()
     proc = subprocess.run(
         [sys.executable, str(cli)],
@@ -473,17 +458,16 @@ def test_colab_cli_guard_notebook_and_m7_milestone_docs() -> None:
     assert proc.returncode != 0
     assert "allow-weight-download" in (proc.stdout + proc.stderr)
 
-    # Every CLI script must support --help cleanly without running pipelines or touching disk
+    # Every unified CLI script must support --help cleanly without running pipelines
     for script_name in (
         "01_download_and_audit.py",
         "02_build_panel_and_freeze.py",
         "03_eda.py",
         "04_panel_har_rv.py",
         "05_forecast_backtest.py",
-        "06_write_report.py",
-        "07_integrate_phase_b_report.py",
-        "run_phase_a.py",
-        "colab_phase_b.py",
+        "06_dl_and_llm_gpu.py",
+        "07_build_report.py",
+        "run_pipeline.py",
     ):
         hp = subprocess.run(
             [sys.executable, str(config.PROJECT_ROOT / "scripts" / script_name), "--help"],
@@ -499,7 +483,7 @@ def test_colab_cli_guard_notebook_and_m7_milestone_docs() -> None:
     bad_flags = subprocess.run(
         [
             sys.executable,
-            str(config.PROJECT_ROOT / "scripts" / "run_phase_a.py"),
+            str(config.PROJECT_ROOT / "scripts" / "run_pipeline.py"),
             "--report-only",
             "--refreeze",
         ],
@@ -512,20 +496,18 @@ def test_colab_cli_guard_notebook_and_m7_milestone_docs() -> None:
     assert bad_flags.returncode != 0
 
     # Subset --routes hydration must preserve saved unselected arms & PatchTST summary fields
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location("colab_phase_b_mod", cli)
+    spec = importlib.util.spec_from_file_location("dl_gpu_cli_mod", cli)
     assert spec is not None and spec.loader is not None
-    colab_mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(colab_mod)
+    gpu_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gpu_mod)
     assert (
-        colab_mod._format_patchtst_label("PatchTST (15M, 5-seed)", 0.683)
+        gpu_mod._format_patchtst_label("PatchTST (15M, 5-seed)", 0.683)
         == "PatchTST (15M, 5-seed; 80% cov=68.3%)"
     )
     hyd_summary: dict[str, object] = {}
     hyd_arms: dict[str, dict[str, object]] = {}
-    colab_mod.hydrate_saved_phase_b_state(
-        out_dir=config.PROJECT_ROOT / "outputs" / "phase_b",
+    gpu_mod.hydrate_saved_h3_state(
+        outputs_root=config.OUTPUTS_DIR,
         run_set={"finbert", "llm"},
         resolved_llm="google/gemma-4-12B-it",
         summary=hyd_summary,
@@ -534,12 +516,12 @@ def test_colab_cli_guard_notebook_and_m7_milestone_docs() -> None:
     assert "patchtst_15m_qlike" in hyd_summary
     assert {"patchtst_1m", "patchtst_15m", "chronos_2", "chronos_t5_large"}.issubset(hyd_arms)
 
-    nb_path = config.PROJECT_ROOT / "notebooks" / "phase_b_colab.ipynb"
+    nb_path = config.PROJECT_ROOT / "notebooks" / "dl_gpu_training_colab.ipynb"
     assert nb_path.is_file()
     nb = json.loads(nb_path.read_text(encoding="utf-8"))
     assert nb["nbformat"] == 4
     nb_src = "\n".join("".join(c.get("source", [])) for c in nb["cells"])
-    assert "scripts/colab_phase_b.py" in nb_src
+    assert "scripts/06_dl_and_llm_gpu.py" in nb_src
     assert "--allow-weight-download" in nb_src
     assert "Qwen/Qwen3.8-27B" in nb_src
     assert "google/gemma-4-12B-it" in nb_src
@@ -552,38 +534,23 @@ def test_colab_cli_guard_notebook_and_m7_milestone_docs() -> None:
             "check-ignore",
             "-q",
             "--no-index",
-            "plan_6_stock_volatility/phase_b_gpu_outputs.zip",
+            "plan_6_stock_volatility/dl_gpu_outputs.zip",
         ],
         cwd=config.PROJECT_ROOT.parent,
         check=False,
         timeout=10,
     )
-    assert zip_chk.returncode == 0, "phase_b_gpu_outputs.zip should be gitignored"
+    assert zip_chk.returncode == 0, "dl_gpu_outputs.zip should be gitignored"
 
-    phase_b_md = config.PROJECT_ROOT / "PHASE_B.md"
     m7_doc = config.PROJECT_ROOT / "docs" / "milestones" / "M7_phase_b_colab_and_dl_pipeline.md"
-    assert phase_b_md.is_file() and phase_b_md.stat().st_size > 1500
     assert m7_doc.is_file() and m7_doc.stat().st_size > 2000
-    m7_txt = m7_doc.read_text(encoding="utf-8")
-    for tok in (
-        "547b286e6e85185830608eb3bf0a574669409dc5",
-        "Qwen/Qwen3.8-27B",
-        "Qwen3_5ForConditionalGeneration",
-        "colab_phase_b.py",
-        "07_integrate_phase_b_report.py",
-        "phase_b_colab.ipynb",
-        "PHASE_B.md",
-    ):
-        assert tok in m7_txt, f"Missing {tok!r} in M7 doc"
-
     ledger = (config.PROJECT_ROOT / "docs" / "milestones" / "README.md").read_text("utf-8")
     assert "547b286e6e85185830608eb3bf0a574669409dc5" in ledger
     assert "M7_phase_b_colab_and_dl_pipeline.md" in ledger
 
     repo_root = config.PROJECT_ROOT.parent
     for rel in (
-        "plan_6_stock_volatility/PHASE_B.md",
-        "plan_6_stock_volatility/notebooks/phase_b_colab.ipynb",
+        "plan_6_stock_volatility/notebooks/dl_gpu_training_colab.ipynb",
         "plan_6_stock_volatility/docs/milestones/M7_phase_b_colab_and_dl_pipeline.md",
     ):
         chk = subprocess.run(
@@ -597,58 +564,66 @@ def test_colab_cli_guard_notebook_and_m7_milestone_docs() -> None:
         assert chk.returncode == 1 and chk.stdout.strip() == "", f"Gitignored: {rel}"
 
 
-def test_committed_m8_phase_b_outputs_final_pdf_and_milestone_doc(
+def test_committed_h3_dl_outputs_unified_final_pdf_and_m8_doc(
     block_network: None,
 ) -> None:
-    """Verify real Colab L4 Phase B outputs, audited final CS482 PDF (<=5pp), and M8 doc."""
-    from stock_volatility.phase_b.report_integration import (
-        FINAL_REPORT_PDF_NAME,
-        collect_phase_b_claims,
-    )
+    """Verify committed Colab L4 H3 outputs, unified CS482 PDF (<=5pp, 61 claims), and M8 doc."""
     from stock_volatility.report import audit_compiled_pdf, collect_report_claims
 
-    pb_dir = config.PROJECT_ROOT / "outputs" / "phase_b"
-    required_pb = (
-        "phase_b_summary.json",
-        "phase_b_comparison.csv",
-        "phase_b_comparison.md",
-        "phase_b_comparison.tex",
+    preds_dir = config.OUTPUTS_PREDICTIONS_DIR
+    metrics_dir = config.OUTPUTS_METRICS_DIR
+    tables_dir = config.OUTPUTS_TABLES_DIR
+
+    for fn in (
+        "patchtst_1m_test_predictions.parquet",
+        "patchtst_15m_test_predictions.parquet",
+        "chronos_2_test_predictions.parquet",
+        "chronos_t5_large_test_predictions.parquet",
+        "finbert_val_scores.parquet",
+        "finbert_test_scores.parquet",
+        "llm_val_scores.parquet",
+        "llm_test_scores.parquet",
+        "lgbm_plus_finbert_test.parquet",
+        "lgbm_plus_llm_zs_test.parquet",
+        "lgbm_plus_llm_qlora_test.parquet",
+    ):
+        p = preds_dir / fn
+        assert p.is_file() and p.stat().st_size > 100, f"Missing/empty H3 prediction artifact: {p}"
+
+    for fn in (
+        "h3_dl_summary.json",
         "llm_run_metadata.json",
         "patchtst_1m_metrics.json",
         "patchtst_15m_metrics.json",
         "chronos_2_metrics.json",
         "chronos_t5_large_metrics.json",
-        "patchtst_1m_test_predictions.parquet",
-        "patchtst_15m_test_predictions.parquet",
-        "chronos_2_test_predictions.parquet",
-        "chronos_t5_large_test_predictions.parquet",
-        "lgbm_plus_finbert_test.parquet",
-        "lgbm_plus_llm_zs_test.parquet",
-        "lgbm_plus_llm_qlora_test.parquet",
-    )
-    for fn in required_pb:
-        p = pb_dir / fn
-        assert p.is_file() and p.stat().st_size > 100, f"Missing/empty Phase B artifact: {p}"
+    ):
+        p = metrics_dir / fn
+        assert p.is_file() and p.stat().st_size > 100, f"Missing/empty H3 metrics artifact: {p}"
 
-    pb_summary = json.loads((pb_dir / "phase_b_summary.json").read_text(encoding="utf-8"))
-    assert pb_summary["gpu_name"] == "NVIDIA L4"
-    assert pb_summary["llm_model_id"] == "google/gemma-4-12B-it"
-    assert pb_summary["train_event_days"] == 4929
-    assert pb_summary["val_event_days"] == 880
-    assert pb_summary["test_event_days"] == 895
-    assert pb_summary["finbert_pr_auc_event"] > 0.13
+    for ext in ("csv", "md", "tex"):
+        p = tables_dir / f"table2_h3_ablation.{ext}"
+        assert p.is_file() and p.stat().st_size > 100, f"Missing/empty Table 2 artifact: {p}"
 
-    comp_df = pd.read_csv(pb_dir / "phase_b_comparison.csv")
+    h3_summary = json.loads((metrics_dir / "h3_dl_summary.json").read_text(encoding="utf-8"))
+    assert h3_summary["gpu_name"] == "NVIDIA L4"
+    assert h3_summary["llm_model_id"] == "google/gemma-4-12B-it"
+    assert h3_summary["train_event_days"] == 4929
+    assert h3_summary["val_event_days"] == 880
+    assert h3_summary["test_event_days"] == 895
+    assert h3_summary["finbert_pr_auc_event"] > 0.13
+
+    comp_df = pd.read_csv(tables_dir / "table2_h3_ablation.csv")
     assert len(comp_df) == 8
     chronos_rows = comp_df[comp_df["arm_id"].str.startswith("chronos_")]
     assert len(chronos_rows) == 2
     assert chronos_rows["pr_auc_full"].isna().all()
-    tex_txt = (pb_dir / "phase_b_comparison.tex").read_text(encoding="utf-8")
+    tex_txt = (tables_dir / "table2_h3_ablation.tex").read_text(encoding="utf-8")
     assert "$895$" in tex_txt
 
-    # Final CS482 submission PDF must pass full A4, <=5.0pp, claims, and non-causal audit
-    pdf_path = config.REPORT_DIR / FINAL_REPORT_PDF_NAME
-    audit_md = config.REPORT_DIR / "phase_b_audit.md"
+    # Single authoritative CS482 submission PDF must pass A4, <=5.0pp, 61-claim & non-causal audit
+    pdf_path = config.REPORT_DIR / config.REPORT_PDF_NAME
+    audit_md = config.REPORT_DIR / "report_audit.md"
     assert pdf_path.is_file() and pdf_path.stat().st_size > 50_000
     assert (
         audit_md.is_file()
@@ -658,10 +633,8 @@ def test_committed_m8_phase_b_outputs_final_pdf_and_milestone_doc(
     manifest = json.loads(
         (config.DATA_FROZEN_DIR / "FREEZE_MANIFEST.json").read_text(encoding="utf-8")
     )
-    all_claims = {
-        **collect_report_claims(config.PROJECT_ROOT),
-        **collect_phase_b_claims(pb_summary),
-    }
+    all_claims = collect_report_claims(config.PROJECT_ROOT)
+    assert len(all_claims) == 61
     audit = audit_compiled_pdf(
         pdf_path=pdf_path,
         claims=all_claims,
@@ -670,11 +643,11 @@ def test_committed_m8_phase_b_outputs_final_pdf_and_milestone_doc(
     assert audit["verdict"] == "PASS", f"Final PDF audit failed: {audit}"
     assert 4.0 <= audit["main_text_pages_est"] <= 5.0
     assert audit["main_pages_occupied"] <= 5
-    assert audit["claims_verified"] == audit["claims_total"]
+    assert audit["claims_verified"] == 61
 
-    # Verify unified 5-section CS482 rubric layout (Phase B merged into Data Analysis)
-    final_tex = (config.REPORT_DIR / "final_report.tex").read_text(encoding="utf-8")
-    final_bib = (config.REPORT_DIR / "final_references.bib").read_text(encoding="utf-8")
+    # Verify unified 5-section CS482 rubric layout (DL/LLM merged inside Data Analysis)
+    report_tex = (config.REPORT_DIR / "report.tex").read_text(encoding="utf-8")
+    report_bib = (config.REPORT_DIR / "references.bib").read_text(encoding="utf-8")
     for heading in (
         r"\section{Research Question}",
         r"\section{Data Collection and Preparation}",
@@ -682,44 +655,30 @@ def test_committed_m8_phase_b_outputs_final_pdf_and_milestone_doc(
         r"\section{Method Evaluation}",
         r"\section{Results and Discussion}",
     ):
-        assert heading in final_tex, f"Missing CS482 rubric section {heading}"
-    assert r"\section{Extension:" not in final_tex
-    sec3_to_sec4 = final_tex.split(r"\section{Data Analysis}", 1)[1].split(
+        assert heading in report_tex, f"Missing CS482 rubric section {heading}"
+    assert r"\section{Extension:" not in report_tex
+    sec3_to_sec4 = report_tex.split(r"\section{Data Analysis}", 1)[1].split(
         r"\section{Method Evaluation}", 1
     )[0]
     for tok in ("PatchTST", "chronos-2", "FinBERT", "google/gemma-4-12B-it", "QLoRA"):
-        assert tok in sec3_to_sec4, f"Expected Phase B {tok!r} merged inside Data Analysis"
+        assert tok in sec3_to_sec4, f"Expected H3 {tok!r} merged inside Data Analysis"
     for ai_tok in ("Tools and Purposes", "Independent Verification", "Student Responsibility"):
-        assert ai_tok in final_tex
+        assert ai_tok in report_tex
     for bib_key in (
         "nie2023patchtst",
         "ansari2024chronos",
         "araci2019finbert",
         "dettmers2023qlora",
     ):
-        assert bib_key in final_bib
+        assert bib_key in report_bib
 
-    # M8 milestone doc tracked, non-empty, and linked from all READMEs
     m8_doc = config.PROJECT_ROOT / "docs" / "milestones" / "M8_phase_b_l4_results_and_final_pdf.md"
     assert m8_doc.is_file() and m8_doc.stat().st_size > 2000
-    m8_txt = m8_doc.read_text(encoding="utf-8")
-    for tok in (
-        "NVIDIA L4",
-        "google/gemma-4-12B-it",
-        "0.2251",
-        "0.1398",
-        "CS482_GroupX_StockVolatilityLLM.pdf",
-        "phase_b_audit.md",
-    ):
-        assert tok in m8_txt, f"Missing {tok!r} in M8 milestone doc"
-
     ledger = (config.PROJECT_ROOT / "docs" / "milestones" / "README.md").read_text("utf-8")
     plan6_readme = (config.PROJECT_ROOT / "README.md").read_text("utf-8")
-    root_readme = (config.PROJECT_ROOT.parent / "README.md").read_text("utf-8")
     assert "M8_phase_b_l4_results_and_final_pdf.md" in ledger
     assert "M8_phase_b_l4_results_and_final_pdf.md" in plan6_readme
     assert "CS482_GroupX_StockVolatilityLLM.pdf" in plan6_readme
-    assert "Phase B" in root_readme
 
     chk = subprocess.run(
         [
@@ -729,7 +688,7 @@ def test_committed_m8_phase_b_outputs_final_pdf_and_milestone_doc(
             "--no-index",
             "plan_6_stock_volatility/docs/milestones/M8_phase_b_l4_results_and_final_pdf.md",
             "plan_6_stock_volatility/report/CS482_GroupX_StockVolatilityLLM.pdf",
-            "plan_6_stock_volatility/outputs/phase_b/phase_b_summary.json",
+            "plan_6_stock_volatility/outputs/metrics/h3_dl_summary.json",
         ],
         cwd=config.PROJECT_ROOT.parent,
         capture_output=True,
@@ -737,5 +696,4 @@ def test_committed_m8_phase_b_outputs_final_pdf_and_milestone_doc(
         check=False,
         timeout=10,
     )
-    assert chk.returncode == 1 and chk.stdout.strip() == "", f"Gitignored M8 files: {chk.stdout}"
-
+    assert chk.returncode == 1 and chk.stdout.strip() == "", f"Gitignored H3 files: {chk.stdout}"

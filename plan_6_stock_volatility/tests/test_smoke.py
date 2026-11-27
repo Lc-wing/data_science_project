@@ -148,6 +148,7 @@ def test_project_root_and_directory_layout(tmp_path: Path) -> None:
     assert config.OUTPUTS_TABLES_DIR == config.PROJECT_ROOT / "outputs" / "tables"
     assert config.OUTPUTS_METRICS_DIR == config.PROJECT_ROOT / "outputs" / "metrics"
     assert config.OUTPUTS_FIGURES_DIR == config.PROJECT_ROOT / "outputs" / "figures"
+    assert config.OUTPUTS_PREDICTIONS_DIR == config.PROJECT_ROOT / "outputs" / "predictions"
     assert config.REPORT_DIR == config.PROJECT_ROOT / "report"
     assert config.PROVENANCE_PATH == config.DATA_RAW_DIR / "data_provenance.json"
     assert config.FREEZE_MANIFEST_PATH == config.DATA_FROZEN_DIR / "FREEZE_MANIFEST.json"
@@ -161,6 +162,7 @@ def test_project_root_and_directory_layout(tmp_path: Path) -> None:
         tmp_path / "outputs" / "tables",
         tmp_path / "outputs" / "metrics",
         tmp_path / "outputs" / "figures",
+        tmp_path / "outputs" / "predictions",
         tmp_path / "report",
     )
     assert created == expected_dirs
@@ -291,7 +293,7 @@ def test_numeric_constants_and_hash_helpers(tmp_path: Path) -> None:
     assert config.TRADING_DAYS_PER_YEAR == 252
     assert config.SEC_MAX_REQUESTS_PER_SEC == 8.0
     assert isinstance(config.SEC_USER_AGENT, str) and len(config.SEC_USER_AGENT.strip()) > 0
-    assert config.REPORT_PDF_NAME == "CS482_GroupX_StockVolatilityLLM_PhaseA_Draft.pdf"
+    assert config.REPORT_PDF_NAME == "CS482_GroupX_StockVolatilityLLM.pdf"
 
     payload = b"plan6-stock-volatility-m0" * 5000  # > 64 KiB to exercise chunked file hashing
     expected_digest = hashlib.sha256(payload).hexdigest()

@@ -85,10 +85,10 @@ def test_committed_m5_table1_and_cs482_pdf_audit_pass(block_network: None) -> No
     t1_csv = pd.read_csv(config.OUTPUTS_TABLES_DIR / "table1_summary.csv")
     assert len(t1_csv) == 9  # 5 H1 confirmatory rows + 4 H2 model rows
 
-    tex_path = config.REPORT_DIR / "phase_a_draft.tex"
+    tex_path = config.REPORT_DIR / "report.tex"
     bib_path = config.REPORT_DIR / "references.bib"
     pdf_path = config.REPORT_DIR / config.REPORT_PDF_NAME
-    audit_path = config.REPORT_DIR / "phase_a_audit.md"
+    audit_path = config.REPORT_DIR / "report_audit.md"
     for p in (tex_path, bib_path, pdf_path, audit_path):
         assert p.is_file() and p.stat().st_size > 500, f"Missing report artifact: {p}"
 
@@ -119,6 +119,8 @@ def test_committed_m5_table1_and_cs482_pdf_audit_pass(block_network: None) -> No
         "2609.00065",
         "0.2306",
         "0.4736",
+        "0.1398",
+        "0.2819",
     ):
         assert req_phrase.lower() in full_text.lower(), (
             f"Missing required phrase {req_phrase!r} in PDF text"
@@ -130,14 +132,14 @@ def test_committed_m5_table1_and_cs482_pdf_audit_pass(block_network: None) -> No
     audit_text = audit_path.read_text(encoding="utf-8")
     assert "Overall Audit Verdict: **PASS**" in audit_text
     m_pages = re.search(r"Main Text Length:\s+`([0-9.]+)`\s+A4 pages", audit_text)
-    assert m_pages is not None, "Missing Main Text Length metric in phase_a_audit.md"
+    assert m_pages is not None, "Missing Main Text Length metric in report_audit.md"
     main_pages = float(m_pages.group(1))
     assert 3.0 <= main_pages <= 5.0, f"Main text pages {main_pages} outside CS482 [3.0, 5.0] limit"
 
 
-def test_run_phase_a_report_only_cli_succeeds_offline(block_network: None) -> None:
-    """Verify scripts/run_phase_a.py --report-only executes cleanly offline."""
-    script_path = config.PROJECT_ROOT / "scripts" / "run_phase_a.py"
+def test_run_pipeline_report_only_cli_succeeds_offline(block_network: None) -> None:
+    """Verify scripts/run_pipeline.py --report-only executes cleanly offline."""
+    script_path = config.PROJECT_ROOT / "scripts" / "run_pipeline.py"
     assert script_path.is_file()
     proc = subprocess.run(
         ["uv", "run", "--no-sync", "python", str(script_path), "--report-only"],
@@ -148,7 +150,7 @@ def test_run_phase_a_report_only_cli_succeeds_offline(block_network: None) -> No
         timeout=120,
     )
     assert proc.returncode == 0, (
-        f"run_phase_a.py --report-only failed:\n{proc.stdout}\n{proc.stderr}"
+        f"run_pipeline.py --report-only failed:\n{proc.stdout}\n{proc.stderr}"
     )
     assert '"verdict": "PASS"' in proc.stdout
 

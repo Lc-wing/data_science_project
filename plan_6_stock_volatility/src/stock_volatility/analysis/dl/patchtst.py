@@ -14,8 +14,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from stock_volatility import config
+from stock_volatility.analysis.dl.datasets import DL_CONT_FEATURES
 from stock_volatility.evaluation import classification_metrics, qlike_loss_array, regression_metrics
-from stock_volatility.phase_b.data_contract import PHASE_B_CONT_FEATURES
 
 QUANTILES: tuple[float, float, float] = (0.10, 0.50, 0.90)
 
@@ -26,7 +26,7 @@ class PatchTSTConfig:
 
     name: str
     lookback: int = 60
-    n_features: int = len(PHASE_B_CONT_FEATURES)
+    n_features: int = len(DL_CONT_FEATURES)
     patch_len: int = 5
     patch_stride: int = 5
     n_tickers: int = 60
@@ -388,7 +388,7 @@ def train_and_predict_patchtst(
     ens_test_logit = np.mean(test_logit_list, axis=0)
 
     # Fit 1-parameter Temperature Scaling strictly on 2024 Val logits
-    from stock_volatility.phase_b.fusion_and_eval import (
+    from stock_volatility.analysis.dl.fusion import (
         apply_temperature_scaling,
         fit_temperature_scaler,
     )
