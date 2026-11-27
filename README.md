@@ -10,7 +10,7 @@ CS482 data science project. Three plans are implemented here, each in its own fo
 
 Shared material stays at the repository root:
 
-- `plans/` holds the nine plans (`plan_1`–`plan_9`) and the review report (`plans/00_review_report.md`) whose constraints all implementations follow.
+- `plans/` holds the three implemented plans (`plan_2`, `plan_5`, `plan_6`) and the review report (`plans/00_review_report.md`) whose constraints all implementations follow.
 - `.gitignore` covers all plan folders (each plan folder also keeps its own `.gitignore` for plan-specific caches and local build artifacts).
 
 ## Working in one plan
