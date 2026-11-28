@@ -1,0 +1,13 @@
+run,tier,sarimax_order,sarimax_seasonal_order,origins,not_converged
+main,5star,"(1, 0, 1)","(0, 1, 1, 12)",26,0
+main,4star,"(1, 1, 1)","(0, 1, 1, 12)",26,0
+main,3star,"(1, 1, 1)","(0, 1, 1, 12)",26,0
+main,2star,"(1, 1, 1)","(0, 1, 1, 12)",26,0
+F1_logit,5star,"(1, 0, 1)","(0, 1, 1, 12)",26,0
+F1_logit,4star,"(0, 1, 1)","(0, 1, 1, 12)",26,0
+F1_logit,3star,"(0, 1, 1)","(0, 1, 1, 12)",26,0
+F1_logit,2star,"(1, 1, 1)","(0, 1, 1, 12)",26,0
+F2_pandemic_included,5star,"(1, 1, 1)","(1, 0, 1, 12)",26,0
+F2_pandemic_included,4star,"(1, 1, 1)","(0, 1, 1, 12)",26,0
+F2_pandemic_included,3star,"(1, 1, 1)","(1, 0, 1, 12)",26,0
+F2_pandemic_included,2star,"(1, 0, 0)","(0, 1, 1, 12)",26,0

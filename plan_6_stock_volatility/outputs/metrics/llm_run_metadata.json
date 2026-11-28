@@ -1,0 +1,22 @@
+{
+  "model_id": "google/gemma-4-12B-it",
+  "revision": "unknown",
+  "loader_kind": "image_text_to_text",
+  "lora_r": 16,
+  "lora_alpha": 32,
+  "lora_dropout": 0.05,
+  "lora_target_module_count": 328,
+  "trainable_params": 65568768,
+  "total_loaded_params": 6553452544,
+  "train_event_days_used": 4929,
+  "train_event_days_total": 4929,
+  "val_event_days": 880,
+  "test_event_days": 895,
+  "epochs": 1,
+  "epoch_losses": [
+    2.077410246929742
+  ],
+  "gpu_name": "NVIDIA L4",
+  "peak_vram_gb": 15.336,
+  "elapsed_sec": 6914.64
+}

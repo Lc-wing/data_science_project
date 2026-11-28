@@ -1,22 +1,42 @@
-# Virtual environments
+# Python / Virtualenv
 .venv/
 venv/
-
-# Python caches
 __pycache__/
 *.py[cod]
 *$py.class
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
-
-# Jupyter Notebooks
 .ipynb_checkpoints/
 
-# Environment & secrets
+# Environment / OS
 .env
 .env.*
-
-# OS files
 .DS_Store
 Thumbs.db
+
+# Multi-agent orchestration state (keep root .agents/environment.json tracked)
+.agents/
+!/.agents/
+/.agents/*
+!/.agents/environment.json
+
+# LaTeX build intermediates
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+*.toc
+
+# Local download & ML/LLM model caches (keep compact snapshots + data_provenance.json in git)
+.cache/
+hf_cache/
+checkpoints/
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.gguf

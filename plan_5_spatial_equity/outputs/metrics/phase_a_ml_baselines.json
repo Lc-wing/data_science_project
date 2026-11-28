@@ -1,0 +1,174 @@
+{
+  "seed": 42,
+  "n_cells": 287,
+  "n_pos": 56,
+  "prevalence": 0.1951219512195122,
+  "feature_columns": [
+    "pop_total",
+    "pop_65plus",
+    "pop_density",
+    "elderly_share",
+    "intersection_density",
+    "road_density_km_per_km2",
+    "res_bldg_share",
+    "com_bldg_share",
+    "bldg_coverage_ratio",
+    "dist_nearest_lrt_m",
+    "dist_nearest_bus_m"
+  ],
+  "models": {
+    "naive_prior": {
+      "fold_metrics": [
+        {
+          "fold": 0,
+          "roc_auc": 0.5,
+          "pr_auc": 0.55172414,
+          "brier": 0.4046839,
+          "top20_hit_rate": 0.125
+        },
+        {
+          "fold": 1,
+          "roc_auc": 0.5,
+          "pr_auc": 0.37931034,
+          "brier": 0.27741463,
+          "top20_hit_rate": 0.18181818
+        },
+        {
+          "fold": 2,
+          "roc_auc": 0.5,
+          "pr_auc": 0.4375,
+          "brier": 0.32051038,
+          "top20_hit_rate": 0.14285714
+        },
+        {
+          "fold": 3,
+          "roc_auc": 0.5,
+          "pr_auc": 0.09090909,
+          "brier": 0.10795455,
+          "top20_hit_rate": 0.0
+        },
+        {
+          "fold": 4,
+          "roc_auc": 0.5,
+          "pr_auc": 0.06122449,
+          "brier": 0.09881742,
+          "top20_hit_rate": 0.5
+        }
+      ],
+      "mean_roc_auc": 0.5,
+      "std_roc_auc": 0.0,
+      "mean_pr_auc": 0.30413361,
+      "std_pr_auc": 0.19452956,
+      "mean_brier": 0.24187618,
+      "std_brier": 0.12029421,
+      "mean_top20_hit_rate": 0.18993506,
+      "std_top20_hit_rate": 0.16656192,
+      "oof_roc_auc": 0.21706865,
+      "oof_pr_auc": 0.13590369,
+      "oof_brier": 0.17564041,
+      "oof_top20_hit_rate": 0.10714286
+    },
+    "logistic_regression": {
+      "fold_metrics": [
+        {
+          "fold": 0,
+          "roc_auc": 0.67307692,
+          "pr_auc": 0.71142403,
+          "brier": 0.25776077,
+          "top20_hit_rate": 0.25
+        },
+        {
+          "fold": 1,
+          "roc_auc": 0.66161616,
+          "pr_auc": 0.46716919,
+          "brier": 0.2227597,
+          "top20_hit_rate": 0.18181818
+        },
+        {
+          "fold": 2,
+          "roc_auc": 0.65873016,
+          "pr_auc": 0.54518913,
+          "brier": 0.24819737,
+          "top20_hit_rate": 0.28571429
+        },
+        {
+          "fold": 3,
+          "roc_auc": 0.79135802,
+          "pr_auc": 0.51381497,
+          "brier": 0.06826174,
+          "top20_hit_rate": 0.55555556
+        },
+        {
+          "fold": 4,
+          "roc_auc": 0.89673913,
+          "pr_auc": 0.36392496,
+          "brier": 0.04738223,
+          "top20_hit_rate": 0.66666667
+        }
+      ],
+      "mean_roc_auc": 0.73630408,
+      "std_roc_auc": 0.09419556,
+      "mean_pr_auc": 0.52030446,
+      "std_pr_auc": 0.11354819,
+      "mean_brier": 0.16887236,
+      "std_brier": 0.09162947,
+      "mean_top20_hit_rate": 0.38795094,
+      "std_top20_hit_rate": 0.18854563,
+      "oof_roc_auc": 0.85273655,
+      "oof_pr_auc": 0.53199178,
+      "oof_brier": 0.11595394,
+      "oof_top20_hit_rate": 0.57142857
+    },
+    "random_forest": {
+      "fold_metrics": [
+        {
+          "fold": 0,
+          "roc_auc": 0.68269231,
+          "pr_auc": 0.75184231,
+          "brier": 0.25403226,
+          "top20_hit_rate": 0.25
+        },
+        {
+          "fold": 1,
+          "roc_auc": 0.75757576,
+          "pr_auc": 0.73609928,
+          "brier": 0.19697414,
+          "top20_hit_rate": 0.36363636
+        },
+        {
+          "fold": 2,
+          "roc_auc": 0.62698413,
+          "pr_auc": 0.53000929,
+          "brier": 0.24773155,
+          "top20_hit_rate": 0.28571429
+        },
+        {
+          "fold": 3,
+          "roc_auc": 0.88024691,
+          "pr_auc": 0.66484016,
+          "brier": 0.07308665,
+          "top20_hit_rate": 0.77777778
+        },
+        {
+          "fold": 4,
+          "roc_auc": 0.91666667,
+          "pr_auc": 0.47949735,
+          "brier": 0.04322947,
+          "top20_hit_rate": 0.83333333
+        }
+      ],
+      "mean_roc_auc": 0.77283316,
+      "std_roc_auc": 0.1112258,
+      "mean_pr_auc": 0.63245768,
+      "std_pr_auc": 0.10948555,
+      "mean_brier": 0.16301081,
+      "std_brier": 0.08837414,
+      "mean_top20_hit_rate": 0.50209235,
+      "std_top20_hit_rate": 0.25110282,
+      "oof_roc_auc": 0.8580705,
+      "oof_pr_auc": 0.577992,
+      "oof_brier": 0.11316607,
+      "oof_top20_hit_rate": 0.55357143
+    }
+  }
+}

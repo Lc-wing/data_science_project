@@ -1,0 +1,9 @@
+tier,block,months,trend_strength,seasonal_strength,seasonal_peak_month,seasonal_trough_month,seasonal_range_pp,remainder_sd_pp
+5star,pre_pandemic,120,0.815003,0.611688,8,9,7.736616,1.972699
+5star,post_pandemic,45,0.796815,0.254072,8,6,5.764436,2.660873
+4star,pre_pandemic,120,0.604617,0.518766,11,1,7.735306,2.651428
+4star,post_pandemic,45,0.686216,0.517595,8,9,10.618553,2.474743
+3star,pre_pandemic,120,0.678208,0.331252,8,1,7.917337,2.669798
+3star,post_pandemic,45,0.37046,0.381874,8,9,9.768163,2.685039
+2star,pre_pandemic,120,0.505773,0.468425,11,1,12.736248,3.820132
+2star,post_pandemic,45,0.524365,0.634206,8,9,9.659382,2.137028

@@ -1,0 +1,149 @@
+{
+  "schema_version": "1.0.0",
+  "milestone": "M4",
+  "method": "TreeExplainer (interventional, exact)",
+  "background_split": "train",
+  "background_date_range": [
+    "2019-02-04",
+    "2023-12-20"
+  ],
+  "background_n": 1000,
+  "eval_split": "test",
+  "eval_date_range": [
+    "2025-01-02",
+    "2025-12-23"
+  ],
+  "eval_n": 2000,
+  "random_seed": 42,
+  "vix_train_median_threshold": 19.610000610351562,
+  "classifier_classes": [
+    0,
+    1
+  ],
+  "classifier_positive_class_index": 1,
+  "classifier_output_space": "probability_class_1_uncalibrated_lgbm",
+  "classifier_expected_value": 0.4078278554195221,
+  "classifier_max_additivity_error": 4.072525272569294e-08,
+  "regressor_output_space": "y_log_rv",
+  "regressor_expected_value": -1.5175340742901817,
+  "regressor_max_additivity_error": 8.354267409804716e-08,
+  "additivity_tolerance": 1e-06,
+  "non_causal_framing": "TreeSHAP quantifies feature contributions to LightGBM model behavior only; attributions are strictly non-causal and do not imply economic causation.",
+  "top_features_classifier_prob": [
+    {
+      "feature": "rv_m",
+      "rank": 1,
+      "mean_abs_shap": 0.06263152932564475,
+      "share_pct": 24.4256274614513,
+      "mean_shap": 0.009489406123457984
+    },
+    {
+      "feature": "vix_close",
+      "rank": 2,
+      "mean_abs_shap": 0.030583091953671704,
+      "share_pct": 11.927079199929848,
+      "mean_shap": 0.018237525796971965
+    },
+    {
+      "feature": "t10y2y",
+      "rank": 3,
+      "mean_abs_shap": 0.029412634745494198,
+      "share_pct": 11.47061339054703,
+      "mean_shap": 0.022716580805547226
+    },
+    {
+      "feature": "log_rv_m",
+      "rank": 4,
+      "mean_abs_shap": 0.02100613058248799,
+      "share_pct": 8.192166557944235,
+      "mean_shap": 0.0019304543036891696
+    },
+    {
+      "feature": "sector_healthcare",
+      "rank": 5,
+      "mean_abs_shap": 0.019505569006436102,
+      "share_pct": 7.606963570978303,
+      "mean_shap": 2.359561775930985e-05
+    },
+    {
+      "feature": "spy_ret_1d",
+      "rank": 6,
+      "mean_abs_shap": 0.01725019888026541,
+      "share_pct": 6.72739331167481,
+      "mean_shap": 0.00539146379085645
+    },
+    {
+      "feature": "vol_ratio_20d",
+      "rank": 7,
+      "mean_abs_shap": 0.016867864035175335,
+      "share_pct": 6.578286805858129,
+      "mean_shap": 0.003529328230944149
+    },
+    {
+      "feature": "sector_consumer",
+      "rank": 8,
+      "mean_abs_shap": 0.012000354052927424,
+      "share_pct": 4.680009903291708,
+      "mean_shap": 0.0017193538534508279
+    }
+  ],
+  "top_features_regressor_log_rv": [
+    {
+      "feature": "rv_m",
+      "rank": 1,
+      "mean_abs_shap": 0.1004709518412503,
+      "share_pct": 28.56803067014986,
+      "mean_shap": 0.006036917053236092
+    },
+    {
+      "feature": "vix_close",
+      "rank": 2,
+      "mean_abs_shap": 0.03977390242012592,
+      "share_pct": 11.309359007617072,
+      "mean_shap": -0.022865809356264973
+    },
+    {
+      "feature": "log_rv_m",
+      "rank": 3,
+      "mean_abs_shap": 0.03338530675571652,
+      "share_pct": 9.492818071801022,
+      "mean_shap": 5.474260156805912e-05
+    },
+    {
+      "feature": "log_rv_w",
+      "rank": 4,
+      "mean_abs_shap": 0.030039663308044313,
+      "share_pct": 8.5415138104907,
+      "mean_shap": -0.00041115816902373734
+    },
+    {
+      "feature": "rv_w",
+      "rank": 5,
+      "mean_abs_shap": 0.021937884533076685,
+      "share_pct": 6.237844339022456,
+      "mean_shap": 0.0002458468296638863
+    },
+    {
+      "feature": "sector_consumer",
+      "rank": 6,
+      "mean_abs_shap": 0.02013230865766546,
+      "share_pct": 5.7244447340547175,
+      "mean_shap": 0.002789291182361103
+    },
+    {
+      "feature": "sector_energy",
+      "rank": 7,
+      "mean_abs_shap": 0.01865872126133898,
+      "share_pct": 5.305443130487575,
+      "mean_shap": 0.0030401868205662923
+    },
+    {
+      "feature": "vol_ratio_20d",
+      "rank": 8,
+      "mean_abs_shap": 0.01640929284894769,
+      "share_pct": 4.665837964040679,
+      "mean_shap": 0.00310957220890802
+    }
+  ],
+  "generated_at_utc": "2026-11-22T14:04:28+00:00"
+}

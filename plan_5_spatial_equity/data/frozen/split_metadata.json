@@ -1,0 +1,92 @@
+{
+  "method": "island_aware_kmeans",
+  "description": "Island-Aware Geographic KMeans on EPSG:32649 cell centroids (Macao Peninsula k=3, Taipa-Cotai-Coloane k=2), canonically ordered North->South (0..4)",
+  "seed": 42,
+  "n_init": 20,
+  "n_blocks": 5,
+  "peninsula_k": 3,
+  "islands_k": 2,
+  "n_cells_total": 287,
+  "n_pos_ev_total": 56,
+  "n_neg_ev_total": 231,
+  "prevalence_total": 0.1951,
+  "cross_block_edge_count": 92,
+  "cross_block_edge_share": 0.0931,
+  "total_directed_edges": 988,
+  "total_undirected_pairs": 494,
+  "blocks": [
+    {
+      "block_id": 0,
+      "landmass": "Macao Peninsula",
+      "parishes": [
+        "P01",
+        "P02"
+      ],
+      "n_cells": 29,
+      "n_pos_ev": 16,
+      "n_neg_ev": 13,
+      "prevalence": 0.5517,
+      "mean_centroid_x": 762196.18,
+      "mean_centroid_y": 2458239.26
+    },
+    {
+      "block_id": 1,
+      "landmass": "Macao Peninsula",
+      "parishes": [
+        "P01",
+        "P02",
+        "P03",
+        "P04"
+      ],
+      "n_cells": 29,
+      "n_pos_ev": 11,
+      "n_neg_ev": 18,
+      "prevalence": 0.3793,
+      "mean_centroid_x": 763326.05,
+      "mean_centroid_y": 2457262.06
+    },
+    {
+      "block_id": 2,
+      "landmass": "Macao Peninsula",
+      "parishes": [
+        "P02",
+        "P04",
+        "P05"
+      ],
+      "n_cells": 32,
+      "n_pos_ev": 14,
+      "n_neg_ev": 18,
+      "prevalence": 0.4375,
+      "mean_centroid_x": 761924.36,
+      "mean_centroid_y": 2456081.28
+    },
+    {
+      "block_id": 3,
+      "landmass": "Taipa-Cotai-Coloane",
+      "parishes": [
+        "P06",
+        "P07"
+      ],
+      "n_cells": 99,
+      "n_pos_ev": 9,
+      "n_neg_ev": 90,
+      "prevalence": 0.0909,
+      "mean_centroid_x": 764241.67,
+      "mean_centroid_y": 2452262.66
+    },
+    {
+      "block_id": 4,
+      "landmass": "Taipa-Cotai-Coloane",
+      "parishes": [
+        "P06",
+        "P07"
+      ],
+      "n_cells": 98,
+      "n_pos_ev": 6,
+      "n_neg_ev": 92,
+      "prevalence": 0.0612,
+      "mean_centroid_x": 764820.08,
+      "mean_centroid_y": 2449223.4
+    }
+  ]
+}

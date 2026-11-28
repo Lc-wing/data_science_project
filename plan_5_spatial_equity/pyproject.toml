@@ -1,0 +1,66 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "macao-equity"
+version = "0.1.0"
+description = "MacaoSpatialEquity — Plan 5: spatial equity of public facilities and EV charging, plus the Phase B graph module"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.2,<3.0",
+    "numpy>=2.0",
+    "scipy>=1.14",
+    "statsmodels>=0.14",
+    "scikit-learn>=1.5",
+    "geopandas>=1.0",
+    "shapely>=2.0",
+    "pyproj>=3.6",
+    "pyogrio>=0.10",
+    "osmnx>=2.0",
+    "networkx>=3.3",
+    "h3>=4.0",
+    "osmium>=4.0",
+    "libpysal>=4.12",
+    "esda>=2.6",
+    "spreg>=1.8",
+    "inequality>=1.0",
+    "matplotlib>=3.9",
+    "seaborn>=0.13",
+    "contextily>=1.6",
+    "requests>=2.31",
+    "pypdf>=5.0",
+    "torch>=2.5",
+    "torch-geometric>=2.6",
+    "xgboost>=3.2.0",
+    "lightgbm>=4.7.0",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.7",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/macao_equity"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

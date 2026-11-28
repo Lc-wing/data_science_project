@@ -1,0 +1,272 @@
+{
+  "schema_version": "1.0.0",
+  "step": "Phase A step 1: data download and Day-1 audit",
+  "downloaded_between_utc8": [
+    "2026-11-21T12:25:51+08:00",
+    "2026-11-21T12:30:01+08:00"
+  ],
+  "raw_files_recorded": 176,
+  "panel_window": {
+    "start": "2010-01",
+    "end": "2026-09",
+    "tiers": [
+      "5star",
+      "4star",
+      "3star",
+      "2star"
+    ],
+    "months_by_period": {
+      "pre_pandemic": 120,
+      "transition_2020_01": 1,
+      "pandemic": 35,
+      "post_pandemic": 45,
+      "all_months": 201
+    }
+  },
+  "dsec": {
+    "pages": [
+      "https://www.dsec.gov.mo/en-US/Statistic?id=402",
+      "https://www.dsec.gov.mo/en-US/Statistic?id=403",
+      "https://www.dsec.gov.mo/ts/#!/step1/en-US"
+    ],
+    "series_downloaded": 34,
+    "registry_verified_against_dsec_metadata": true,
+    "tier_series": 16,
+    "tier_series_complete_in_panel_window": 16,
+    "tier_month_observations": 804,
+    "core_series_with_gaps": {},
+    "earliest_month_by_series": {
+      "occupancy_5star": "2008-01",
+      "occupancy_4star": "2008-01",
+      "occupancy_3star": "2008-01",
+      "occupancy_2star": "2008-01",
+      "occupancy_hotels": "2008-01",
+      "occupancy_guesthouses": "2008-01",
+      "occupancy_economical": "2022-01",
+      "rooms_5star": "2008-01",
+      "rooms_4star": "2008-01",
+      "rooms_3star": "2008-01",
+      "rooms_2star": "2008-01",
+      "rooms_hotels": "2008-01",
+      "establishments_5star": "2008-01",
+      "establishments_4star": "2008-01",
+      "establishments_3star": "2008-01",
+      "establishments_2star": "2008-01",
+      "establishments_hotels": "2008-01",
+      "guests_5star": "2008-01",
+      "guests_4star": "2008-01",
+      "guests_3star": "2008-01",
+      "guests_2star": "2008-01",
+      "guests_hotels": "2008-01",
+      "package_tour_visitors": "2008-01",
+      "visitors_total": "2008-01",
+      "visitors_same_day": "2008-01",
+      "visitors_overnight": "2008-01",
+      "visitors_mainland": "2008-01",
+      "visitors_hong_kong": "2008-01",
+      "visitors_taiwan": "2008-01",
+      "visitors_by_sea": "2008-01",
+      "visitors_by_land": "2008-01",
+      "visitors_by_air": "2008-01",
+      "stay_all_visitors": "2011-01",
+      "stay_overnight_visitors": "2011-01"
+    },
+    "latest_month_by_series": {
+      "occupancy_5star": "2026-09",
+      "occupancy_4star": "2026-09",
+      "occupancy_3star": "2026-09",
+      "occupancy_2star": "2026-09",
+      "occupancy_hotels": "2026-09",
+      "occupancy_guesthouses": "2021-12",
+      "occupancy_economical": "2026-09",
+      "rooms_5star": "2026-09",
+      "rooms_4star": "2026-09",
+      "rooms_3star": "2026-09",
+      "rooms_2star": "2026-09",
+      "rooms_hotels": "2026-09",
+      "establishments_5star": "2026-09",
+      "establishments_4star": "2026-09",
+      "establishments_3star": "2026-09",
+      "establishments_2star": "2026-09",
+      "establishments_hotels": "2026-09",
+      "guests_5star": "2026-09",
+      "guests_4star": "2026-09",
+      "guests_3star": "2026-09",
+      "guests_2star": "2026-09",
+      "guests_hotels": "2026-09",
+      "package_tour_visitors": "2026-09",
+      "visitors_total": "2026-10",
+      "visitors_same_day": "2026-10",
+      "visitors_overnight": "2026-10",
+      "visitors_mainland": "2026-10",
+      "visitors_hong_kong": "2026-10",
+      "visitors_taiwan": "2026-10",
+      "visitors_by_sea": "2026-10",
+      "visitors_by_land": "2026-10",
+      "visitors_by_air": "2026-10",
+      "stay_all_visitors": "2026-10",
+      "stay_overnight_visitors": "2026-10"
+    },
+    "identity_checks": {
+      "same_day_plus_overnight_equals_total": {
+        "months_compared": 201,
+        "months_exact": 201,
+        "max_abs_gap": 0.0,
+        "month_of_max_gap": "2010-01"
+      },
+      "sea_plus_land_plus_air_equals_total": {
+        "months_compared": 201,
+        "months_exact": 201,
+        "max_abs_gap": 0.0,
+        "month_of_max_gap": "2010-01"
+      },
+      "tier_rooms_sum_equals_hotel_rooms": {
+        "months_compared": 201,
+        "months_exact": 201,
+        "max_abs_gap": 0.0,
+        "month_of_max_gap": "2010-01"
+      },
+      "tier_establishments_sum_equals_hotels": {
+        "months_compared": 201,
+        "months_exact": 201,
+        "max_abs_gap": 0.0,
+        "month_of_max_gap": "2010-01"
+      },
+      "tier_guests_sum_equals_hotel_guests": {
+        "months_compared": 201,
+        "months_exact": 201,
+        "max_abs_gap": 0.0,
+        "month_of_max_gap": "2010-01"
+      },
+      "international_share_within_0_1": {
+        "min": 8.906999788504955e-06,
+        "max": 0.13416992400672467,
+        "ok": true
+      },
+      "tier_occupancy_within_0_100": {
+        "min": 5.0,
+        "max": 97.2,
+        "ok": true
+      }
+    },
+    "release_crosscheck": {
+      "values_compared": 22,
+      "values_matching": 22,
+      "files": [
+        "CPE_EOH_FR_2026_M09.xlsx",
+        "CPE_MV_FR_2026_M10.xlsx"
+      ],
+      "periods": [
+        "2026-09",
+        "2026-10"
+      ]
+    },
+    "tier_classification": {
+      "all_four_tiers_every_month": true,
+      "months_with_establishment_count_change": 87,
+      "months_with_offsetting_moves_between_tiers": 5,
+      "offsetting_moves": [
+        {
+          "period": "2020-08",
+          "moves": "4star 15->14 est., rooms 6186->5886; 3star 15->16 est., rooms 4919->4957"
+        },
+        {
+          "period": "2020-09",
+          "moves": "5star 34->33 est., rooms 21957->21672; 2star 15->16 est., rooms 980->1239"
+        },
+        {
+          "period": "2021-01",
+          "moves": "5star 33->32 est., rooms 21684->21351; 4star 15->16 est., rooms 6174->6747"
+        },
+        {
+          "period": "2021-07",
+          "moves": "5star 32->33 est., rooms 21320->21711; 2star 15->14 est., rooms 1193->1095"
+        },
+        {
+          "period": "2022-02",
+          "moves": "5star 34->33 est., rooms 24340->23950; 4star 17->18 est., rooms 7074->7244; 2star 21->22 est., rooms 1515->1561"
+        }
+      ],
+      "tier_months_with_room_change_of_10pct_or_more": {
+        "pre_pandemic": 12,
+        "transition_2020_01": 0,
+        "pandemic": 8,
+        "post_pandemic": 2
+      },
+      "largest_room_change": {
+        "tier": "3star",
+        "period": "2016-09",
+        "period_label": "pre_pandemic",
+        "rooms_before": 2528,
+        "rooms_after": 5477,
+        "rooms_change_pct": 116.7,
+        "establishments_before": 13,
+        "establishments_after": 15
+      },
+      "dsec_table_notes": [
+        "Note: Data exclude hotel establishments that suspended business and those that did not provide accommodation services to the public."
+      ],
+      "non_star_class": {
+        "guest_houses_last_month": "2021-12",
+        "economical_accommodation_first_month": "2022-01"
+      },
+      "distinct_remarks_on_tier_series": [
+        "Revised figures"
+      ]
+    }
+  },
+  "cn_holidays": {
+    "notices": 17,
+    "amending_notices": 3,
+    "years": [
+      2010,
+      2026
+    ],
+    "periods": 115,
+    "periods_with_stated_length": 94,
+    "periods_matching_stated_length": 94,
+    "holiday_days_in_panel_window": 492,
+    "golden_week_days_in_panel_window": 243,
+    "months_with_holiday_days": 117
+  },
+  "smg_typhoon_signals": {
+    "pages": [
+      "https://www.smg.gov.mo/en/subpage/355/report/typhoon-yearly-report",
+      "https://www.smg.gov.mo/en/subpage/355/page/259"
+    ],
+    "reports_parsed": 104,
+    "signal_records": 367,
+    "first_record": "2010-07-14T22:00",
+    "last_record": "2026-09-03T21:00",
+    "typhoon_day_definition": "calendar day (Macao time) on which signal No. 8 or higher was in force for any length of time",
+    "typhoon_days_in_panel_window": 44,
+    "months_with_typhoon_days": 26,
+    "typhoon_days_by_year": {
+      "2010": 0,
+      "2011": 1,
+      "2012": 4,
+      "2013": 1,
+      "2014": 1,
+      "2015": 0,
+      "2016": 1,
+      "2017": 3,
+      "2018": 4,
+      "2019": 2,
+      "2020": 3,
+      "2021": 4,
+      "2022": 7,
+      "2023": 5,
+      "2024": 2,
+      "2025": 6,
+      "2026": 0
+    },
+    "annual_table_years_checked": 16,
+    "annual_table_years_matching": 16,
+    "annual_table_mismatches": [],
+    "years_not_in_annual_table": [
+      2026
+    ],
+    "monthly_summaries_checked": 9,
+    "monthly_summaries_matching": 9
+  }
+}

@@ -1,0 +1,25 @@
+# Python / Virtualenv
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Environment / OS
+.env
+.env.*
+.DS_Store
+Thumbs.db
+
+# Downloaded SMG PDFs (about 160 MB). data/raw/ keeps their URL, size, SHA-256, and text.
+.cache/
+
+# LaTeX side files. The draft PDF and the audit are kept.
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc

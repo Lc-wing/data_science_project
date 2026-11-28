@@ -1,0 +1,82 @@
+{
+  "config": {
+    "name": "patchtst_15m",
+    "lookback": 60,
+    "n_features": 14,
+    "patch_len": 5,
+    "patch_stride": 5,
+    "n_tickers": 60,
+    "n_sectors": 5,
+    "d_model": 448,
+    "n_heads": 8,
+    "n_layers": 6,
+    "d_ff": 1792,
+    "dropout": 0.15
+  },
+  "param_count": 14654533,
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "val_temperature": 0.65988360749185,
+  "seed_summaries": [
+    {
+      "seed": 42,
+      "best_epoch": 3,
+      "best_val_qlike": 0.18336080097580593,
+      "duan_smearing": 1.0327554941177368,
+      "test_qlike": 0.3061414718009316,
+      "test_rmse": 0.12081372960807385,
+      "test_nominal_80_coverage": 0.6706122448979592
+    },
+    {
+      "seed": 43,
+      "best_epoch": 2,
+      "best_val_qlike": 0.17085312653258003,
+      "duan_smearing": 0.9818907976150513,
+      "test_qlike": 0.29702352826439915,
+      "test_rmse": 0.11649127018952518,
+      "test_nominal_80_coverage": 0.7112925170068027
+    },
+    {
+      "seed": 44,
+      "best_epoch": 4,
+      "best_val_qlike": 0.1651018790113304,
+      "duan_smearing": 1.0244475603103638,
+      "test_qlike": 0.279819064926013,
+      "test_rmse": 0.1229690200172806,
+      "test_nominal_80_coverage": 0.6863265306122449
+    },
+    {
+      "seed": 45,
+      "best_epoch": 7,
+      "best_val_qlike": 0.16038810993146022,
+      "duan_smearing": 1.03128182888031,
+      "test_qlike": 0.2811607784640721,
+      "test_rmse": 0.12038072978570656,
+      "test_nominal_80_coverage": 0.6676190476190477
+    },
+    {
+      "seed": 46,
+      "best_epoch": 4,
+      "best_val_qlike": 0.1629547907201898,
+      "duan_smearing": 0.9934313893318176,
+      "test_qlike": 0.2878109546705782,
+      "test_rmse": 0.13171939742834748,
+      "test_nominal_80_coverage": 0.6671428571428571
+    }
+  ],
+  "test_metrics_ensemble": {
+    "qlike": 0.2819201221811385,
+    "rmse": 0.11963265885779661,
+    "mae": 0.07383918964766524,
+    "pr_auc": 0.11293543225644566,
+    "roc_auc": 0.6128521680078353,
+    "brier": 0.3011000440229441,
+    "ece": 0.4349453255311481
+  },
+  "test_nominal_80_coverage": 0.6830612244897959
+}

@@ -1,0 +1,12 @@
+{
+  "model_id": "amazon/chronos-2",
+  "context_length": 128,
+  "test_rows": 14700,
+  "test_metrics": {
+    "qlike": 0.350451930107901,
+    "rmse": 0.10749589834903178,
+    "mae": 0.06283846500095258
+  },
+  "test_nominal_80_coverage": 0.8920408163265307,
+  "elapsed_sec": 23.84
+}

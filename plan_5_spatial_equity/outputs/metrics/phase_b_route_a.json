@@ -1,0 +1,137 @@
+{
+  "task": "has_ev_charger node classification",
+  "feature_columns": [
+    "pop_total",
+    "pop_65plus",
+    "pop_density",
+    "elderly_share",
+    "intersection_density",
+    "road_density_km_per_km2",
+    "res_bldg_share",
+    "com_bldg_share",
+    "bldg_coverage_ratio",
+    "dist_nearest_lrt_m",
+    "dist_nearest_bus_m"
+  ],
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51
+  ],
+  "protocols": [
+    "inductive",
+    "transductive"
+  ],
+  "models": [
+    "gatv2",
+    "graph_transformer",
+    "graphsage_5k"
+  ],
+  "parameter_counts": {
+    "gatv2": 1063425,
+    "graph_transformer": 432769,
+    "graphsage_5k": 5149
+  },
+  "epoch_budget": {
+    "max_epochs": 60,
+    "min_epochs": 15,
+    "patience": 10
+  },
+  "aggregation": "For each seed, average the five fold scores with ddof=0. Across seeds, report the mean and the ddof=1 standard deviation. The test block is not used to choose the architecture or the epoch.",
+  "language": "correlational",
+  "summary_rows": [
+    {
+      "model": "gatv2",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_cpu",
+      "std_definition": "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds",
+      "note": "From-scratch Route A with walk-time edge weights. Inductive training drops test nodes and edges touching them; inductive eval keeps train->train, train->test, and test->test while dropping test->train. Transductive training keeps cross-block edges and still masks test labels.",
+      "roc_auc_mean": 0.67906246,
+      "roc_auc_std": 0.01927541,
+      "pr_auc_mean": 0.50015054,
+      "pr_auc_std": 0.02593718,
+      "top20_hit_rate_mean": 0.3528391,
+      "top20_hit_rate_std": 0.03440381
+    },
+    {
+      "model": "gatv2",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_cpu",
+      "std_definition": "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds",
+      "note": "From-scratch Route A with walk-time edge weights. Inductive training drops test nodes and edges touching them; inductive eval keeps train->train, train->test, and test->test while dropping test->train. Transductive training keeps cross-block edges and still masks test labels.",
+      "roc_auc_mean": 0.68899365,
+      "roc_auc_std": 0.01266324,
+      "pr_auc_mean": 0.49018891,
+      "pr_auc_std": 0.01656383,
+      "top20_hit_rate_mean": 0.35369228,
+      "top20_hit_rate_std": 0.02964056
+    },
+    {
+      "model": "graph_transformer",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_cpu",
+      "std_definition": "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds",
+      "note": "From-scratch Route A with walk-time edge weights. Inductive training drops test nodes and edges touching them; inductive eval keeps train->train, train->test, and test->test while dropping test->train. Transductive training keeps cross-block edges and still masks test labels.",
+      "roc_auc_mean": 0.70535951,
+      "roc_auc_std": 0.03246658,
+      "pr_auc_mean": 0.52296421,
+      "pr_auc_std": 0.04101017,
+      "top20_hit_rate_mean": 0.38645202,
+      "top20_hit_rate_std": 0.05296972
+    },
+    {
+      "model": "graph_transformer",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_cpu",
+      "std_definition": "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds",
+      "note": "From-scratch Route A with walk-time edge weights. Inductive training drops test nodes and edges touching them; inductive eval keeps train->train, train->test, and test->test while dropping test->train. Transductive training keeps cross-block edges and still masks test labels.",
+      "roc_auc_mean": 0.71691295,
+      "roc_auc_std": 0.03092775,
+      "pr_auc_mean": 0.51927479,
+      "pr_auc_std": 0.03962861,
+      "top20_hit_rate_mean": 0.40684704,
+      "top20_hit_rate_std": 0.05000845
+    },
+    {
+      "model": "graphsage_5k",
+      "protocol": "inductive",
+      "n_seeds": 10,
+      "status": "ran_on_cpu",
+      "std_definition": "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds",
+      "note": "From-scratch Route A with walk-time edge weights. Inductive training drops test nodes and edges touching them; inductive eval keeps train->train, train->test, and test->test while dropping test->train. Transductive training keeps cross-block edges and still masks test labels.",
+      "roc_auc_mean": 0.65243451,
+      "roc_auc_std": 0.05577357,
+      "pr_auc_mean": 0.474273,
+      "pr_auc_std": 0.06696671,
+      "top20_hit_rate_mean": 0.33561688,
+      "top20_hit_rate_std": 0.06635784
+    },
+    {
+      "model": "graphsage_5k",
+      "protocol": "transductive",
+      "n_seeds": 10,
+      "status": "ran_on_cpu",
+      "std_definition": "mean and ddof=1 std across seeds of the ddof=0 mean across 5 folds",
+      "note": "From-scratch Route A with walk-time edge weights. Inductive training drops test nodes and edges touching them; inductive eval keeps train->train, train->test, and test->test while dropping test->train. Transductive training keeps cross-block edges and still masks test labels.",
+      "roc_auc_mean": 0.65782853,
+      "roc_auc_std": 0.01997532,
+      "pr_auc_mean": 0.49731547,
+      "pr_auc_std": 0.03652211,
+      "top20_hit_rate_mean": 0.36227633,
+      "top20_hit_rate_std": 0.04053882
+    }
+  ],
+  "n_cells": 287,
+  "n_pos": 56
+}

@@ -1,0 +1,226 @@
+{
+  "schema_version": "1.0.0",
+  "project": "plan_6_stock_volatility",
+  "phase": "Phase A (CPU-reproducible; frozen interface for Phase B A100 QLoRA)",
+  "generated_at_utc": "2026-11-22T14:04:28+00:00",
+  "random_seed": 42,
+  "date_window": {
+    "start": "2019-01-02",
+    "end": "2025-12-31"
+  },
+  "horizon_days": 5,
+  "rv_eps": 1e-06,
+  "tail_return_threshold": -0.05,
+  "rv90_train_threshold": 0.374196,
+  "cutoff_tz": "America/New_York",
+  "cutoff_hour": 16,
+  "early_close_hour": 13,
+  "early_close_dates": [
+    "2019-07-03",
+    "2019-11-29",
+    "2019-12-24",
+    "2020-11-27",
+    "2020-12-24",
+    "2021-11-26",
+    "2022-11-25",
+    "2023-07-03",
+    "2023-11-24",
+    "2024-07-03",
+    "2024-11-29",
+    "2024-12-24",
+    "2025-07-03",
+    "2025-11-28",
+    "2025-12-24"
+  ],
+  "max_events_per_day": 5,
+  "universe": {
+    "n_tickers": 60,
+    "n_sectors": 5,
+    "sectors": [
+      "Technology",
+      "Financials",
+      "Healthcare",
+      "Consumer",
+      "Energy"
+    ],
+    "tickers": [
+      "AAPL",
+      "MSFT",
+      "NVDA",
+      "AVGO",
+      "ORCL",
+      "CSCO",
+      "ADBE",
+      "CRM",
+      "INTC",
+      "TXN",
+      "QCOM",
+      "IBM",
+      "JPM",
+      "BAC",
+      "WFC",
+      "C",
+      "GS",
+      "MS",
+      "BLK",
+      "SCHW",
+      "AXP",
+      "USB",
+      "PNC",
+      "CB",
+      "JNJ",
+      "UNH",
+      "PFE",
+      "MRK",
+      "ABT",
+      "TMO",
+      "LLY",
+      "AMGN",
+      "BMY",
+      "GILD",
+      "CVS",
+      "CI",
+      "WMT",
+      "PG",
+      "KO",
+      "PEP",
+      "COST",
+      "CL",
+      "AMZN",
+      "HD",
+      "MCD",
+      "NKE",
+      "SBUX",
+      "TGT",
+      "XOM",
+      "CVX",
+      "COP",
+      "EOG",
+      "SLB",
+      "MPC",
+      "PSX",
+      "VLO",
+      "OXY",
+      "HAL",
+      "KMI",
+      "WMB"
+    ],
+    "zero_2025_lookahead": true
+  },
+  "research_question": "Across 60 liquid cross-sector US equities (2019-2025), how accurately do econometric volatility models (HAR-RV, GJR-GARCH) and nonlinear ML (LightGBM) forecast 5-day forward realized volatility and downside tail-risk events under strict purged+embargoed time-series splits, and does pre-close corporate event representation via 27B-64B QLoRA LLM fine-tuning (Phase B) add incremental lift?",
+  "scope_and_disclaimer": "Associational and predictive risk-modeling research for CS482; no causal claims and strictly not investment or trading advice.",
+  "hypotheses": {
+    "H1": {
+      "type": "confirmatory_associational",
+      "statement": "Lagged negative return (leverage effect) and lagged VIX are positively associated with 5-day forward log realized volatility, with heterogeneity between growth/Technology and defensive sectors.",
+      "estimator": "Stock-FE extended Panel HAR-RV with Bartlett Driscoll-Kraay SE",
+      "confirmatory_family": [
+        "neg_ret_1d",
+        "vix_close",
+        "tech_x_neg_ret_1d_vs_healthcare",
+        "tech_x_vix_close_vs_healthcare",
+        "joint_5sector_interaction_wald"
+      ],
+      "multiple_testing_correction": "Holm-Bonferroni",
+      "sensitivities": [
+        "train_only_2019_2023",
+        "close_to_close_rv_5d_cc_fwd",
+        "newey_west_entity_clustered_se"
+      ]
+    },
+    "H2": {
+      "type": "confirmatory_predictive",
+      "statement": "Under purged+embargoed expanding-window backtesting, global LightGBM outperforms Persistence, per-stock GJR-GARCH(1,1), and Panel HAR-RV on 2025 holdout QLIKE/RMSE and downside tail-risk PR-AUC.",
+      "baselines": [
+        "persistence_rv_w",
+        "gjr_garch_11_per_stock",
+        "panel_har_rv_and_logistic"
+      ],
+      "ml_models": [
+        "global_lightgbm_regressor_duan_smearing",
+        "global_lightgbm_classifier_val_calibrated"
+      ],
+      "calibration_candidates_on_val_2024": [
+        "isotonic",
+        "platt_sigmoid",
+        "temperature_scaling"
+      ],
+      "test_refit_schedule": "quarterly_expanding_2025_Q1_Q4_with_5d_purge",
+      "regression_metrics": [
+        "QLIKE_variance_scale",
+        "RMSE",
+        "MAE"
+      ],
+      "classification_metrics": [
+        "PR_AUC_primary",
+        "ROC_AUC",
+        "Brier",
+        "ECE"
+      ],
+      "inference": {
+        "dm_test": "HLN_modified_DM_h5_Bartlett_PSD_max_lag_4",
+        "multiple_testing": "Holm-Bonferroni",
+        "bootstrap": {
+          "type": "date_block",
+          "block_len": 5,
+          "B": 1000,
+          "seed": 42
+        }
+      },
+      "explainability": {
+        "method": "TreeSHAP",
+        "background_split": "train_2019_2023_only",
+        "background_n": 1000,
+        "seed": 42,
+        "additivity_tol": 1e-06
+      }
+    },
+    "H3": {
+      "type": "phase_b_extension_frozen_handoff",
+      "statement": "Event-anchored 4-bit QLoRA fine-tuning of 27B-64B open LLMs on frozen pre-close SEC EDGAR event text provides incremental 2025 tail-risk lift over price-only LightGBM and FinBERT (110M); null results accepted.",
+      "frozen_text_input": "data/frozen/events_text_phase_b.parquet",
+      "event_anchored_only": true,
+      "max_events_per_day": 5
+    }
+  },
+  "targets": {
+    "primary_regression": {
+      "raw_scale": "rv_5d_fwd",
+      "model_scale": "y_log_rv",
+      "definition": "sqrt((252 / (5 * 4 * ln(2))) * sum_{k=1..5} (ln(H_{t+k}/L_{t+k}))^2)",
+      "back_transform": "Train-fold Duan smearing: max(exp(y_hat)*smear - 1e-6, 1e-4)"
+    },
+    "secondary_regression": {
+      "raw_scale": "rv_5d_cc_fwd",
+      "definition": "sqrt((252 / 5) * sum_{k=1..5} (ln(AdjClose_{t+k}/AdjClose_{t+k-1}))^2)"
+    },
+    "primary_classification": {
+      "column": "y_tail",
+      "definition": "1 iff (AdjClose_{t+5}/AdjClose_t - 1) < -0.05 else 0"
+    },
+    "secondary_classification": {
+      "column": "y_tail_rv90",
+      "definition": "1 iff rv_5d_fwd >= Train 90th percentile threshold else 0",
+      "train_rv90_threshold": 0.374196
+    }
+  },
+  "splits_frozen": {
+    "train": {
+      "start": "2019-01-02",
+      "end": "2023-12-20"
+    },
+    "embargo_1_days": 6,
+    "val": {
+      "start": "2024-01-02",
+      "end": "2024-12-20"
+    },
+    "embargo_2_days": 6,
+    "test": {
+      "start": "2025-01-02",
+      "end": "2025-12-31"
+    },
+    "test_scorable_days": 245,
+    "test_incomplete_tail_days": 5,
+    "zero_target_overlap_verified": true
+  }
+}

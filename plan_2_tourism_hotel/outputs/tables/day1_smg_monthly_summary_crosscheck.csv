@@ -1,0 +1,10 @@
+period,summary_file,is_summary_of_month,summary_mentions_cyclone,summary_records,report_records,match
+2026-01,c_resumo_202601.pdf,True,False,0,0,True
+2026-02,c_resumo_202602.pdf,True,False,0,0,True
+2026-03,c_resumo_202603.pdf,True,False,0,0,True
+2026-04,c_resumo_202604.pdf,True,False,0,0,True
+2026-05,c_resumo_202605.pdf,True,False,0,0,True
+2026-06,c_resumo_202606.pdf,True,False,0,0,True
+2026-07,c_resumo_202607.pdf,True,True,7,7,True
+2026-08,c_resumo_202608.pdf,True,True,1,1,True
+2026-09,c_resumo_202609.pdf,True,True,1,1,True

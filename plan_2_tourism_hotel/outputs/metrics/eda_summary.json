@@ -1,0 +1,405 @@
+{
+  "schema_version": "1.0.0",
+  "step": "Phase A step 3: exploratory data analysis",
+  "role": "exploratory description only (Figure 1)",
+  "frozen_at_utc8": "2026-11-21T12:45:00+08:00",
+  "panel_sha256": "9c9547d653c52a168f5b7d8b632458b7d62eece2c0e66c46fcbd8934de479729",
+  "analysis_spec_sha256": "347c14d671f53f9ba3fc472cb1eba972b4519c146a920144d9c356a71ca1a4d5",
+  "spec_version": "1.0.0",
+  "settings": {
+    "stl_occupancy": {
+      "period": 12,
+      "robust": true,
+      "fits": "one fit per star class and block (pre-pandemic, post-pandemic)",
+      "seasonal": "periodic (constant inside a block)",
+      "other": "statsmodels defaults",
+      "pandemic_months": "not decomposed"
+    },
+    "pelt": {
+      "input": "share in percent minus its STL seasonal component (one fit over all months, period 12, robust, seasonal window 7)",
+      "cost": "l2 (piecewise-constant mean)",
+      "min_segment_months": 12,
+      "penalty": "multiplier × 2 × noise_sd² × ln(n)",
+      "noise_sd": "1.4826 × MAD of the 12-month differences / √2",
+      "main_multiplier": 1.0,
+      "multipliers_reported": [
+        0.5,
+        1.0,
+        2.0,
+        4.0
+      ],
+      "also_reported": "the same run on the shares without seasonal adjustment"
+    },
+    "left_open_by_the_specification": "The specification names STL (period 12, robust) on occupancy and PELT on the three shares. The months of each STL fit, the seasonal window, the seasonal adjustment before PELT, the cost, the minimum segment length, and the penalty are choices of this step.",
+    "changed_after_the_first_run": [
+      "STL on occupancy was first fitted once per star class over all 201 months with seasonal window 7. That fit pushed the pandemic collapse into the seasonal component and the remainder of the post-pandemic months (see eda_stl_full_series_check.csv). It was replaced by one fit per block with a periodic seasonal pattern.",
+      "The PELT settings were not changed. A run on the shares without seasonal adjustment was added to the sensitivity table."
+    ]
+  },
+  "deviations_from_spec": [],
+  "change_points_main": {
+    "same_day_share_pct": [
+      "2016-06",
+      "2018-11",
+      "2021-08",
+      "2022-08",
+      "2023-08",
+      "2024-12"
+    ],
+    "international_share_pct": [
+      "2011-03",
+      "2013-05",
+      "2018-07",
+      "2020-03",
+      "2023-02",
+      "2024-02"
+    ],
+    "package_tour_share_pct": [
+      "2011-07",
+      "2012-07",
+      "2015-08",
+      "2019-01",
+      "2020-01",
+      "2023-03"
+    ]
+  },
+  "change_points_unadjusted_input": {
+    "same_day_share_pct": [
+      "2016-06",
+      "2018-10",
+      "2021-08",
+      "2022-08",
+      "2023-08",
+      "2025-01"
+    ],
+    "international_share_pct": [
+      "2011-01",
+      "2013-02",
+      "2018-07",
+      "2020-03",
+      "2023-03",
+      "2024-03"
+    ],
+    "package_tour_share_pct": [
+      "2011-06",
+      "2012-07",
+      "2015-12",
+      "2019-01",
+      "2020-01",
+      "2023-03"
+    ]
+  },
+  "change_point_counts_by_multiplier": {
+    "same_day_share_pct": {
+      "0.5": 6,
+      "1.0": 6,
+      "2.0": 4,
+      "4.0": 3
+    },
+    "international_share_pct": {
+      "0.5": 9,
+      "1.0": 6,
+      "2.0": 5,
+      "4.0": 4
+    },
+    "package_tour_share_pct": {
+      "0.5": 7,
+      "1.0": 6,
+      "2.0": 4,
+      "4.0": 4
+    }
+  },
+  "visitor_mix_by_period": [
+    {
+      "period_label": "pre_pandemic",
+      "months": 120,
+      "mean_same_day_share_pct": 51.345784,
+      "mean_international_share_pct": 9.817236,
+      "mean_package_tour_share_pct": 28.047985,
+      "mean_visitors_total": 2594881.25,
+      "mean_visitors_overnight": 1263786.216667
+    },
+    {
+      "period_label": "pandemic",
+      "months": 35,
+      "mean_same_day_share_pct": 53.995177,
+      "mean_international_share_pct": 0.498166,
+      "mean_package_tour_share_pct": 0.472165,
+      "mean_visitors_total": 470076.142857,
+      "mean_visitors_overnight": 219520.914286
+    },
+    {
+      "period_label": "post_pandemic",
+      "months": 45,
+      "mean_same_day_share_pct": 55.344464,
+      "mean_international_share_pct": 6.264664,
+      "mean_package_tour_share_pct": 5.358912,
+      "mean_visitors_total": 3008717.444444,
+      "mean_visitors_overnight": 1315840.666667
+    }
+  ],
+  "stl_summary": [
+    {
+      "tier": "5star",
+      "block": "pre_pandemic",
+      "months": 120,
+      "trend_strength": 0.815003,
+      "seasonal_strength": 0.611688,
+      "seasonal_peak_month": 8,
+      "seasonal_trough_month": 9,
+      "seasonal_range_pp": 7.736616,
+      "remainder_sd_pp": 1.972699
+    },
+    {
+      "tier": "5star",
+      "block": "post_pandemic",
+      "months": 45,
+      "trend_strength": 0.796815,
+      "seasonal_strength": 0.254072,
+      "seasonal_peak_month": 8,
+      "seasonal_trough_month": 6,
+      "seasonal_range_pp": 5.764436,
+      "remainder_sd_pp": 2.660873
+    },
+    {
+      "tier": "4star",
+      "block": "pre_pandemic",
+      "months": 120,
+      "trend_strength": 0.604617,
+      "seasonal_strength": 0.518766,
+      "seasonal_peak_month": 11,
+      "seasonal_trough_month": 1,
+      "seasonal_range_pp": 7.735306,
+      "remainder_sd_pp": 2.651428
+    },
+    {
+      "tier": "4star",
+      "block": "post_pandemic",
+      "months": 45,
+      "trend_strength": 0.686216,
+      "seasonal_strength": 0.517595,
+      "seasonal_peak_month": 8,
+      "seasonal_trough_month": 9,
+      "seasonal_range_pp": 10.618553,
+      "remainder_sd_pp": 2.474743
+    },
+    {
+      "tier": "3star",
+      "block": "pre_pandemic",
+      "months": 120,
+      "trend_strength": 0.678208,
+      "seasonal_strength": 0.331252,
+      "seasonal_peak_month": 8,
+      "seasonal_trough_month": 1,
+      "seasonal_range_pp": 7.917337,
+      "remainder_sd_pp": 2.669798
+    },
+    {
+      "tier": "3star",
+      "block": "post_pandemic",
+      "months": 45,
+      "trend_strength": 0.37046,
+      "seasonal_strength": 0.381874,
+      "seasonal_peak_month": 8,
+      "seasonal_trough_month": 9,
+      "seasonal_range_pp": 9.768163,
+      "remainder_sd_pp": 2.685039
+    },
+    {
+      "tier": "2star",
+      "block": "pre_pandemic",
+      "months": 120,
+      "trend_strength": 0.505773,
+      "seasonal_strength": 0.468425,
+      "seasonal_peak_month": 11,
+      "seasonal_trough_month": 1,
+      "seasonal_range_pp": 12.736248,
+      "remainder_sd_pp": 3.820132
+    },
+    {
+      "tier": "2star",
+      "block": "post_pandemic",
+      "months": 45,
+      "trend_strength": 0.524365,
+      "seasonal_strength": 0.634206,
+      "seasonal_peak_month": 8,
+      "seasonal_trough_month": 9,
+      "seasonal_range_pp": 9.659382,
+      "remainder_sd_pp": 2.137028
+    }
+  ],
+  "stl_full_series_check": [
+    {
+      "tier": "5star",
+      "max_abs_seasonal_pre_pandemic_pp": 6.56525,
+      "max_abs_seasonal_post_pandemic_pp": 34.809406,
+      "month_of_post_pandemic_max": "2023-08",
+      "occupancy_pct_that_month": 90.6,
+      "seasonal_that_month_pp": -34.809406,
+      "remainder_that_month_pp": 50.50356
+    },
+    {
+      "tier": "4star",
+      "max_abs_seasonal_pre_pandemic_pp": 9.675507,
+      "max_abs_seasonal_post_pandemic_pp": 9.4389,
+      "month_of_post_pandemic_max": "2023-03",
+      "occupancy_pct_that_month": 74.1,
+      "seasonal_that_month_pp": -9.4389,
+      "remainder_that_month_pp": 10.360401
+    },
+    {
+      "tier": "3star",
+      "max_abs_seasonal_pre_pandemic_pp": 8.082139,
+      "max_abs_seasonal_post_pandemic_pp": 13.716179,
+      "month_of_post_pandemic_max": "2023-09",
+      "occupancy_pct_that_month": 73.6,
+      "seasonal_that_month_pp": -13.716179,
+      "remainder_that_month_pp": 10.022545
+    },
+    {
+      "tier": "2star",
+      "max_abs_seasonal_pre_pandemic_pp": 9.427344,
+      "max_abs_seasonal_post_pandemic_pp": 10.966238,
+      "month_of_post_pandemic_max": "2023-09",
+      "occupancy_pct_that_month": 76.2,
+      "seasonal_that_month_pp": -10.966238,
+      "remainder_that_month_pp": 1.896326
+    }
+  ],
+  "occupancy_by_period": [
+    {
+      "tier": "5star",
+      "period_label": "pre_pandemic",
+      "months": 120,
+      "occupancy_mean": 85.646667,
+      "occupancy_sd": 5.300593,
+      "occupancy_min": 75.3,
+      "occupancy_max": 96.2,
+      "pearson_r_log_overnight": 0.842457
+    },
+    {
+      "tier": "5star",
+      "period_label": "pandemic",
+      "months": 35,
+      "occupancy_mean": 33.942857,
+      "occupancy_sd": 16.494995,
+      "occupancy_min": 5.0,
+      "occupancy_max": 63.6,
+      "pearson_r_log_overnight": 0.788282
+    },
+    {
+      "tier": "5star",
+      "period_label": "post_pandemic",
+      "months": 45,
+      "occupancy_mean": 88.984444,
+      "occupancy_sd": 6.033918,
+      "occupancy_min": 70.5,
+      "occupancy_max": 96.5,
+      "pearson_r_log_overnight": 0.834587
+    },
+    {
+      "tier": "4star",
+      "period_label": "pre_pandemic",
+      "months": 120,
+      "occupancy_mean": 86.9175,
+      "occupancy_sd": 5.091279,
+      "occupancy_min": 73.2,
+      "occupancy_max": 94.6,
+      "pearson_r_log_overnight": 0.60641
+    },
+    {
+      "tier": "4star",
+      "period_label": "pandemic",
+      "months": 35,
+      "occupancy_mean": 42.828571,
+      "occupancy_sd": 15.04033,
+      "occupancy_min": 16.8,
+      "occupancy_max": 67.5,
+      "pearson_r_log_overnight": 0.517552
+    },
+    {
+      "tier": "4star",
+      "period_label": "post_pandemic",
+      "months": 45,
+      "occupancy_mean": 83.0,
+      "occupancy_sd": 5.09679,
+      "occupancy_min": 70.0,
+      "occupancy_max": 94.4,
+      "pearson_r_log_overnight": 0.814575
+    },
+    {
+      "tier": "3star",
+      "period_label": "pre_pandemic",
+      "months": 120,
+      "occupancy_mean": 85.580833,
+      "occupancy_sd": 5.122521,
+      "occupancy_min": 72.8,
+      "occupancy_max": 97.2,
+      "pearson_r_log_overnight": 0.656414
+    },
+    {
+      "tier": "3star",
+      "period_label": "pandemic",
+      "months": 35,
+      "occupancy_mean": 45.868571,
+      "occupancy_sd": 16.033472,
+      "occupancy_min": 18.4,
+      "occupancy_max": 81.3,
+      "pearson_r_log_overnight": 0.405579
+    },
+    {
+      "tier": "3star",
+      "period_label": "post_pandemic",
+      "months": 45,
+      "occupancy_mean": 83.564444,
+      "occupancy_sd": 3.964224,
+      "occupancy_min": 73.6,
+      "occupancy_max": 91.1,
+      "pearson_r_log_overnight": 0.596094
+    },
+    {
+      "tier": "2star",
+      "period_label": "pre_pandemic",
+      "months": 120,
+      "occupancy_mean": 73.690833,
+      "occupancy_sd": 6.392235,
+      "occupancy_min": 55.8,
+      "occupancy_max": 85.0,
+      "pearson_r_log_overnight": 0.14383
+    },
+    {
+      "tier": "2star",
+      "period_label": "pandemic",
+      "months": 35,
+      "occupancy_mean": 40.371429,
+      "occupancy_sd": 15.406217,
+      "occupancy_min": 11.7,
+      "occupancy_max": 86.3,
+      "pearson_r_log_overnight": -0.135366
+    },
+    {
+      "tier": "2star",
+      "period_label": "post_pandemic",
+      "months": 45,
+      "occupancy_mean": 87.973333,
+      "occupancy_sd": 4.179136,
+      "occupancy_min": 76.2,
+      "occupancy_max": 93.6,
+      "pearson_r_log_overnight": 0.663248
+    }
+  ],
+  "tiers": [
+    "5star",
+    "4star",
+    "3star",
+    "2star"
+  ],
+  "figures": [
+    "outputs/figures/fig1_visitor_mix_and_occupancy.png",
+    "outputs/figures/fig1_visitor_mix_and_occupancy.pdf",
+    "outputs/figures/eda_stl_occupancy.png",
+    "outputs/figures/eda_stl_occupancy.pdf",
+    "outputs/figures/eda_scatter_occupancy_overnight.png",
+    "outputs/figures/eda_scatter_occupancy_overnight.pdf"
+  ]
+}

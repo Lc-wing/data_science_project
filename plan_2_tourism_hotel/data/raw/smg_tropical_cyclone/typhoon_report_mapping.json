@@ -1,0 +1,747 @@
+{
+  "_0004": {
+    "disp_name_zh": "啟德",
+    "disp_name_en": "KAI-TAK",
+    "disp_name_pt": "KAI-TAK"
+  },
+  "_0013": {
+    "disp_name_zh": "瑪利亞",
+    "disp_name_en": "MARIA",
+    "disp_name_pt": "MARIA"
+  },
+  "_0016": {
+    "disp_name_zh": "悟空",
+    "disp_name_en": "WUKONG",
+    "disp_name_pt": "WUKONG"
+  },
+  "_0021": {
+    "disp_name_zh": "貝碧嘉",
+    "disp_name_en": "Bebinca",
+    "disp_name_pt": "Bebinca"
+  },
+  "_00X1": {
+    "disp_name_zh": "無定名",
+    "disp_name_en": "No Name",
+    "disp_name_pt": "No Name"
+  },
+  "_0103": {
+    "disp_name_zh": "榴槤",
+    "disp_name_en": "DURIAN",
+    "disp_name_pt": "DURIAN"
+  },
+  "_0104": {
+    "disp_name_zh": "尤特",
+    "disp_name_en": "UTOR",
+    "disp_name_pt": "UTOR"
+  },
+  "_0107": {
+    "disp_name_zh": "玉兔",
+    "disp_name_en": "YUTU",
+    "disp_name_pt": "YUTU"
+  },
+  "_0114": {
+    "disp_name_zh": "菲特",
+    "disp_name_en": "FITOW",
+    "disp_name_pt": "FITOW"
+  },
+  "_0116": {
+    "disp_name_zh": "百合",
+    "disp_name_en": "NARI",
+    "disp_name_pt": "NARI"
+  },
+  "_0212": {
+    "disp_name_zh": "北冕",
+    "disp_name_en": "KAMMURI",
+    "disp_name_pt": "KAMMURI"
+  },
+  "_0214": {
+    "disp_name_zh": "黃蜂",
+    "disp_name_en": "VONGFONG",
+    "disp_name_pt": "VONGFONG"
+  },
+  "_0218": {
+    "disp_name_zh": "黑格比",
+    "disp_name_en": "HAGUPIT",
+    "disp_name_pt": "HAGUPIT"
+  },
+  "_0307": {
+    "disp_name_zh": "依布都",
+    "disp_name_en": "IMBUDO",
+    "disp_name_pt": "IMBUDO"
+  },
+  "_0308": {
+    "disp_name_zh": "天鵝",
+    "disp_name_en": "KONI",
+    "disp_name_pt": "KONI"
+  },
+  "_0312": {
+    "disp_name_zh": "科羅旺",
+    "disp_name_en": "KROVANH",
+    "disp_name_pt": "KROVANH"
+  },
+  "_0313": {
+    "disp_name_zh": "杜鵑",
+    "disp_name_en": "DUJUAN",
+    "disp_name_pt": "DUJUAN"
+  },
+  "_0409": {
+    "disp_name_zh": "圓規",
+    "disp_name_en": "KOMPASU",
+    "disp_name_pt": "KOMPASU"
+  },
+  "_0508": {
+    "disp_name_zh": "天鷹",
+    "disp_name_en": "WASHI",
+    "disp_name_pt": "WASHI"
+  },
+  "_0510": {
+    "disp_name_zh": "珊瑚",
+    "disp_name_en": "SANVU",
+    "disp_name_pt": "SANVU"
+  },
+  "_0516": {
+    "disp_name_zh": "韋森特",
+    "disp_name_en": "VICENTE",
+    "disp_name_pt": "VICENTE"
+  },
+  "_0518": {
+    "disp_name_zh": "達維",
+    "disp_name_en": "DAMREY",
+    "disp_name_pt": "DAMREY"
+  },
+  "_0601": {
+    "disp_name_zh": "珍珠",
+    "disp_name_en": "CHANCHU",
+    "disp_name_pt": "CHANCHU"
+  },
+  "_0602": {
+    "disp_name_zh": "杰拉華",
+    "disp_name_en": "JELAWAT",
+    "disp_name_pt": "JELAWAT"
+  },
+  "_0606": {
+    "disp_name_zh": "派比安",
+    "disp_name_en": "PRAPIROON",
+    "disp_name_pt": "PRAPIROON"
+  },
+  "_0609": {
+    "disp_name_zh": "寶霞",
+    "disp_name_en": "BOPHA",
+    "disp_name_pt": "BOPHA"
+  },
+  "_0619": {
+    "disp_name_zh": "西馬侖",
+    "disp_name_en": "CIMARON",
+    "disp_name_pt": "CIMARON"
+  },
+  "_06X1": {
+    "disp_name_zh": "無定名",
+    "disp_name_en": "No Name",
+    "disp_name_pt": "No Name"
+  },
+  "_06X2": {
+    "disp_name_zh": "無定名",
+    "disp_name_en": "No Name",
+    "disp_name_pt": "No Name"
+  },
+  "_0706": {
+    "disp_name_zh": "帕布",
+    "disp_name_en": "PABUK",
+    "disp_name_pt": "PABUK"
+  },
+  "_0713": {
+    "disp_name_zh": "范斯高",
+    "disp_name_en": "FRANCISCO",
+    "disp_name_pt": "FRANCISCO"
+  },
+  "_0801": {
+    "disp_name_zh": "浣熊",
+    "disp_name_en": "NEOGURI",
+    "disp_name_pt": "NEOGURI"
+  },
+  "_0806": {
+    "disp_name_zh": "風神",
+    "disp_name_en": "FENGSHEN",
+    "disp_name_pt": "FENGSHEN"
+  },
+  "_0809": {
+    "disp_name_zh": "北冕",
+    "disp_name_en": "KAMMURI",
+    "disp_name_pt": "KAMMURI"
+  },
+  "_0812": {
+    "disp_name_zh": "鸚鵡",
+    "disp_name_en": "NURI",
+    "disp_name_pt": "NURI"
+  },
+  "_0814": {
+    "disp_name_zh": "黑格比",
+    "disp_name_en": "HAGUPIT",
+    "disp_name_pt": "HAGUPIT"
+  },
+  "_0817": {
+    "disp_name_zh": "海高斯",
+    "disp_name_en": "HIGOS",
+    "disp_name_pt": "HIGOS"
+  },
+  "_0903": {
+    "disp_name_zh": "蓮花",
+    "disp_name_en": "LINFA",
+    "disp_name_pt": "LINFA"
+  },
+  "_0904": {
+    "disp_name_zh": "浪卡",
+    "disp_name_en": "NANGKA",
+    "disp_name_pt": "NANGKA"
+  },
+  "_0905": {
+    "disp_name_zh": "蘇迪羅",
+    "disp_name_en": "SOUDELOR",
+    "disp_name_pt": "SOUDELOR"
+  },
+  "_0906": {
+    "disp_name_zh": "莫拉菲",
+    "disp_name_en": "MOLAVE",
+    "disp_name_pt": "MOLAVE"
+  },
+  "_0907": {
+    "disp_name_zh": "天鵝",
+    "disp_name_en": "GONI",
+    "disp_name_pt": "GONI"
+  },
+  "_0913": {
+    "disp_name_zh": "彩虹",
+    "disp_name_en": "MUJIGAE",
+    "disp_name_pt": "MUJIGAE"
+  },
+  "_0915": {
+    "disp_name_zh": "巨爵",
+    "disp_name_en": "KOPPU",
+    "disp_name_pt": "KOPPU"
+  },
+  "_0916": {
+    "disp_name_zh": "凱薩娜",
+    "disp_name_en": "KETSANA",
+    "disp_name_pt": "KETSANA"
+  },
+  "_1002": {
+    "disp_name_zh": "康森",
+    "disp_name_en": "CONSON",
+    "disp_name_pt": "CONSON"
+  },
+  "_1003": {
+    "disp_name_zh": "燦都",
+    "disp_name_en": "CHANTHU",
+    "disp_name_pt": "CHANTHU"
+  },
+  "_1006": {
+    "disp_name_zh": "獅子山",
+    "disp_name_en": "LIONROCK",
+    "disp_name_pt": "LIONROCK"
+  },
+  "_1011": {
+    "disp_name_zh": "凡亞比",
+    "disp_name_en": "FANAPI",
+    "disp_name_pt": "FANAPI"
+  },
+  "_1013": {
+    "disp_name_zh": "鮎魚",
+    "disp_name_en": "MEGI",
+    "disp_name_pt": "MEGI"
+  },
+  "_1103": {
+    "disp_name_zh": "莎莉嘉",
+    "disp_name_en": "SARIKA",
+    "disp_name_pt": "SARIKA"
+  },
+  "_1104": {
+    "disp_name_zh": "海馬",
+    "disp_name_en": "HAIMA",
+    "disp_name_pt": "HAIMA"
+  },
+  "_1108": {
+    "disp_name_zh": "洛坦",
+    "disp_name_en": "NOCK-TEN",
+    "disp_name_pt": "NOCK-TEN"
+  },
+  "_1117": {
+    "disp_name_zh": "納沙",
+    "disp_name_en": "NESAT",
+    "disp_name_pt": "NESAT"
+  },
+  "_1119": {
+    "disp_name_zh": "尼格",
+    "disp_name_en": "NALGAE",
+    "disp_name_pt": "NALGAE"
+  },
+  "_1205": {
+    "disp_name_zh": "泰利",
+    "disp_name_en": "TALIM",
+    "disp_name_pt": "TALIM"
+  },
+  "_1206": {
+    "disp_name_zh": "杜蘇芮",
+    "disp_name_en": "DOKSURI",
+    "disp_name_pt": "DOKSURI"
+  },
+  "_1208": {
+    "disp_name_zh": "韋森特",
+    "disp_name_en": "VICENTE",
+    "disp_name_pt": "VICENTE"
+  },
+  "_1213": {
+    "disp_name_zh": "啟德",
+    "disp_name_en": "KAI-TAK",
+    "disp_name_pt": "KAI-TAK"
+  },
+  "_1214": {
+    "disp_name_zh": "天秤",
+    "disp_name_en": "TEMBIN",
+    "disp_name_pt": "TEMBIN"
+  },
+  "_1305": {
+    "disp_name_zh": "貝碧嘉",
+    "disp_name_en": "BEBINCA",
+    "disp_name_pt": "BEBINCA"
+  },
+  "_1306": {
+    "disp_name_zh": "溫比亞",
+    "disp_name_en": "RUMBIA",
+    "disp_name_pt": "RUMBIA"
+  },
+  "_1308": {
+    "disp_name_zh": "西馬侖",
+    "disp_name_en": "CIMARON",
+    "disp_name_pt": "CIMARON"
+  },
+  "_1309": {
+    "disp_name_zh": "飛燕",
+    "disp_name_en": "JEBI",
+    "disp_name_pt": "JEBI"
+  },
+  "_1311": {
+    "disp_name_zh": "尤特",
+    "disp_name_en": "UTOR",
+    "disp_name_pt": "UTOR"
+  },
+  "_1319": {
+    "disp_name_zh": "天兔",
+    "disp_name_en": "USAGI",
+    "disp_name_pt": "USAGI"
+  },
+  "_1329": {
+    "disp_name_zh": "羅莎",
+    "disp_name_en": "KROSA",
+    "disp_name_pt": "KROSA"
+  },
+  "_1409": {
+    "disp_name_zh": "威馬遜",
+    "disp_name_en": "RAMMASUN",
+    "disp_name_pt": "RAMMASUN"
+  },
+  "_1415": {
+    "disp_name_zh": "海鷗",
+    "disp_name_en": "KALMAEGI",
+    "disp_name_pt": "KALMAEGI"
+  },
+  "_14noname": {
+    "disp_name_zh": "無定名",
+    "disp_name_en": "No Name",
+    "disp_name_pt": "No Name"
+  },
+  "_1508": {
+    "disp_name_zh": "鯨魚",
+    "disp_name_en": "KUJIRA",
+    "disp_name_pt": "KUJIRA"
+  },
+  "_1510": {
+    "disp_name_zh": "蓮花",
+    "disp_name_en": "LINFA",
+    "disp_name_pt": "LINFA"
+  },
+  "_1522": {
+    "disp_name_zh": "彩虹",
+    "disp_name_en": "MUJIGAE",
+    "disp_name_pt": "MUJIGAE"
+  },
+  "_1603": {
+    "disp_name_zh": "銀河",
+    "disp_name_en": "Mirinae",
+    "disp_name_pt": "Mirinae"
+  },
+  "_1604": {
+    "disp_name_zh": "妮坦",
+    "disp_name_en": "Nida",
+    "disp_name_pt": "Nida"
+  },
+  "_1608": {
+    "disp_name_zh": "電母",
+    "disp_name_en": "Dianmu",
+    "disp_name_pt": "Dianmu"
+  },
+  "_1614": {
+    "disp_name_zh": "莫蘭蒂",
+    "disp_name_en": "Meranti",
+    "disp_name_pt": "Meranti"
+  },
+  "_1619": {
+    "disp_name_zh": "艾利",
+    "disp_name_en": "Aere",
+    "disp_name_pt": "Aere"
+  },
+  "_1621": {
+    "disp_name_zh": "莎莉嘉",
+    "disp_name_en": "Sarika",
+    "disp_name_pt": "Sarika"
+  },
+  "_1622": {
+    "disp_name_zh": "海馬",
+    "disp_name_en": "Haima",
+    "disp_name_pt": "Haima"
+  },
+  "_16noname_1": {
+    "disp_name_zh": "未定名",
+    "disp_name_en": "No Name",
+    "disp_name_pt": "No Name"
+  },
+  "_1702": {
+    "disp_name_zh": "苗柏",
+    "disp_name_en": "Merbok",
+    "disp_name_pt": "Merbok"
+  },
+  "_1707": {
+    "disp_name_zh": "洛克",
+    "disp_name_en": "Roke",
+    "disp_name_pt": "Roke"
+  },
+  "_1713": {
+    "disp_name_zh": "天鴿",
+    "disp_name_en": "Hato",
+    "disp_name_pt": "Hato"
+  },
+  "_1714": {
+    "disp_name_zh": "帕卡",
+    "disp_name_en": "Pakhar",
+    "disp_name_pt": "Pakhar"
+  },
+  "_1716": {
+    "disp_name_zh": "瑪娃",
+    "disp_name_en": "Mawar",
+    "disp_name_pt": "Mawar"
+  },
+  "_1719": {
+    "disp_name_zh": "杜蘇芮",
+    "disp_name_en": "Doksuri",
+    "disp_name_pt": "Doksuri"
+  },
+  "_1720": {
+    "disp_name_zh": "卡努",
+    "disp_name_en": "Khanun",
+    "disp_name_pt": "Khanun"
+  },
+  "_17nameless_1": {
+    "disp_name_zh": "無定名",
+    "disp_name_en": "No Name",
+    "disp_name_pt": "No Name"
+  },
+  "_1804": {
+    "disp_name_zh": "艾雲尼",
+    "disp_name_en": "Ewiniar",
+    "disp_name_pt": "Ewiniar"
+  },
+  "_1809": {
+    "disp_name_zh": "山神",
+    "disp_name_en": "Son-Tinh",
+    "disp_name_pt": "Son-Tinh"
+  },
+  "_1816": {
+    "disp_name_zh": "貝碧嘉",
+    "disp_name_en": "Bebinca",
+    "disp_name_pt": "Bebinca"
+  },
+  "_1822": {
+    "disp_name_zh": "山竹",
+    "disp_name_en": "Mangkhut",
+    "disp_name_pt": "Mangkhut"
+  },
+  "_1823": {
+    "disp_name_zh": "百里嘉",
+    "disp_name_en": "Barijat",
+    "disp_name_pt": "Barijat"
+  },
+  "_1826": {
+    "disp_name_zh": "玉兔",
+    "disp_name_en": "Yutu",
+    "disp_name_pt": "Yutu"
+  },
+  "_18nameless_1": {
+    "disp_name_zh": "無定名",
+    "disp_name_en": "No Name",
+    "disp_name_pt": "No Name"
+  },
+  "_1904": {
+    "disp_name_zh": "木恩",
+    "disp_name_en": "Mun",
+    "disp_name_pt": "Mun"
+  },
+  "_1907": {
+    "disp_name_zh": "韋帕",
+    "disp_name_en": "WIPHA",
+    "disp_name_pt": "WIPHA"
+  },
+  "_1911": {
+    "disp_name_zh": "白鹿",
+    "disp_name_en": "BAILU",
+    "disp_name_pt": "BAILU"
+  },
+  "_1912": {
+    "disp_name_zh": "楊柳",
+    "disp_name_en": "PODUL",
+    "disp_name_pt": "PODUL"
+  },
+  "_1914": {
+    "disp_name_zh": "劍魚",
+    "disp_name_en": "KAJIKI",
+    "disp_name_pt": "KAJIKI"
+  },
+  "_2002": {
+    "disp_name_zh": "鸚鵡",
+    "disp_name_en": "NURI",
+    "disp_name_pt": "NURI"
+  },
+  "_2003": {
+    "disp_name_zh": "森拉克",
+    "disp_name_en": "SINLAKU",
+    "disp_name_pt": "SINLAKU"
+  },
+  "_2007": {
+    "disp_name_zh": "海高斯",
+    "disp_name_en": "HIGOS",
+    "disp_name_pt": "HIGOS"
+  },
+  "_2016": {
+    "disp_name_zh": "浪卡",
+    "disp_name_en": "NANGKA",
+    "disp_name_pt": "NANGKA"
+  },
+  "_2017": {
+    "disp_name_zh": "沙德爾",
+    "disp_name_en": "SAUDEL",
+    "disp_name_pt": "SAUDEL"
+  },
+  "_2104": {
+    "disp_name_zh": "小熊",
+    "disp_name_en": "KOGUMA",
+    "disp_name_pt": "KOGUMA"
+  },
+  "_2105nameless": {
+    "disp_name_zh": "無定名",
+    "disp_name_en": "No Name",
+    "disp_name_pt": "No Name"
+  },
+  "_2107": {
+    "disp_name_zh": "查帕卡",
+    "disp_name_en": "CEMPAKA",
+    "disp_name_pt": "CEMPAKA"
+  },
+  "_2109": {
+    "disp_name_zh": "盧碧",
+    "disp_name_en": "LUPIT",
+    "disp_name_pt": "LUPIT"
+  },
+  "_2113": {
+    "disp_name_zh": "康森",
+    "disp_name_en": "CONSON",
+    "disp_name_pt": "CONSON"
+  },
+  "_2117": {
+    "disp_name_zh": "獅子山",
+    "disp_name_en": "LIONROCK",
+    "disp_name_pt": "LIONROCK"
+  },
+  "_2118": {
+    "disp_name_zh": "圓規",
+    "disp_name_en": "KOMPASU",
+    "disp_name_pt": "KOMPASU"
+  },
+  "_2122": {
+    "disp_name_zh": "雷伊",
+    "disp_name_en": "RAI",
+    "disp_name_pt": "RAI"
+  },
+  "_2203": {
+    "disp_name_zh": "暹芭",
+    "disp_name_en": "CHABA",
+    "disp_name_pt": "CHABA"
+  },
+  "_2204nameless": {
+    "disp_name_zh": "無定名",
+    "disp_name_en": "No Name",
+    "disp_name_pt": "No Name"
+  },
+  "_2207": {
+    "disp_name_zh": "木蘭",
+    "disp_name_en": "MULAN",
+    "disp_name_pt": "MULAN"
+  },
+  "_2209": {
+    "disp_name_zh": "馬鞍",
+    "disp_name_en": "MA-ON",
+    "disp_name_pt": "MA-ON"
+  },
+  "_2220": {
+    "disp_name_zh": "納沙",
+    "disp_name_en": "NESAT",
+    "disp_name_pt": "NESAT"
+  },
+  "_2222": {
+    "disp_name_zh": "尼格",
+    "disp_name_en": "NALGAE",
+    "disp_name_pt": "NALGAE"
+  },
+  "_2304": {
+    "disp_name_zh": "泰利",
+    "disp_name_en": "TALIM",
+    "disp_name_pt": "TALIM"
+  },
+  "_2305": {
+    "disp_name_zh": "杜蘇芮",
+    "disp_name_en": "Doksuri",
+    "disp_name_pt": "Doksuri"
+  },
+  "_2309": {
+    "disp_name_zh": "蘇拉",
+    "disp_name_en": "Saola",
+    "disp_name_pt": "Saola"
+  },
+  "_2311": {
+    "disp_name_zh": "海葵",
+    "disp_name_en": "Haikui",
+    "disp_name_pt": "Haikui"
+  },
+  "_2314": {
+    "disp_name_zh": "小犬",
+    "disp_name_en": "Koinu",
+    "disp_name_pt": "Koinu"
+  },
+  "_2402": {
+    "disp_name_zh": "馬力斯",
+    "disp_name_en": "Maliksi",
+    "disp_name_pt": "Maliksi"
+  },
+  "_2404": {
+    "disp_name_zh": "派比安",
+    "disp_name_en": "Prapiroon",
+    "disp_name_pt": "Prapiroon"
+  },
+  "_2411": {
+    "disp_name_zh": "摩羯",
+    "disp_name_en": "Yagi",
+    "disp_name_pt": "Yagi"
+  },
+  "_2420": {
+    "disp_name_zh": "潭美",
+    "disp_name_en": "Trami",
+    "disp_name_pt": "Trami"
+  },
+  "_2422": {
+    "disp_name_zh": "銀杏",
+    "disp_name_en": "Yinxing",
+    "disp_name_pt": "Yinxing"
+  },
+  "_2423": {
+    "disp_name_zh": "桃芝",
+    "disp_name_en": "Toraji",
+    "disp_name_pt": "Toraji"
+  },
+  "_2424": {
+    "disp_name_zh": "萬宜",
+    "disp_name_en": "Man-yi",
+    "disp_name_pt": "Man-yi"
+  },
+  "_2501": {
+    "disp_name_zh": "蝴蝶",
+    "disp_name_en": "Wutip",
+    "disp_name_pt": "Wutip"
+  },
+  "_2502nameless": {
+    "disp_name_zh": "無定名",
+    "disp_name_en": "No Name",
+    "disp_name_pt": "No Name"
+  },
+  "_2504": {
+    "disp_name_zh": "丹娜絲",
+    "disp_name_en": "Danas",
+    "disp_name_pt": "Danas"
+  },
+  "_2506": {
+    "disp_name_zh": "韋帕",
+    "disp_name_en": "Wipha",
+    "disp_name_pt": "Wipha"
+  },
+  "_2511": {
+    "disp_name_zh": "楊柳",
+    "disp_name_en": "Podul",
+    "disp_name_pt": "Podul"
+  },
+  "_2512nameless": {
+    "disp_name_zh": "無定名",
+    "disp_name_en": "No Name",
+    "disp_name_pt": "No Name"
+  },
+  "_2513": {
+    "disp_name_zh": "劍魚",
+    "disp_name_en": "Kajiki",
+    "disp_name_pt": "Kajiki"
+  },
+  "_2514": {
+    "disp_name_zh": "藍湖",
+    "disp_name_en": "Nongfa",
+    "disp_name_pt": "Nongfa"
+  },
+  "_2516": {
+    "disp_name_zh": "塔巴",
+    "disp_name_en": "Tapah",
+    "disp_name_pt": "Tapah"
+  },
+  "_2517": {
+    "disp_name_zh": "米娜",
+    "disp_name_en": "Mitag",
+    "disp_name_pt": "Mitag"
+  },
+  "_2518": {
+    "disp_name_zh": "樺加沙",
+    "disp_name_en": "Ragasa",
+    "disp_name_pt": "Ragasa"
+  },
+  "_2521": {
+    "disp_name_zh": "麥德姆",
+    "disp_name_en": "Matmo",
+    "disp_name_pt": "Matmo"
+  },
+  "_2524": {
+    "disp_name_zh": "風神",
+    "disp_name_en": "Fengshen",
+    "disp_name_pt": "Fengshen"
+  },
+  "_2526": {
+    "disp_name_zh": "鳯凰",
+    "disp_name_en": "Fung-wong",
+    "disp_name_pt": "Fung-wong"
+  },
+  "_2610": {
+    "disp_name_zh": "美莎克",
+    "disp_name_en": "Maysak",
+    "disp_name_pt": "Maysak"
+  },
+  "_2612": {
+    "disp_name_zh": "紅霞",
+    "disp_name_en": "Noul",
+    "disp_name_pt": "Noul"
+  },
+  "_2618": {
+    "disp_name_zh": "沙德爾",
+    "disp_name_en": "Saudel",
+    "disp_name_pt": "Saudel"
+  }
+}

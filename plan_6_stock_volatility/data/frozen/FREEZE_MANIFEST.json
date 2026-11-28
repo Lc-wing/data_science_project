@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "project": "plan_6_stock_volatility",
+  "milestone": "M2",
+  "generated_at_utc": "2026-11-22T14:04:28+00:00",
+  "source_provenance_utc": "2026-11-22T14:04:28+00:00",
+  "random_seed": 42,
+  "artifact_count": 6,
+  "files": {
+    "data/frozen/panel_daily.parquet": {
+      "filename": "panel_daily.parquet",
+      "byte_size": 14637611,
+      "sha256": "3515fcd12cabdbb0cfa2671010224e57a6a8d7d7ad498c51029537c5a225e051"
+    },
+    "data/frozen/events_text_phase_b.parquet": {
+      "filename": "events_text_phase_b.parquet",
+      "byte_size": 275799,
+      "sha256": "f07b663f0719359eb470c224ab7c9686dc580b3380b9e92ce16ca61d14c39045"
+    },
+    "data/frozen/analysis_spec.json": {
+      "filename": "analysis_spec.json",
+      "byte_size": 6286,
+      "sha256": "ac7dfb0155139440bbea86fa5ed2bb3c471798da9d3b7a236bb72f1c1862c604"
+    },
+    "data/frozen/split_metadata.json": {
+      "filename": "split_metadata.json",
+      "byte_size": 4832,
+      "sha256": "c0e21ca3570a16867ba9817e2a4a1a4abc8b872654c66f437913def97f5bcecf"
+    },
+    "data/frozen/feature_manifest.json": {
+      "filename": "feature_manifest.json",
+      "byte_size": 8696,
+      "sha256": "bfb13efc7a66dca209c8aa5a6632950c7a947edc753b5dc28c20178ee4b9fb0e"
+    },
+    "data/frozen/data_dictionary.md": {
+      "filename": "data_dictionary.md",
+      "byte_size": 5578,
+      "sha256": "e7c6b6b6e28d13bb77a9791f9b04f5ce57cb52c3c921e0c8267a3254bb50aff3"
+    }
+  }
+}

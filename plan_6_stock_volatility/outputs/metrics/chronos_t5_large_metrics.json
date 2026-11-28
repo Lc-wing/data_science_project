@@ -1,0 +1,12 @@
+{
+  "model_id": "amazon/chronos-t5-large",
+  "context_length": 128,
+  "test_rows": 14700,
+  "test_metrics": {
+    "qlike": 0.5848221602035556,
+    "rmse": 0.11832489728401951,
+    "mae": 0.07209804015626915
+  },
+  "test_nominal_80_coverage": 0.22285714285714286,
+  "elapsed_sec": 327.49
+}
